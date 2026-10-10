@@ -46,13 +46,13 @@ renderCatalog=function(){
   const q=($("#toolSearch")?.value||"").toLowerCase().trim(),selected=$("#categoryFilter")?.value||"All categories";
   const allowed=categoryAliases[selected]||[selected];
   const visible=tools.filter(t=>t[1]!=="Compliance & AML"&&(selected==="All categories"||allowed.includes(t[1]))&&(!q||t.join(" ").toLowerCase().includes(q)));
-  box.innerHTML=visible.length?visible.map(t=>{const fav=discoveryLoad(DISCOVERY_FAV_KEY).includes(t[0]);return '<article class="toolcard '+(v2Ids.has(t[0])?'featured':'')+'"><button class="favorite-btn" type="button" aria-pressed="'+(fav?'true':'false')+'" aria-label="'+(fav?'Remove from favourites':'Add to favourites')+'" title="'+(fav?'Remove from favourites':'Add to favourites')+'" onclick="toggleFavorite(\''+t[0]+'\',event)">'+(fav?'★':'☆')+'</button><div><span class="tag">'+esc(t[1])+'</span>'+(v2Ids.has(t[0])?'<span class="tag new-tag">v2</span>':'')+'</div><h3>'+esc(t[2])+'</h3><p>'+esc(t[3])+'</p><button class="btn alt" type="button" onclick="openTool(\''+t[0]+'\')">Open tool →</button></article>'}).join(""):'<div class="empty"><strong>No matching tools.</strong><br>Try a broader task or another category.</div>';
+  box.innerHTML=visible.length?visible.map(t=>{const fav=discoveryLoad(DISCOVERY_FAV_KEY).includes(t[0]);return '<article class="toolcard '+(v2Ids.has(t[0])?'featured':'')+'"><button class="favorite-btn" type="button" aria-pressed="'+(fav?'true':'false')+'" aria-label="'+(fav?'Remove from favourites':'Add to favourites')+'" title="'+(fav?'Remove from favourites':'Add to favourites')+'" onclick="toggleFavorite(\''+t[0]+'\',event)">'+(fav?'★':'☆')+'</button><div><span class="tag">'+esc(t[1])+'</span>'+'</div><h3>'+esc(t[2])+'</h3><p>'+esc(t[3])+'</p><button class="btn alt" type="button" onclick="openTool(\''+t[0]+'\')">Open tool →</button></article>'}).join(""):'<div class="empty"><strong>No matching tools.</strong><br>Try a broader task or another category.</div>';
   const count=$("#visibleCount");if(count)count.textContent=visible.length;
   const active=$("#activeCount");if(active)active.textContent=tools.filter(t=>t[1]!=="Compliance & AML").length;
 };
 
 function v2Shell(t,body){
-  return '<div class="workspace-head"><div><span class="tag">'+esc(t[1])+'</span><span class="tag new-tag">v2</span><h2>'+esc(t[2])+'</h2><p class="desc">'+esc(t[3])+'</p>'+shareToolMarkup(t[0])+'</div><button class="btn alt no-print" type="button" onclick="closeTool()">Close</button></div>'+body+'<div id="out" aria-live="polite"></div>'+relatedToolMarkup(t[0]);
+  return '<div class="workspace-head"><div><span class="tag">'+esc(t[1])+'</span><h2>'+esc(t[2])+'</h2><p class="desc">'+esc(t[3])+'</p>'+shareToolMarkup(t[0])+'</div><button class="btn alt no-print" type="button" onclick="closeTool()">Close</button></div>'+body+'<div id="out" aria-live="polite"></div>'+relatedToolMarkup(t[0]);
 }
 openTool=function(id){
   if(!v2Ids.has(id)){rememberTool(id);return legacyOpenTool(id)}
