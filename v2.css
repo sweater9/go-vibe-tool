@@ -58,3 +58,50 @@ header{box-shadow:0 8px 30px rgba(26,22,67,.04)}.eyebrow{background:linear-gradi
 .homepage .hero-card button strong{line-height:1.35}
 .homepage .hero-card small{line-height:1.4;min-height:2.8em}
 .homepage :is(header .brand,.skip){display:inline-flex;align-items:center;min-height:44px;min-width:44px}
+
+/* ---------- AI Prompt Improver ---------- */
+.pi-layout { align-items: start; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.pi-layout > * { min-width: 0; }
+.pi-input textarea { max-width: 100%; }
+@media (max-width: 820px) { .pi-layout { grid-template-columns: minmax(0, 1fr); } }
+.pi-input textarea { min-height: 260px; resize: vertical; line-height: 1.55; }
+.pi-output h3 { margin: 22px 0 10px; font-size: 17px; letter-spacing: -.02em; }
+.pi-output h3:first-child { margin-top: 0; }
+.pi-empty { background: var(--surface-2); border: 1px dashed var(--line); border-radius: 16px; padding: 22px; }
+.pi-empty h3 { margin-top: 0; }
+.pi-score { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; }
+.pi-score-top { display: flex; align-items: center; gap: 18px; margin-bottom: 14px; }
+.pi-score-num { display: flex; align-items: baseline; gap: 2px; }
+.pi-score-num strong { font-size: 46px; line-height: 1; letter-spacing: -.04em; }
+.pi-score-num span { color: var(--muted); font-weight: 700; }
+.pi-label { margin: 0; font-weight: 800; font-size: 18px; }
+.pi-meta { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.pi-meter { height: 10px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.pi-meter span { display: block; height: 100%; border-radius: 999px; background: var(--danger); transition: width .25s ease; }
+.pi-score[data-level="mid"] .pi-meter span { background: #c9780a; }
+.pi-score[data-level="good"] .pi-meter span { background: var(--brand); }
+.pi-score[data-level="strong"] .pi-meter span { background: var(--ok); }
+.pi-flag { margin-top: 14px; border: 1px solid #f0c2c9; background: #fff5f6; border-radius: 14px; padding: 14px 16px; }
+.pi-flag strong { color: var(--danger); }
+.pi-flag p { margin: 6px 0 0; }
+.pi-flag .btn { margin-top: 10px; }
+.pi-flag[data-type="short"], .pi-flag[data-type="unstructured"], .pi-flag[data-type="truncated"] { border-color: var(--line); background: var(--surface-2); }
+.pi-flag[data-type="short"] strong, .pi-flag[data-type="unstructured"] strong, .pi-flag[data-type="truncated"] strong { color: var(--ink); }
+.pi-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pi-check { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 11px 14px; }
+.pi-check p { margin: 2px 0 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.pi-mark { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-weight: 800; font-size: 13px; background: var(--surface-2); color: var(--muted); }
+.pi-check[data-status="pass"] .pi-mark { background: #dcf5ea; color: var(--ok); }
+.pi-check[data-status="warn"] .pi-mark { background: #fdf0d8; color: #9a5b00; }
+.pi-check[data-status="fail"] .pi-mark { background: #fde3e7; color: var(--danger); }
+.pi-pts { color: var(--muted); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.pi-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; }
+.pi-chip { background: #fdf0d8; color: #7a4800; border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 700; }
+.pi-pre { white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; background: #14152b; color: #f1f1fb; border-radius: 16px; padding: 18px 20px; font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 10px 0 14px; max-width: 100%; }
+.pi-copy-msg { color: var(--ok); font-weight: 700; font-size: 14px; align-self: center; }
+.pi-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (min-width: 821px) { .pi-input { position: sticky; top: 96px; } }
+@media (max-width: 820px) {
+  .pi-score-num strong { font-size: 38px; }
+  .pi-input textarea { height: 170px; min-height: 0; }
+}

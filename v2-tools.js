@@ -30,10 +30,10 @@ function renderDiscoveryShelf(){const box=$("#discoveryShelf");if(!box)return;co
 const categoryAliases={"Writing & Text":["Writing & Text","Text"],"Money & Calculators":["Money & Calculators"],"Files & PDF":["Files & PDF"],"Images & Design":["Images & Design"],"Business":["Business"]};
 const growthPages={
 "ai-prompt-builder":"ai-prompt-builder","pii-secret-redactor":"pii-secret-redactor","curl-code-sanitizer":"curl-token-stripper","fact-anchor-checker":"fact-anchor-checker",
-"invoice-studio":"invoice-generator","image-studio":"image-compressor","pdf-studio":"private-pdf-tools","qr-studio":"qr-code-studio","password-studio":"password-generator","writing-studio":"markdown-text-studio"
+"invoice-studio":"invoice-generator","image-studio":"image-compressor","pdf-studio":"private-pdf-tools","qr-studio":"qr-code-studio","password-studio":"password-generator","writing-studio":"markdown-text-studio","prompt-improver":"prompt-improver"
 };
 const relatedTools={
-"ai-prompt-builder":["pii-secret-redactor","fact-anchor-checker"],"pii-secret-redactor":["curl-code-sanitizer","ai-prompt-builder"],"curl-code-sanitizer":["pii-secret-redactor","json-formatter"],
+"ai-prompt-builder":["prompt-improver","pii-secret-redactor","fact-anchor-checker"],"prompt-improver":["ai-prompt-builder","pii-secret-redactor"],"pii-secret-redactor":["curl-code-sanitizer","ai-prompt-builder"],"curl-code-sanitizer":["pii-secret-redactor","json-formatter"],
 "fact-anchor-checker":["ai-prompt-builder","writing-studio"],"invoice-studio":["budget-studio","percentage-change"],"image-studio":["qr-studio","color-studio"],
 "pdf-studio":["pii-secret-redactor","invoice-studio"],"qr-studio":["url-cleaner","image-studio"],"password-studio":["metadata","pii-secret-redactor"],"writing-studio":["fact-anchor-checker","ai-prompt-builder"]
 };

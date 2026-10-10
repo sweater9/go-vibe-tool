@@ -8,6 +8,8 @@ const ASSETS=[
   "./tools.js",
   "./v2-tools.js",
   "./v21-tools.js",
+  "./prompt-improver-core.js",
+  "./v6-tools.js",
   "./discovery.js",
   "./learn/index.html",
   "./labs/index.html",
