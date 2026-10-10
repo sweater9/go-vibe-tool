@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Building AI Interfaces with React | IntelliTools Knowledge</title><meta name="description" content="Build a React chat UI with a message list, an input box, loading and error states, and calls to your backend — never with a model API key in the client bundle.">
+<link rel="canonical" href="https://intellitools.online/knowledge/react-ai-interfaces.html"><meta property="og:type" content="article"><meta property="og:site_name" content="IntelliTools"><meta property="og:title" content="Building AI Interfaces with React | IntelliTools Knowledge"><meta property="og:description" content="Build a React chat UI with a message list, an input box, loading and error states, and calls to your backend — never with a model API key in the client bundle."><meta property="og:url" content="https://intellitools.online/knowledge/react-ai-interfaces.html">
+<meta name="twitter:card" content="summary"><link rel="icon" href="../assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="../v2.css"><link rel="stylesheet" href="knowledge.css"><link rel="stylesheet" href="learning.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Building AI Interfaces with React","description":"Build a React chat UI with a message list, an input box, loading and error states, and calls to your backend — never with a model API key in the client bundle.","url":"https://intellitools.online/knowledge/react-ai-interfaces.html","publisher":{"@type":"Organization","name":"IntelliTools"},"inLanguage":"en"}</script></head>
+<body><header><div class="wrap"><nav aria-label="Main navigation"><a class="brand" href="../index.html"><span>Intelli</span>Tools</a><div class="navlinks"><a href="../index.html#tools">All tools</a><a href="index.html">Knowledge</a><a href="../index.html#about">About</a></div></nav></div></header>
+<main><section class="kn-head"><div class="wrap kn-wrap"><nav class="kn-crumb" aria-label="Breadcrumb"><a href="index.html">Knowledge</a> › <span>Interfaces</span></nav>
+<span class="eyebrow">EXPLAINER</span><h1>Building AI Interfaces with React</h1><p class="kn-lede">Build a React chat UI with a message list, an input box, loading and error states, and calls to your backend — never with a model API key in the client bundle.</p>
+<p class="kn-quick"><strong>Short answer:</strong> A React AI interface is a <strong>message list + composer + loading/error states</strong> talking to your own API. Keep secrets on the server; keep UI state explicit.</p></div></section>
+<div class="wrap kn-wrap kn-layout"><article class="kn-article"><section id="what-is-it"><h2>What is it?</h2><p>An AI chat interface in React is an ordinary web UI: it renders conversation turns, accepts user input, and displays assistant replies. The model lives behind your backend. You do not need a specific meta-framework (Next.js, Remix, etc.) to learn the pattern — a single-page React app calling <code>fetch</code> is enough to start.</p></section>
+<section id="why-it-matters"><h2>Why it matters</h2><p>Users judge AI products by the interface: clear pending states, readable errors, and interruptible streams. A solid UI also makes it obvious when the API key must not be in the browser (<a href="javascript-for-ai.html">JavaScript for AI Applications</a>).</p></section>
+<section id="how-to-do-it"><h2>How to do it</h2><ol><li>Layout: scrollable message list, composer (textarea + send), optional stop button.</li><li>State: messages array and pending flag (<a href="react-chatbot-state.html">Chatbot State and Conversation UI in React</a>).</li><li>On submit: append the user message, set pending, <code>POST</code> to <code>/api/chat</code>.</li><li>On success: append assistant message; on failure: show an error banner and keep the draft.</li><li>Escape or sanitise any Markdown HTML before <code>dangerouslySetInnerHTML</code>.</li><li>Add streaming later (<a href="streaming-ai-responses.html">Streaming AI Responses for Chat UIs</a>) once the non-stream path works.</li><li>Disable the send button while pending; allow Escape/Stop to abort.</li></ol></section>
+<section id="example"><h2>Example</h2><pre><code>function ChatApp() {
+  const [messages, setMessages] = React.useState([]);
+  const [pending, setPending] = React.useState(false);
+  const [error, setError] = React.useState(null);
+  const [draft, setDraft] = React.useState(&quot;&quot;);
+
+  async function send() {
+    const text = draft.trim();
+    if (!text || pending) return;
+    setDraft(&quot;&quot;); setError(null); setPending(true);
+    setMessages(m =&gt; [...m, { role: &quot;user&quot;, content: text }]);
+    try {
+      const res = await fetch(&quot;/api/chat&quot;, {
+        method: &quot;POST&quot;,
+        headers: { &quot;Content-Type&quot;: &quot;application/json&quot; },
+        body: JSON.stringify({ message: text }),
+      });
+      if (!res.ok) throw new Error(&quot;Request failed&quot;);
+      const data = await res.json();
+      setMessages(m =&gt; [...m, { role: &quot;assistant&quot;, content: data.text }]);
+    } catch (e) {
+      setError(String(e.message || e));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;ul&gt;{messages.map((m, i) =&gt; &lt;li key={i}&gt;&lt;strong&gt;{m.role}:&lt;/strong&gt; {m.content}&lt;/li&gt;)}&lt;/ul&gt;
+      {pending &amp;&amp; &lt;p&gt;Thinking…&lt;/p&gt;}
+      {error &amp;&amp; &lt;p role=&quot;alert&quot;&gt;{error}&lt;/p&gt;}
+      &lt;textarea value={draft} onChange={e =&gt; setDraft(e.target.value)} /&gt;
+      &lt;button disabled={pending} onClick={send}&gt;Send&lt;/button&gt;
+    &lt;/div&gt;
+  );
+}</code></pre></section>
+<section id="when-to-use-it"><h2>When to use it</h2><p>Use React when your product already has a React design system or you need rich client state. Plain HTML is fine for internal tools. Pair with <a href="nodejs-for-ai.html">Node</a> or another backend for secrets.</p></section>
+<section id="practical-notes"><h2>Practical notes</h2><p>Accessibility and polish separate a demo from a product. The composer should be a labelled field; errors should use 'role=&quot;alert&quot;'. Support Enter to send and Shift+Enter for newline if that matches your users. Provide a clear empty state that suggests example questions from your domain. Persist draft text if the user refreshes mid-composition. When rendering assistant Markdown, use a sanitiser and open links in a new tab with 'rel=&quot;noopener noreferrer&quot;'. Measure time-to-first-token and total response time; the UI is the right place to display a subtle timer for power users. Keep styling consistent with the rest of IntelliTools-like products: readable contrast, large tap targets on mobile, and no reliance on hover-only controls.</p></section>
+<section id="common-mistakes"><h2>Common mistakes</h2><ul><li>Putting the model API key in Vite env vars prefixed for the client.</li><li>No loading state — users double-submit.</li><li>Replacing the whole message list instead of appending.</li><li>Rendering untrusted Markdown as raw HTML.</li></ul></section>
+<section id="related-concepts"><h2>Related concepts</h2><div class="kn-cards"><a class="kn-card" href="react-chatbot-state.html"><span class="kn-kind">Concept</span><strong>Chatbot State and Conversation UI in React</strong><small>Model chatbot state as a messages array with roles, a pending flag, and optional streaming buffers. Keep the API key off the client and treat each turn as append-only history you send to your backend.</small></a><a class="kn-card" href="javascript-for-ai.html"><span class="kn-kind">Concept</span><strong>JavaScript for AI Applications</strong><small>Use JavaScript for AI UIs in the browser and for server-side calls in Node. Never put model API keys in front-end code; call your own backend, which holds the secret and talks to the model.</small></a><a class="kn-card" href="streaming-ai-responses.html"><span class="kn-kind">Concept</span><strong>Streaming AI Responses for Chat UIs</strong><small>Streaming delivers model tokens as they are generated (often SSE or chunked HTTP) so the UI can show text immediately. The client reads the byte stream, parses events, and appends text until the stream ends.</small></a><a class="kn-card" href="nodejs-for-ai.html"><span class="kn-kind">Concept</span><strong>Node.js for AI Applications</strong><small>Use Node.js as the server that holds API keys, authenticates users, calls the model vendor, and exposes a thin route your React (or other) client can call.</small></a><a class="kn-card" href="typescript-for-ai.html"><span class="kn-kind">Concept</span><strong>TypeScript for AI Applications</strong><small>TypeScript adds types to JavaScript so request and response shapes for model APIs and your own backend stay consistent, catching many integration bugs before runtime.</small></a></div></section></article>
+<aside class="kn-toc" aria-label="On this page"><strong>On this page</strong><a href="#what-is-it">What is it?</a><a href="#why-it-matters">Why it matters</a><a href="#how-to-do-it">How to do it</a><a href="#example">Example</a><a href="#when-to-use-it">When to use it</a><a href="#practical-notes">Practical notes</a><a href="#common-mistakes">Common mistakes</a><a href="#related-concepts">Related concepts</a><a class="kn-glossary-link" href="glossary.html">AI Glossary A–Z</a></aside></div></main>
+<footer><div class="wrap"><div class="footer-bottom"><span>© IntelliTools. Free, browser-based tools.</span><span><a href="index.html">Knowledge</a> · <a href="glossary.html">AI Glossary</a> · <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a></span></div></div></footer><script type="module" src="learning-ui.mjs"></script></body></html>

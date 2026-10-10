@@ -1,0 +1,15 @@
+PASS all nine paths have ordered valid guides at every level
+PASS search stays usable and path selection preserves q/semantic parameters
+PASS visit, explicit completion, next/previous, resume and reload persistence
+PASS new browser page restores selection/progress and tabs synchronize
+PASS path reset requires confirmation; cancel preserves progress; reset is isolated
+PASS all steps completed provides review and no misleading resume
+PASS desktop/mobile screenshots and no horizontal overflow at 320, 375, 768, 1280px
+PASS keyboard completion keeps focus and announces progress
+PASS learning panel has no automated accessibility violations
+PASS invalid URL context never activates article controls
+PASS blocked storage discloses fallback and retains in-page progress
+PASS corrupt storage recovers and learning asset failure remains readable
+PASS partial index preserves article navigation fallback
+PASS without JavaScript guides and legacy paths remain usable
+webkit: 14 browser scenarios passed

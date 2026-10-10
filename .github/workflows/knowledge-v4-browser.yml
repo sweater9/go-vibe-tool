@@ -1,0 +1,49 @@
+name: Knowledge V4 Learning Browser QA
+on:
+  pull_request:
+    paths:
+      - 'knowledge/**'
+      - 'tests/knowledge-v4*'
+      - '.github/workflows/knowledge-v4-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  learning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated browser test tools
+        run: npm install --prefix "$RUNNER_TEMP/v4-browser" --no-audit --no-fund --package-lock=false playwright@1.58.2 @axe-core/playwright@4.11.1
+      - name: Install browser
+        run: '"$RUNNER_TEMP/v4-browser/node_modules/.bin/playwright" install --with-deps ${{ matrix.browser }}'
+      - name: Test local learning experience
+        env:
+          ENGINE: ${{ matrix.browser }}
+        run: |
+          python3 -m http.server 8000 --bind 127.0.0.1 > "$RUNNER_TEMP/v4-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8000/knowledge/ > /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:8000/knowledge/ > /dev/null
+          PLAYWRIGHT_PACKAGE="$RUNNER_TEMP/v4-browser/node_modules/playwright/index.mjs" \
+          AXE_PACKAGE="$RUNNER_TEMP/v4-browser/node_modules/@axe-core/playwright/dist/index.mjs" \
+          KNOWLEDGE_ARTIFACTS="$RUNNER_TEMP/v4-artifacts" \
+          node tests/knowledge-v4-browser.mjs "$ENGINE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: knowledge-v4-${{ matrix.browser }}
+          path: ${{ runner.temp }}/v4-artifacts/
+          if-no-files-found: ignore

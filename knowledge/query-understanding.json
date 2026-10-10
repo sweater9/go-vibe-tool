@@ -1,0 +1,531 @@
+{
+  "version": 1,
+  "note": "Hand-curated and deterministic. Every page id here is checked against search-index.json by tests/knowledge-search-intelligence.mjs, and every abbreviation is checked to land on its listed pages.",
+  "abbreviations": {
+    "ml": {
+      "to": "machine learning",
+      "pages": [
+        "supervised-learning",
+        "what-is-ai"
+      ]
+    },
+    "dl": {
+      "to": "deep learning",
+      "pages": [
+        "deep-learning"
+      ]
+    },
+    "rl": {
+      "to": "reinforcement learning",
+      "pages": [
+        "reinforcement-learning"
+      ]
+    },
+    "nn": {
+      "to": "neural network",
+      "pages": [
+        "neural-networks"
+      ]
+    },
+    "cnn": {
+      "to": "convolutional neural network",
+      "pages": [
+        "convolutional-neural-networks"
+      ]
+    },
+    "rnn": {
+      "to": "recurrent neural network",
+      "pages": [
+        "recurrent-neural-networks"
+      ]
+    },
+    "gan": {
+      "to": "generative adversarial network",
+      "pages": [
+        "generative-adversarial-networks"
+      ]
+    },
+    "gans": {
+      "to": "generative adversarial networks",
+      "pages": [
+        "generative-adversarial-networks"
+      ]
+    },
+    "vae": {
+      "to": "variational autoencoder",
+      "pages": [
+        "variational-autoencoders"
+      ]
+    },
+    "vlm": {
+      "to": "vision language model",
+      "pages": [
+        "vision-language-models"
+      ]
+    },
+    "vlms": {
+      "to": "vision language models",
+      "pages": [
+        "vision-language-models"
+      ]
+    },
+    "vit": {
+      "to": "vision transformer",
+      "pages": [
+        "vision-transformers"
+      ]
+    },
+    "moe": {
+      "to": "mixture of experts",
+      "pages": [
+        "mixture-of-experts"
+      ]
+    },
+    "ssm": {
+      "to": "state space model",
+      "pages": [
+        "state-space-models"
+      ]
+    },
+    "peft": {
+      "to": "parameter efficient fine tuning lora",
+      "pages": [
+        "lora-and-peft"
+      ]
+    },
+    "cot": {
+      "to": "chain of thought",
+      "pages": [
+        "chain-of-thought"
+      ]
+    },
+    "oidc": {
+      "to": "openid connect",
+      "pages": [
+        "openid-connect"
+      ]
+    },
+    "gpu": {
+      "to": "gpus and ai accelerators",
+      "pages": [
+        "gpus-and-ai-accelerators"
+      ]
+    },
+    "gpus": {
+      "to": "gpus and ai accelerators",
+      "pages": [
+        "gpus-and-ai-accelerators"
+      ]
+    },
+    "ppo": {
+      "to": "proximal policy optimization",
+      "pages": [
+        "proximal-policy-optimization"
+      ]
+    },
+    "dqn": {
+      "to": "deep q network",
+      "pages": [
+        "deep-q-networks"
+      ]
+    },
+    "hf": {
+      "to": "hugging face",
+      "pages": [
+        "hugging-face"
+      ]
+    }
+  },
+  "hubs": [
+    {
+      "id": "machine-learning",
+      "title": "Machine learning guides",
+      "terms": [
+        "machine learning",
+        "ml"
+      ],
+      "lead": "supervised-learning",
+      "guides": [
+        "supervised-learning",
+        "unsupervised-learning",
+        "reinforcement-learning",
+        "deep-learning",
+        "neural-networks",
+        "overfitting-and-regularization",
+        "transfer-learning",
+        "mlops"
+      ],
+      "overview": "what-is-ai",
+      "note": "Knowledge has no single overview of machine learning yet. These guides cover its main branches, starting with supervised learning."
+    },
+    {
+      "id": "databases",
+      "title": "Database guides",
+      "terms": [
+        "databases",
+        "database",
+        "data storage"
+      ],
+      "lead": "databases-for-ai-apps",
+      "guides": [
+        "sql-vs-nosql",
+        "sql",
+        "postgresql",
+        "mongodb",
+        "redis",
+        "sqlite",
+        "vector-databases"
+      ],
+      "note": "Knowledge has guides on individual databases and on choosing one for an AI app, but no single database overview."
+    },
+    {
+      "id": "cloud",
+      "title": "Cloud platform guides",
+      "terms": [
+        "cloud computing",
+        "cloud platforms",
+        "cloud providers",
+        "cloud"
+      ],
+      "lead": "aws-fundamentals",
+      "guides": [
+        "azure-fundamentals",
+        "gcp-fundamentals",
+        "local-ai-vs-cloud-ai"
+      ],
+      "note": "Knowledge covers the three main cloud platforms separately; there is no general cloud computing overview."
+    },
+    {
+      "id": "programming-languages",
+      "title": "Programming language guides",
+      "terms": [
+        "programming languages",
+        "programming language",
+        "coding languages"
+      ],
+      "lead": "python",
+      "guides": [
+        "javascript",
+        "typescript",
+        "java",
+        "rust",
+        "go-language",
+        "csharp"
+      ],
+      "note": "Knowledge has a guide for each language but no comparison of all of them."
+    },
+    {
+      "id": "authentication",
+      "title": "Authentication guides",
+      "terms": [
+        "authentication",
+        "auth"
+      ],
+      "lead": "authentication-vs-authorization",
+      "guides": [
+        "oauth",
+        "openid-connect",
+        "json-web-tokens",
+        "api-authentication",
+        "api-keys"
+      ],
+      "note": "Authentication is covered by several focused guides. Start with how authentication differs from authorization."
+    },
+    {
+      "id": "ai",
+      "title": "AI guides",
+      "terms": [
+        "ai",
+        "artificial intelligence"
+      ],
+      "lead": "what-is-ai",
+      "guides": [
+        "supervised-learning",
+        "deep-learning",
+        "neural-networks",
+        "large-language-models",
+        "ai-agents",
+        "rag",
+        "prompt-engineering",
+        "ai-evaluation"
+      ],
+      "note": "Start with the overview of what AI is, then follow one of these branches."
+    }
+  ],
+  "ambiguous": {
+    "token": {
+      "options": [
+        {
+          "label": "Tokens in language models (how text is split)",
+          "page": "tokens"
+        },
+        {
+          "label": "Authentication tokens for APIs",
+          "page": "api-authentication"
+        },
+        {
+          "label": "JSON Web Tokens (JWTs)",
+          "page": "json-web-tokens"
+        }
+      ]
+    },
+    "orm": {
+      "options": [
+        {
+          "label": "Object-relational mappers (ORMs) for databases",
+          "page": "prisma-and-orms"
+        },
+        {
+          "label": "Outcome reward models (ORMs) for reasoning",
+          "page": "outcome-reward-model"
+        }
+      ]
+    },
+    "agent": {
+      "options": [
+        {
+          "label": "AI agents (what they are)",
+          "page": "ai-agents"
+        },
+        {
+          "label": "Agent frameworks (how to build one)",
+          "page": "choosing-an-agent-framework"
+        },
+        {
+          "label": "Agent memory",
+          "page": "agent-memory"
+        }
+      ]
+    },
+    "graph": {
+      "options": [
+        {
+          "label": "Graph RAG (retrieval over a knowledge graph)",
+          "page": "graph-rag"
+        },
+        {
+          "label": "Graph neural networks",
+          "page": "graph-neural-networks"
+        },
+        {
+          "label": "GraphQL APIs",
+          "page": "graphql"
+        }
+      ]
+    },
+    "cache": {
+      "options": [
+        {
+          "label": "KV cache (inside a model)",
+          "page": "kv-cache"
+        },
+        {
+          "label": "Prompt caching (API cost saving)",
+          "page": "prompt-caching"
+        },
+        {
+          "label": "Redis (a general-purpose cache)",
+          "page": "redis"
+        }
+      ]
+    },
+    "bias": {
+      "options": [
+        {
+          "label": "Bias and fairness in AI systems",
+          "page": "ai-bias-and-fairness"
+        },
+        {
+          "label": "Sycophancy (a model telling you what you want to hear)",
+          "page": "sycophancy"
+        }
+      ]
+    },
+    "model": {
+      "options": [
+        {
+          "label": "Language models (what an LLM is)",
+          "page": "large-language-models"
+        },
+        {
+          "label": "How machine-learning models learn",
+          "page": "supervised-learning"
+        },
+        {
+          "label": "Calling hosted models through an API",
+          "page": "model-apis"
+        }
+      ]
+    }
+  },
+  "intents": [
+    {
+      "id": "personal-data-to-ai",
+      "phrases": [
+        "remove personal data",
+        "remove personal information",
+        "personal data from text",
+        "sensitive data to an ai",
+        "sensitive information to an ai",
+        "private data into an ai",
+        "personal data to an ai",
+        "personal data into chatgpt",
+        "before sending it to an ai",
+        "before pasting it into an ai"
+      ],
+      "requiresAny": [
+        "ai",
+        "chatgpt",
+        "llm",
+        "model",
+        "prompt"
+      ],
+      "pages": [
+        {
+          "id": "ai-privacy-and-security",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "ai-quality-check",
+      "phrases": [
+        "working well",
+        "performing well",
+        "is working properly",
+        "measure how good my ai",
+        "know if my ai",
+        "tell if my ai",
+        "how good is my ai"
+      ],
+      "requiresAny": [
+        "ai",
+        "llm",
+        "model",
+        "app",
+        "chatbot",
+        "agent"
+      ],
+      "pages": [
+        {
+          "id": "ai-evaluation",
+          "boost": 32
+        },
+        {
+          "id": "llm-observability",
+          "boost": 14
+        }
+      ]
+    },
+    {
+      "id": "image-generation-how",
+      "phrases": [
+        "image generation",
+        "generate images",
+        "ai image generator",
+        "ai image generation",
+        "text to image",
+        "images from text"
+      ],
+      "requiresAny": [
+        "ai",
+        "diffusion",
+        "model",
+        "models",
+        "how"
+      ],
+      "pages": [
+        {
+          "id": "diffusion-models",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "ai-bias-cause",
+      "phrases": [
+        "become biased",
+        "ai biased",
+        "ai bias",
+        "unfair ai",
+        "why is ai biased",
+        "ai discriminate"
+      ],
+      "requiresAny": [
+        "ai",
+        "model",
+        "models",
+        "system",
+        "systems",
+        "algorithm"
+      ],
+      "pages": [
+        {
+          "id": "ai-bias-and-fairness",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "lora-finetune",
+      "phrases": [
+        "lora fine tuning",
+        "lora finetuning",
+        "qlora fine tuning",
+        "lora fine tune"
+      ],
+      "pages": [
+        {
+          "id": "lora-and-peft",
+          "boost": 40
+        }
+      ]
+    },
+    {
+      "id": "gmail-agent",
+      "phrases": [
+        "read my gmail",
+        "access my gmail",
+        "gmail for an ai agent",
+        "gmail with an ai agent",
+        "agent gmail",
+        "agent to read my email",
+        "agent read my email"
+      ],
+      "requiresAny": [
+        "agent",
+        "agents",
+        "ai"
+      ],
+      "pages": [
+        {
+          "id": "gmail-for-ai-agents",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "python-ml-libraries",
+      "phrases": [
+        "python libraries",
+        "python packages",
+        "libraries for machine learning",
+        "python libraries for machine learning",
+        "python ml libraries"
+      ],
+      "requiresAny": [
+        "python",
+        "machine",
+        "learning",
+        "ml",
+        "ai"
+      ],
+      "pages": [
+        {
+          "id": "python-ai-libraries",
+          "boost": 30
+        }
+      ]
+    }
+  ]
+}

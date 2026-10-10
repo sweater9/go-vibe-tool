@@ -1,0 +1,21 @@
+{
+  "engine": "chromium",
+  "passed": 14,
+  "checks": [
+    "all nine paths have ordered valid guides at every level",
+    "search stays usable and path selection preserves q/semantic parameters",
+    "visit, explicit completion, next/previous, resume and reload persistence",
+    "new browser page restores selection/progress and tabs synchronize",
+    "path reset requires confirmation; cancel preserves progress; reset is isolated",
+    "all steps completed provides review and no misleading resume",
+    "desktop/mobile screenshots and no horizontal overflow at 320, 375, 768, 1280px",
+    "keyboard completion keeps focus and announces progress",
+    "learning panel has no automated accessibility violations",
+    "invalid URL context never activates article controls",
+    "blocked storage discloses fallback and retains in-page progress",
+    "corrupt storage recovers and learning asset failure remains readable",
+    "partial index preserves article navigation fallback",
+    "without JavaScript guides and legacy paths remain usable"
+  ],
+  "errors": []
+}

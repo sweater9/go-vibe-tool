@@ -1,0 +1,666 @@
+{
+ "version": 1,
+ "methodology": [
+  "Held-out set: written AFTER the tuning loop ended, from the guide list only, and never used to adjust the engine. It is run once per engine change as a generalisation check, not a tuning target. Same author as the main dataset, so it is not a fully independent estimate.",
+  "Fields as in search-relevance-dataset.json (q, c, conf, a, n, t, ta, lm, rw)."
+ ],
+ "queries": [
+  {
+   "q": "how can i make a chatbot that knows about my company handbook",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "rag",
+    "rag-with-python"
+   ]
+  },
+  {
+   "q": "why does my model make up facts",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "ai-hallucinations",
+    "how-to-reduce-hallucinations"
+   ]
+  },
+  {
+   "q": "is it safe to paste customer emails into chatgpt",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "ai-privacy-and-security"
+   ],
+   "t": [
+    "pii-secret-redactor"
+   ]
+  },
+  {
+   "q": "what does it mean when people say temperature in llms",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "sampling-and-decoding"
+   ]
+  },
+  {
+   "q": "how do i make my llm output valid json every time",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "structured-outputs",
+    "constrained-decoding",
+    "structured-output-methods-compared"
+   ],
+   "ta": [
+    "json-formatter"
+   ]
+  },
+  {
+   "q": "how can i run a language model on my laptop without internet",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "local-ai",
+    "local-llm-runtimes",
+    "ollama"
+   ]
+  },
+  {
+   "q": "how do i stop users tricking my ai assistant into ignoring its rules",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "prompt-injection"
+   ]
+  },
+  {
+   "q": "why is my ai bill so high",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "llm-cost-optimization",
+    "prompt-caching"
+   ]
+  },
+  {
+   "q": "how do models learn from human feedback",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "rlhf"
+   ]
+  },
+  {
+   "q": "can ai help discover new medicines",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "ai-drug-discovery"
+   ]
+  },
+  {
+   "q": "what is the point of splitting documents into pieces for ai search",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "chunking"
+   ]
+  },
+  {
+   "q": "how does a model remember earlier parts of a long conversation",
+   "c": "natural",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "context-windows",
+    "agent-memory"
+   ]
+  },
+  {
+   "q": "large neural language models explained",
+   "c": "synonym",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "large-language-models"
+   ]
+  },
+  {
+   "q": "numerical representations of meaning for text",
+   "c": "synonym",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "embeddings"
+   ]
+  },
+  {
+   "q": "teaching a pretrained network a new task with few examples",
+   "c": "synonym",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "transfer-learning",
+    "fine-tuning"
+   ]
+  },
+  {
+   "q": "shrinking a model by lowering numeric precision",
+   "c": "synonym",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "quantization"
+   ]
+  },
+  {
+   "q": "a small model learning from a bigger one",
+   "c": "synonym",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "knowledge-distillation"
+   ]
+  },
+  {
+   "q": "letting a model use external functions",
+   "c": "synonym",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "function-calling",
+    "agent-tools"
+   ]
+  },
+  {
+   "q": "quantizaton",
+   "c": "typo",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "quantization"
+   ],
+   "rw": "typo"
+  },
+  {
+   "q": "hallucinatons in llms",
+   "c": "typo",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "ai-hallucinations"
+   ],
+   "rw": "typo"
+  },
+  {
+   "q": "retreival augmented generation",
+   "c": "typo",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "rag"
+   ],
+   "rw": "typo"
+  },
+  {
+   "q": "tokenizaton",
+   "c": "typo",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "tokens"
+   ],
+   "rw": "typo"
+  },
+  {
+   "q": "kubernets",
+   "c": "typo",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "prompt enginering tips",
+   "c": "typo",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "prompt-engineering"
+   ],
+   "rw": "typo"
+  },
+  {
+   "q": "difusion models",
+   "c": "typo",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "diffusion-models"
+   ],
+   "rw": "typo"
+  },
+  {
+   "q": "what is a vlm",
+   "c": "abbreviation",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "vision-language-models"
+   ],
+   "rw": "abbreviation"
+  },
+  {
+   "q": "moe models",
+   "c": "abbreviation",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "mixture-of-experts"
+   ],
+   "rw": "abbreviation"
+  },
+  {
+   "q": "rl for beginners",
+   "c": "abbreviation",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "reinforcement-learning"
+   ],
+   "rw": "abbreviation"
+  },
+  {
+   "q": "peft explained",
+   "c": "abbreviation",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "lora-and-peft"
+   ],
+   "rw": "abbreviation"
+  },
+  {
+   "q": "what is cot prompting",
+   "c": "abbreviation",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "chain-of-thought"
+   ],
+   "rw": "abbreviation"
+  },
+  {
+   "q": "ai for complete beginners",
+   "c": "beginner",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "what-is-ai"
+   ]
+  },
+  {
+   "q": "explain neural networks like i am five",
+   "c": "beginner",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "neural-networks"
+   ]
+  },
+  {
+   "q": "advanced prompt engineering",
+   "c": "advanced",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "prompt-engineering",
+    "chain-of-thought",
+    "context-engineering"
+   ]
+  },
+  {
+   "q": "deep dive into attention mechanisms",
+   "c": "advanced",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "transformers",
+    "flash-attention",
+    "attention-sinks"
+   ]
+  },
+  {
+   "q": "how do i build a rag app in python",
+   "c": "howto",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "rag-with-python"
+   ]
+  },
+  {
+   "q": "how to call the openai api from javascript",
+   "c": "howto",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "calling-ai-apis-with-javascript"
+   ]
+  },
+  {
+   "q": "how to stream llm responses to a web page",
+   "c": "howto",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "streaming-ai-responses",
+    "streaming-ai-with-nodejs"
+   ]
+  },
+  {
+   "q": "how do i evaluate a rag system",
+   "c": "howto",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "rag-evaluation"
+   ]
+  },
+  {
+   "q": "how to host an mcp server securely",
+   "c": "howto",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "mcp-security",
+    "mcp-servers-and-clients",
+    "mcp-authorization"
+   ]
+  },
+  {
+   "q": "rag or fine tuning for my use case",
+   "c": "comparison",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "rag-vs-fine-tuning"
+   ]
+  },
+  {
+   "q": "mcp compared to a2a",
+   "c": "comparison",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "a2a-vs-mcp"
+   ]
+  },
+  {
+   "q": "lora versus full finetuning",
+   "c": "comparison",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "lora-vs-full-fine-tuning"
+   ]
+  },
+  {
+   "q": "graphql or rest which one",
+   "c": "comparison",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "rest-vs-graphql"
+   ]
+  },
+  {
+   "q": "sql versus nosql databases",
+   "c": "comparison",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "sql-vs-nosql"
+   ]
+  },
+  {
+   "q": "my rag answers are irrelevant",
+   "c": "troubleshooting",
+   "s": "heldout",
+   "conf": "confident",
+   "a": [
+    "rag",
+    "chunking",
+    "rag-evaluation",
+    "hybrid-search-and-reranking"
+   ]
+  },
+  {
+   "q": "agent keeps looping forever",
+   "c": "troubleshooting",
+   "s": "heldout",
+   "conf": "any",
+   "a": [
+    "ai-agents",
+    "agent-planning",
+    "react-agent-pattern"
+   ]
+  },
+  {
+   "q": "model keeps ignoring my instructions",
+   "c": "troubleshooting",
+   "s": "heldout",
+   "conf": "any",
+   "a": [
+    "common-prompting-mistakes",
+    "system-prompts",
+    "prompt-engineering"
+   ]
+  },
+  {
+   "q": "json from the llm fails to parse",
+   "c": "troubleshooting",
+   "s": "heldout",
+   "conf": "any",
+   "a": [
+    "structured-outputs",
+    "constrained-decoding",
+    "json-validation"
+   ],
+   "ta": [
+    "json-formatter"
+   ]
+  },
+  {
+   "q": "compress a png image",
+   "c": "tool",
+   "s": "heldout",
+   "conf": "any",
+   "t": [
+    "image-studio"
+   ],
+   "ta": [
+    "image-studio"
+   ]
+  },
+  {
+   "q": "merge two pdf files",
+   "c": "tool",
+   "s": "heldout",
+   "conf": "any",
+   "t": [
+    "pdf-studio"
+   ]
+  },
+  {
+   "q": "decode a jwt token",
+   "c": "tool",
+   "s": "heldout",
+   "conf": "any",
+   "a": [
+    "json-web-tokens"
+   ],
+   "t": [
+    "oauth-jwt-decoder"
+   ]
+  },
+  {
+   "q": "redact emails before sharing a log",
+   "c": "tool",
+   "s": "heldout",
+   "conf": "any",
+   "t": [
+    "pii-secret-redactor"
+   ]
+  },
+  {
+   "q": "make a favicon",
+   "c": "tool",
+   "s": "heldout",
+   "conf": "any",
+   "t": [
+    "image-studio"
+   ]
+  },
+  {
+   "q": "write a better system prompt",
+   "c": "tool",
+   "s": "heldout",
+   "conf": "any",
+   "a": [
+    "system-prompts",
+    "prompt-engineering"
+   ],
+   "t": [
+    "ai-prompt-builder"
+   ]
+  },
+  {
+   "q": "what should i learn before transformers",
+   "c": "sequence",
+   "s": "heldout",
+   "conf": "any",
+   "a": [
+    "transformers"
+   ],
+   "lm": [
+    "neural-networks",
+    "deep-learning",
+    "embeddings"
+   ]
+  },
+  {
+   "q": "what comes after learning embeddings",
+   "c": "sequence",
+   "s": "heldout",
+   "conf": "any",
+   "a": [
+    "embeddings"
+   ],
+   "lm": [
+    "vector-databases",
+    "rag",
+    "chunking"
+   ]
+  },
+  {
+   "q": "what to study next after neural networks",
+   "c": "sequence",
+   "s": "heldout",
+   "conf": "any",
+   "a": [
+    "neural-networks"
+   ],
+   "lm": [
+    "deep-learning",
+    "backpropagation-and-gradient-descent",
+    "convolutional-neural-networks"
+   ]
+  },
+  {
+   "q": "best pizza in new york",
+   "c": "offtopic",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "how do i train for a marathon",
+   "c": "offtopic",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "what is the weather tomorrow",
+   "c": "offtopic",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "tax deductions for freelancers",
+   "c": "offtopic",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "how to repair a leaking tap",
+   "c": "offtopic",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "python snake care",
+   "c": "ambiguous",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "apple",
+   "c": "ambiguous",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "model",
+   "c": "ambiguous",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "java coffee beans",
+   "c": "ambiguous",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "stock price of nvidia",
+   "c": "offtopic",
+   "s": "heldout",
+   "conf": "weak"
+  },
+  {
+   "q": "chatgpt",
+   "c": "broad",
+   "s": "heldout",
+   "conf": "any",
+   "a": [
+    "large-language-models",
+    "generative-ai"
+   ]
+  },
+  {
+   "q": "neural",
+   "c": "broad",
+   "s": "heldout",
+   "conf": "any"
+  }
+ ]
+}

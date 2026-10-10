@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6252f3">
+  <meta name="description" content="API & JSON Playground — test REST requests, validate JSON payloads, inspect headers, and simulate status codes offline in your browser.">
+  <link rel="canonical" href="https://intellitools.online/labs/api-playground/">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../v2.css">
+  <link rel="stylesheet" href="../../v5.css">
+  <title>API & JSON Playground — IntelliTools Labs</title>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header>
+    <div class="wrap">
+      <nav aria-label="Main navigation">
+        <a class="brand" href="../../" aria-label="IntelliTools home"><span>Intelli</span>Tools</a>
+        <div class="navlinks">
+          <a href="../../">Tools</a>
+          <a href="../../learn/">Learn</a>
+          <a href="../../knowledge/">Knowledge</a>
+          <a href="../" class="active" aria-current="page">Labs <span class="nav-pillar-badge labs">New</span></a>
+          <a href="../../play/">Play</a>
+          <a href="../../#about">About</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" style="padding: 20px 0 40px;">
+    <nav class="breadcrumb-trail" aria-label="Breadcrumb">
+      <a href="../../">Home</a>
+      <span>/</span>
+      <a href="../">Labs</a>
+      <span>/</span>
+      <strong>API & JSON Playground</strong>
+    </nav>
+
+    <div class="section-heading" style="margin-bottom: 12px;">
+      <div>
+        <span class="eyebrow">LAB 02 — REST APIS & DATA CONTRACTS</span>
+        <h1 style="font-size: clamp(26px, 3.5vw, 36px); margin: 6px 0; letter-spacing: -.03em;">API & JSON Playground</h1>
+        <p class="sub">Craft requests, inspect status codes, format JSON, and test payloads against deterministic offline mock endpoints.</p>
+      </div>
+      <div class="actions">
+        <button id="btnExportRequests" type="button" class="btn alt small" title="Export request history as JSON">Export Requests</button>
+        <button id="btnImportRequests" type="button" class="btn alt small" title="Import request collection">Import Requests</button>
+      </div>
+    </div>
+
+    <!-- Playground Grid -->
+    <div class="api-app">
+      <!-- Left: Presets & History -->
+      <section class="panel-container" aria-label="Presets and History">
+        <div class="panel-header">
+          <h2>Presets & History</h2>
+        </div>
+        <div class="panel-body">
+          <div style="margin-bottom: 18px;">
+            <label style="font-weight: 750; font-size: 12px; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 8px;">Quick Presets</label>
+            <div id="presetsContainer"></div>
+          </div>
+
+          <div style="border-top: 1px solid var(--line); padding-top: 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+              <label style="font-weight: 750; font-size: 12px; text-transform: uppercase; color: var(--muted);">Recent Requests</label>
+              <button id="btnClearHistory" type="button" style="background:none; border:none; color:var(--danger); font-size:11px; cursor:pointer; font-weight:700;">Clear</button>
+            </div>
+            <div id="historyContainer" style="max-height: 280px; overflow-y: auto;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Center: Request Builder -->
+      <section class="panel-container" aria-label="Request Builder">
+        <div class="panel-header">
+          <h2>HTTP Request Builder</h2>
+          <span class="v5-badge featured">Mock Server</span>
+        </div>
+        <div class="panel-body">
+          <div class="req-url-bar">
+            <select id="methodSelect" class="method-select" aria-label="HTTP Method">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+            <input id="urlInput" class="url-input" value="/api/v1/users" placeholder="/api/v1/..." aria-label="Mock Endpoint URL">
+            <button id="btnSendRequest" type="button" class="btn small" style="padding: 10px 18px;">Send Request</button>
+          </div>
+
+          <!-- Configuration Grid -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom: 14px;">
+            <div class="field" style="margin:0;">
+              <label for="latencySelect">Simulated Latency</label>
+              <select id="latencySelect" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px;">
+                <option value="0">0 ms (Instant)</option>
+                <option value="150" selected>150 ms (Normal)</option>
+                <option value="500">500 ms (Moderate 3G)</option>
+                <option value="1200">1200 ms (Slow)</option>
+              </select>
+            </div>
+            <div class="field" style="margin:0;">
+              <label for="statusOverrideSelect">Status Override</label>
+              <select id="statusOverrideSelect" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px;">
+                <option value="">Normal (Endpoint Logic)</option>
+                <option value="200">200 OK</option>
+                <option value="201">201 Created</option>
+                <option value="400">400 Bad Request</option>
+                <option value="401">401 Unauthorized</option>
+                <option value="403">403 Forbidden</option>
+                <option value="404">404 Not Found</option>
+                <option value="500">500 Internal Error</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Request Tabs -->
+          <div class="tabs-parent">
+            <div class="tabs">
+              <button type="button" class="tab-btn active" data-tab="body">Request Body</button>
+              <button type="button" class="tab-btn" data-tab="headers">Headers</button>
+              <button type="button" class="tab-btn" data-tab="info">Endpoint Catalog</button>
+            </div>
+
+            <!-- Body Tab -->
+            <div class="tab-content" data-tab-content="body">
+              <div id="bodyHint" class="note hidden" style="margin-bottom:6px; color:#d97706;">
+                Notice: GET requests traditionally do not include a payload body.
+              </div>
+              <textarea id="bodyTextarea" class="code-editor" style="height:210px;" placeholder='{\n  "key": "value"\n}' aria-label="JSON Request Body"></textarea>
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                <div id="jsonValidationStatus"></div>
+                <div class="actions" style="margin:0;">
+                  <button id="btnFormatJson" type="button" class="btn alt small">Format JSON</button>
+                  <button id="btnMinifyJson" type="button" class="btn alt small">Minify</button>
+                  <button id="btnClearBody" type="button" class="btn alt small">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Headers Tab -->
+            <div class="tab-content hidden" data-tab-content="headers">
+              <textarea id="headersTextarea" class="code-editor" style="height:210px;" aria-label="Request Headers (JSON)">{
+  "Content-Type": "application/json",
+  "Accept": "application/json"
+}</textarea>
+              <span class="field-help" style="margin-top:6px; display:block;">Specify custom headers in JSON format.</span>
+            </div>
+
+            <!-- Endpoint Catalog Tab -->
+            <div class="tab-content hidden" data-tab-content="info">
+              <div style="font-size:13px; line-height:1.6; color:var(--muted);">
+                <strong>Supported In-Memory Endpoints:</strong>
+                <ul style="margin:6px 0 0 16px; padding:0;">
+                  <li><code>/api/v1/users</code> — GET (list), POST (create), PUT (update), DELETE</li>
+                  <li><code>/api/v1/posts</code> — GET (list blog posts), POST (publish)</li>
+                  <li><code>/api/v1/products</code> — GET (product catalog with stock levels)</li>
+                  <li><code>/api/v1/auth/token</code> — POST (simulates OAuth/JWT token grant)</li>
+                  <li><code>/api/v1/health</code> — GET (service status and server metadata)</li>
+                  <li><code>/api/v1/echo</code> — ANY (reflects headers, query params, and body)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Response Viewer -->
+      <section class="panel-container" aria-label="Response Viewer">
+        <div class="panel-header">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h2>Response</h2>
+            <span id="responseStatusBadge" class="status-badge s2xx">Ready</span>
+          </div>
+          <span id="responseMetrics" style="font-size:12px; color:var(--muted); font-family:monospace;">0 ms</span>
+        </div>
+        <div class="panel-body">
+          <div class="tabs-parent">
+            <div class="tabs" style="justify-content:space-between;">
+              <div style="display:flex; gap:6px;">
+                <button type="button" class="tab-btn active" data-tab="resp-body">Payload</button>
+                <button type="button" class="tab-btn" data-tab="resp-headers">Headers</button>
+              </div>
+              <button id="btnCopyResponse" type="button" class="btn alt small">Copy</button>
+            </div>
+
+            <div class="tab-content" data-tab-content="resp-body">
+              <pre id="responseBodyPre" class="code-editor" style="height:320px; margin:0; overflow:auto;" tabindex="0">{
+  "welcome": "IntelliTools API & JSON Playground",
+  "instructions": "Select an endpoint on the left or send a request above to observe mock server responses."
+}</pre>
+            </div>
+
+            <div class="tab-content hidden" data-tab-content="resp-headers">
+              <pre id="responseHeadersPre" class="code-editor" style="height:320px; margin:0; overflow:auto;" tabindex="0">{}</pre>
+            </div>
+          </div>
+
+          <div style="margin-top: 18px; padding: 12px; background: #fafafc; border: 1px solid var(--line); border-radius: 10px; font-size: 12px; color: var(--muted);">
+            <strong>Private & Safe:</strong> All requests execute locally in your browser against an in-memory mock engine. No data is sent to external services or cloud proxies.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Related Cross-Pillar Guides -->
+    <div class="related-tools" style="margin-top: 36px;">
+      <span class="eyebrow">CROSS-PILLAR INTEGRATION</span>
+      <h3>Extend Your API Skills</h3>
+      <p class="sub">Explore related guides in Learn and everyday utilities in Tools.</p>
+      <div class="actions">
+        <a href="../../learn/index.html#api" class="btn alt small" style="text-decoration:none;">Read API & JWT Guides</a>
+        <a href="../../?tool=json-formatter" class="btn alt small" style="text-decoration:none;">Open JSON Formatter Tool</a>
+        <a href="../../?tool=curl-code-sanitizer" class="btn alt small" style="text-decoration:none;">Open cURL Token Stripper</a>
+        <a href="../workflow/" class="btn alt small" style="text-decoration:none;">Explore Visual Workflow Lab →</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="../../"><span>Intelli</span>Tools</a>
+        <p>Focused browser-based tools, guided learning, interactive labs, and cognitive play. Less switching. More doing.</p>
+      </div>
+      <div>
+        <strong>Pillars</strong>
+        <a href="../../#tools">Tools</a>
+        <a href="../../learn/">Learn</a>
+        <a href="../">Labs</a>
+        <a href="../../play/">Play</a>
+      </div>
+      <div>
+        <strong>Legal & Privacy</strong>
+        <a href="../../privacy.html">Privacy</a>
+        <a href="../../terms.html">Terms</a>
+        <a href="../../contact.html">Contact</a>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <span>© 2026 IntelliTools</span>
+      <span>Version 5.0 Release Candidate</span>
+    </div>
+  </footer>
+
+  <script type="module" src="api-app.js"></script>
+</body>
+</html>

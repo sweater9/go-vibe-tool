@@ -1,0 +1,22 @@
+/* Learning UI is independent of search rendering and ranking. */
+.kn-learning{scroll-margin-top:100px;margin:24px 0 0;padding:24px;border:1px solid #c9c5f7;border-radius:18px;background:#fff;max-width:820px;color:var(--ink);overflow-wrap:anywhere}
+.kn-learning h2{font-size:clamp(21px,3vw,26px);line-height:1.25;margin:0 0 12px;letter-spacing:-.025em}
+.kn-learning p{font-size:14px;line-height:1.6;margin:12px 0;color:var(--muted)}
+.kn-learning .kn-learning-status{font-weight:700;color:var(--brand)}
+.kn-learning .kn-learning-goal{font-size:16px;color:var(--ink);font-weight:650}
+.kn-learning-controls{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px}
+.kn-learning-controls label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:650;flex:1;min-width:0}
+.kn-learning select{width:100%;min-height:44px;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit}
+.kn-learning progress{display:block;width:100%;height:12px;accent-color:var(--brand);margin:16px 0}
+.kn-learning-actions{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin:18px 0}
+.kn-learning-actions a:not(.btn){color:var(--brand);font-size:14px;font-weight:650}
+.kn-learning .btn{min-height:44px;white-space:normal;text-align:center}
+.kn-learning-steps{padding-left:24px;margin:20px 0}
+.kn-learning-steps li{padding:10px 0;line-height:1.5}
+.kn-learning-steps a{color:var(--brand);font-weight:650}
+.kn-learning-badge{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.kn-learning-reset{min-height:44px;background:none;border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:6px 8px 0 0;color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.kn-learning .kn-learning-privacy{font-size:12px;margin:18px 0 0}
+.kn-learning :is(a,button,select):focus-visible{outline:3px solid #6252f3;outline-offset:4px}
+@media(max-width:620px){.kn-learning{padding:18px}.kn-learning-controls{flex-direction:column}.kn-learning-actions{align-items:stretch;flex-direction:column}.kn-learning-actions .btn{width:100%}}
+@media(prefers-reduced-motion:reduce){.kn-learning *{transition:none!important;animation:none!important}}

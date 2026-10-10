@@ -1,0 +1,1136 @@
+{
+  "intents": [
+    {
+      "id": "agent-forgets-conversation",
+      "phrases": [
+        "keeps forgetting",
+        "forgetting previous",
+        "forgets previous",
+        "forgets the conversation",
+        "forgetting the conversation",
+        "previous conversation",
+        "no memory of",
+        "doesnt remember",
+        "does not remember",
+        "lost the conversation",
+        "forgets what i said",
+        "forgets earlier",
+        "forgets earlier messages",
+        "cant remember the chat",
+        "cannot remember the chat",
+        "conversation history disappeared",
+        "ai forgets"
+      ],
+      "pages": [
+        {
+          "id": "agent-memory",
+          "boost": 36
+        },
+        {
+          "id": "context-windows",
+          "boost": 28
+        },
+        {
+          "id": "ai-agents",
+          "boost": 18
+        }
+      ]
+    },
+    {
+      "id": "give-agent-memory",
+      "phrases": [
+        "agent memory",
+        "give an agent memory",
+        "give an ai agent memory",
+        "agents remember",
+        "agent remember",
+        "memory for an agent",
+        "remember previous",
+        "persistent memory",
+        "conversation memory"
+      ],
+      "pages": [
+        {
+          "id": "agent-memory",
+          "boost": 30
+        },
+        {
+          "id": "context-windows",
+          "boost": 12
+        },
+        {
+          "id": "ai-agents",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "answer-from-documents",
+      "phrases": [
+        "answer questions from my documents",
+        "answer questions from documents",
+        "questions from my documents",
+        "from my documents",
+        "from my own documents",
+        "from my files",
+        "from my pdfs",
+        "from my data",
+        "chat with my documents",
+        "chat with your documents",
+        "ask questions about my files",
+        "ask my documents",
+        "questions about my pdf",
+        "search my documents",
+        "answer from documents",
+        "let ai answer questions",
+        "ground answers in documents"
+      ],
+      "pages": [
+        {
+          "id": "rag",
+          "boost": 50
+        },
+        {
+          "id": "embeddings",
+          "boost": 22
+        },
+        {
+          "id": "chunking",
+          "boost": 20
+        },
+        {
+          "id": "vector-databases",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "why-hallucinating",
+      "phrases": [
+        "hallucinating",
+        "making things up",
+        "made up a citation",
+        "invented a citation",
+        "why does it lie",
+        "false answer"
+      ],
+      "pages": [
+        {
+          "id": "ai-hallucinations",
+          "boost": 28
+        },
+        {
+          "id": "how-to-reduce-hallucinations",
+          "boost": 10
+        }
+      ]
+    },
+    {
+      "id": "reduce-hallucinations",
+      "phrases": [
+        "reduce hallucinations",
+        "stop hallucinations",
+        "prevent hallucinations",
+        "fewer hallucinations",
+        "make answers more accurate"
+      ],
+      "pages": [
+        {
+          "id": "how-to-reduce-hallucinations",
+          "boost": 28
+        },
+        {
+          "id": "ai-hallucinations",
+          "boost": 10
+        },
+        {
+          "id": "rag",
+          "boost": 6
+        }
+      ]
+    },
+    {
+      "id": "rag-or-finetune",
+      "phrases": [
+        "rag or fine",
+        "rag vs fine",
+        "rag versus fine",
+        "fine tuning or rag",
+        "fine-tuning or rag",
+        "should i fine tune",
+        "should i finetune",
+        "rag instead of fine",
+        "customize an llm",
+        "customise an llm"
+      ],
+      "pages": [
+        {
+          "id": "rag-vs-fine-tuning",
+          "boost": 34
+        },
+        {
+          "id": "rag",
+          "boost": 8
+        },
+        {
+          "id": "fine-tuning",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "run-locally",
+      "phrases": [
+        "run an llm locally",
+        "run llm locally",
+        "run a model locally",
+        "run ai locally",
+        "local llm",
+        "on my own computer",
+        "on my laptop",
+        "offline model",
+        "without the cloud",
+        "self host",
+        "self-host"
+      ],
+      "pages": [
+        {
+          "id": "local-ai",
+          "boost": 30
+        },
+        {
+          "id": "local-ai-vs-cloud-ai",
+          "boost": 14
+        }
+      ]
+    },
+    {
+      "id": "local-vs-cloud",
+      "phrases": [
+        "local or cloud",
+        "local vs cloud",
+        "cloud or local",
+        "hosted or local",
+        "privacy of cloud ai"
+      ],
+      "pages": [
+        {
+          "id": "local-ai-vs-cloud-ai",
+          "boost": 30
+        },
+        {
+          "id": "local-ai",
+          "boost": 10
+        }
+      ]
+    },
+    {
+      "id": "gmail-or-email-access",
+      "phrases": [
+        "access gmail",
+        "connect gmail",
+        "read gmail",
+        "send gmail",
+        "access my email",
+        "read my email",
+        "send an email",
+        "connect to email",
+        "gmail inbox"
+      ],
+      "pages": [
+        {
+          "id": "agent-tools",
+          "boost": 30
+        },
+        {
+          "id": "function-calling",
+          "boost": 22
+        },
+        {
+          "id": "mcp",
+          "boost": 16
+        },
+        {
+          "id": "prompt-injection",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "which-agent-framework",
+      "phrases": [
+        "which framework",
+        "what framework",
+        "agent framework",
+        "framework for an agent",
+        "framework for an ai agent",
+        "framework can i use"
+      ],
+      "pages": [
+        {
+          "id": "ai-agents",
+          "boost": 8
+        },
+        {
+          "id": "agent-tools",
+          "boost": 6
+        },
+        {
+          "id": "agentic-workflows",
+          "boost": 6
+        }
+      ]
+    },
+    {
+      "id": "build-rag",
+      "phrases": [
+        "build rag",
+        "build a rag",
+        "rag pipeline",
+        "rag with python",
+        "implement rag",
+        "set up rag"
+      ],
+      "pages": [
+        {
+          "id": "rag",
+          "boost": 24
+        },
+        {
+          "id": "chunking",
+          "boost": 10
+        },
+        {
+          "id": "embeddings",
+          "boost": 10
+        },
+        {
+          "id": "vector-databases",
+          "boost": 10
+        }
+      ]
+    },
+    {
+      "id": "design-workflow",
+      "phrases": [
+        "design a multi-agent",
+        "design an agentic workflow",
+        "roles and handoffs",
+        "handoffs between",
+        "multi-agent workflow"
+      ],
+      "pages": [
+        {
+          "id": "agentic-workflows",
+          "boost": 46
+        },
+        {
+          "id": "multi-agent-systems",
+          "boost": 14
+        }
+      ]
+    },
+    {
+      "id": "vector-vs-sql",
+      "phrases": [
+        "vector database vs",
+        "vector db vs",
+        "instead of sql",
+        "versus sql",
+        "vs sql",
+        "traditional database"
+      ],
+      "pages": [
+        {
+          "id": "vector-database-vs-traditional-database",
+          "boost": 28
+        },
+        {
+          "id": "vector-databases",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "function-vs-mcp",
+      "phrases": [
+        "function calling vs",
+        "function calling or mcp",
+        "tool calling vs mcp",
+        "mcp or function calling",
+        "difference between function calling and mcp"
+      ],
+      "pages": [
+        {
+          "id": "function-calling-vs-mcp",
+          "boost": 30
+        },
+        {
+          "id": "function-calling",
+          "boost": 8
+        },
+        {
+          "id": "mcp",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "mcp-vs-api",
+      "phrases": [
+        "mcp vs api",
+        "mcp versus api",
+        "mcp or an api",
+        "mcp different from",
+        "difference between mcp and"
+      ],
+      "pages": [
+        {
+          "id": "mcp-vs-api",
+          "boost": 30
+        },
+        {
+          "id": "mcp",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "what-is-ai",
+      "phrases": [
+        "what is ai",
+        "what is artificial intelligence",
+        "ai fundamentals",
+        "ai basics"
+      ],
+      "pages": [
+        {
+          "id": "what-is-ai",
+          "boost": 34
+        },
+        {
+          "id": "generative-ai",
+          "boost": 6
+        }
+      ]
+    },
+    {
+      "id": "redact-before-paste",
+      "phrases": [
+        "redact secrets",
+        "redact pii",
+        "remove secrets",
+        "remove pii",
+        "before pasting a prompt",
+        "strip api keys"
+      ],
+      "pages": [
+        {
+          "id": "ai-privacy-and-security",
+          "boost": 34
+        },
+        {
+          "id": "prompt-injection",
+          "boost": 4
+        }
+      ]
+    },
+    {
+      "id": "check-claims",
+      "phrases": [
+        "check claims",
+        "verify claims",
+        "claims against",
+        "against the source",
+        "against the evidence",
+        "supported by the source"
+      ],
+      "pages": [
+        {
+          "id": "how-to-reduce-hallucinations",
+          "boost": 22
+        },
+        {
+          "id": "ai-evaluation",
+          "boost": 18
+        },
+        {
+          "id": "ai-hallucinations",
+          "boost": 12
+        }
+      ]
+    },
+    {
+      "id": "evaluate-system",
+      "phrases": [
+        "evaluate a rag",
+        "evaluate my rag",
+        "evaluate rag",
+        "how do i evaluate",
+        "evaluate an ai",
+        "evaluate my model"
+      ],
+      "pages": [
+        {
+          "id": "ai-evaluation",
+          "boost": 28
+        },
+        {
+          "id": "rag",
+          "boost": 6
+        }
+      ]
+    },
+    {
+      "id": "safe-to-paste",
+      "phrases": [
+        "safe to paste",
+        "paste data into",
+        "paste customer data",
+        "sensitive data into",
+        "put sensitive data",
+        "customer data into an ai"
+      ],
+      "pages": [
+        {
+          "id": "ai-privacy-and-security",
+          "boost": 30
+        },
+        {
+          "id": "prompt-injection",
+          "boost": 6
+        }
+      ]
+    },
+    {
+      "id": "bad-prompts",
+      "phrases": [
+        "bad answers",
+        "bad prompts",
+        "prompts giving",
+        "prompt giving",
+        "prompts not working",
+        "ai ignores"
+      ],
+      "pages": [
+        {
+          "id": "common-prompting-mistakes",
+          "boost": 28
+        },
+        {
+          "id": "prompt-engineering",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "chunk-documents",
+      "phrases": [
+        "chunk documents",
+        "chunking documents",
+        "split documents",
+        "documents for retrieval",
+        "chunk size"
+      ],
+      "pages": [
+        {
+          "id": "chunking",
+          "boost": 24
+        },
+        {
+          "id": "rag",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "agent-vs-chatbot",
+      "phrases": [
+        "agent and a chatbot",
+        "agent versus a chatbot",
+        "difference between an agent",
+        "chatbot and an agent",
+        "agent vs chatbot",
+        "chatbot vs agent"
+      ],
+      "pages": [
+        {
+          "id": "ai-agent-vs-chatbot",
+          "boost": 28
+        },
+        {
+          "id": "ai-agents",
+          "boost": 6
+        }
+      ]
+    },
+    {
+      "id": "finetune-instead",
+      "phrases": [
+        "fine-tune instead",
+        "fine tune instead",
+        "instead of prompting",
+        "finetune instead"
+      ],
+      "pages": [
+        {
+          "id": "rag-vs-fine-tuning",
+          "boost": 24
+        },
+        {
+          "id": "fine-tuning",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "spfx-define",
+      "phrases": [
+        "what is spfx",
+        "what is the sharepoint framework",
+        "does spfx use react",
+        "spfx typescript",
+        "spfx react",
+        "is spfx typescript",
+        "sharepoint framework"
+      ],
+      "pages": [
+        {
+          "id": "sharepoint-framework",
+          "boost": 46
+        },
+        {
+          "id": "build-spfx-web-part",
+          "boost": 6
+        }
+      ]
+    },
+    {
+      "id": "spfx-build",
+      "phrases": [
+        "build an spfx web part",
+        "build an spfx",
+        "spfx web part",
+        "create an spfx",
+        "scaffold spfx",
+        "how do i build an spfx"
+      ],
+      "pages": [
+        {
+          "id": "build-spfx-web-part",
+          "boost": 48
+        },
+        {
+          "id": "sharepoint-framework",
+          "boost": 10
+        }
+      ]
+    },
+    {
+      "id": "authn-authz",
+      "phrases": [
+        "authentication vs authorization",
+        "authentication versus authorization",
+        "authn vs authz",
+        "difference between authentication and authorization",
+        "login vs permission"
+      ],
+      "pages": [
+        {
+          "id": "authentication-vs-authorization",
+          "boost": 40
+        }
+      ]
+    },
+    {
+      "id": "rest-or-graphql",
+      "phrases": [
+        "rest vs graphql",
+        "rest versus graphql",
+        "graphql vs rest",
+        "graphql or rest",
+        "rest or graphql"
+      ],
+      "pages": [
+        {
+          "id": "rest-vs-graphql",
+          "boost": 36
+        },
+        {
+          "id": "graphql",
+          "boost": 8
+        },
+        {
+          "id": "rest-apis",
+          "boost": 6
+        }
+      ]
+    },
+    {
+      "id": "sql-or-nosql",
+      "phrases": [
+        "sql vs nosql",
+        "sql versus nosql",
+        "nosql vs sql",
+        "should i use nosql"
+      ],
+      "pages": [
+        {
+          "id": "sql-vs-nosql",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "local-runtime",
+      "phrases": [
+        "what is ollama",
+        "what is vllm",
+        "what is llama.cpp",
+        "local llm runtime"
+      ],
+      "pages": [
+        {
+          "id": "local-llm-runtimes",
+          "boost": 34
+        },
+        {
+          "id": "local-ai",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "api-keys-vs-oauth",
+      "phrases": [
+        "api keys vs oauth",
+        "api key vs oauth",
+        "keys vs oauth"
+      ],
+      "pages": [
+        {
+          "id": "api-authentication",
+          "boost": 34
+        },
+        {
+          "id": "api-keys",
+          "boost": 8
+        },
+        {
+          "id": "oauth",
+          "boost": 6
+        }
+      ]
+    },
+    {
+      "id": "teams-files-live",
+      "phrases": [
+        "teams files actually live",
+        "files actually live",
+        "where do teams files"
+      ],
+      "pages": [
+        {
+          "id": "sharepoint",
+          "boost": 36
+        },
+        {
+          "id": "teams-development",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "browser-model-key",
+      "phrases": [
+        "without exposing the key",
+        "model key be in the react",
+        "should the model key"
+      ],
+      "pages": [
+        {
+          "id": "api-keys",
+          "boost": 30
+        },
+        {
+          "id": "frontend-and-backend",
+          "boost": 24
+        }
+      ]
+    },
+    {
+      "id": "pdf-library",
+      "phrases": [
+        "questions from my own pdf",
+        "own pdf library",
+        "pdf library"
+      ],
+      "pages": [
+        {
+          "id": "rag",
+          "boost": 30
+        },
+        {
+          "id": "rag-frameworks",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "gpu-several-users",
+      "phrases": [
+        "own gpu for several users",
+        "several users"
+      ],
+      "pages": [
+        {
+          "id": "local-llm-runtimes",
+          "boost": 28
+        }
+      ]
+    },
+    {
+      "id": "microsoft-accounts",
+      "phrases": [
+        "sign employees in",
+        "microsoft accounts"
+      ],
+      "pages": [
+        {
+          "id": "microsoft-entra-id",
+          "boost": 30
+        },
+        {
+          "id": "openid-connect",
+          "boost": 12
+        }
+      ]
+    },
+    {
+      "id": "localhost-cors",
+      "phrases": [
+        "localhost cannot read",
+        "browser says cors",
+        "cors but curl"
+      ],
+      "pages": [
+        {
+          "id": "cors",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "notify-server",
+      "phrases": [
+        "notify my server",
+        "when something happens"
+      ],
+      "pages": [
+        {
+          "id": "webhooks",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "two-writes",
+      "phrases": [
+        "two writes",
+        "database consistent"
+      ],
+      "pages": [
+        {
+          "id": "sql",
+          "boost": 24
+        },
+        {
+          "id": "postgresql",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "chat-history-store",
+      "phrases": [
+        "chat history live",
+        "where should chat history"
+      ],
+      "pages": [
+        {
+          "id": "postgresql-for-ai-apps",
+          "boost": 30
+        },
+        {
+          "id": "postgresql",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "package-laptop",
+      "phrases": [
+        "production matches my laptop",
+        "matches my laptop"
+      ],
+      "pages": [
+        {
+          "id": "docker",
+          "boost": 28
+        },
+        {
+          "id": "containers",
+          "boost": 12
+        }
+      ]
+    },
+    {
+      "id": "stop-laptop-deploy",
+      "phrases": [
+        "stop deploying from a laptop",
+        "deploying from a laptop"
+      ],
+      "pages": [
+        {
+          "id": "cicd",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "low-code-approval",
+      "phrases": [
+        "low-code approval",
+        "approval flow in microsoft"
+      ],
+      "pages": [
+        {
+          "id": "power-platform",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "container-vm-diff",
+      "phrases": [
+        "difference between a container and a virtual machine",
+        "container and a virtual machine"
+      ],
+      "pages": [
+        {
+          "id": "containers",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "first-web-language",
+      "phrases": [
+        "language should i learn first",
+        "first for web ui"
+      ],
+      "pages": [
+        {
+          "id": "javascript",
+          "boost": 24
+        },
+        {
+          "id": "html-and-css",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "types-js-codebase",
+      "phrases": [
+        "types in a large javascript",
+        "large javascript codebase"
+      ],
+      "pages": [
+        {
+          "id": "typescript",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "graph-no-user",
+      "phrases": [
+        "without a user",
+        "background service without"
+      ],
+      "pages": [
+        {
+          "id": "microsoft-graph",
+          "boost": 20
+        },
+        {
+          "id": "oauth",
+          "boost": 12
+        }
+      ]
+    },
+    {
+      "id": "delegated-vs-app",
+      "phrases": [
+        "delegated versus application",
+        "application permissions"
+      ],
+      "pages": [
+        {
+          "id": "microsoft-graph",
+          "boost": 28
+        },
+        {
+          "id": "microsoft-entra-id",
+          "boost": 12
+        }
+      ]
+    },
+    {
+      "id": "spfx-react-page",
+      "phrases": [
+        "web part to a sharepoint page",
+        "sharepoint page with react"
+      ],
+      "pages": [
+        {
+          "id": "build-spfx-web-part",
+          "boost": 34
+        },
+        {
+          "id": "sharepoint-framework",
+          "boost": 12
+        }
+      ]
+    },
+    {
+      "id": "intranet-form",
+      "phrases": [
+        "form that posts into a list",
+        "posts into a list"
+      ],
+      "pages": [
+        {
+          "id": "sharepoint",
+          "boost": 20
+        },
+        {
+          "id": "power-platform",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "auth-status",
+      "phrases": [
+        "401 vs 403",
+        "401 versus 403"
+      ],
+      "pages": [
+        {
+          "id": "authentication-vs-authorization",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "pip-venv",
+      "phrases": [
+        "pip and venv",
+        "venv"
+      ],
+      "pages": [
+        {
+          "id": "python",
+          "boost": 18
+        }
+      ]
+    },
+    {
+      "id": "tsconfig",
+      "phrases": [
+        "tsconfig"
+      ],
+      "pages": [
+        {
+          "id": "typescript",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "nullable-cs",
+      "phrases": [
+        "nullable reference"
+      ],
+      "pages": [
+        {
+          "id": "csharp",
+          "boost": 22
+        }
+      ]
+    },
+    {
+      "id": "branch-protection",
+      "phrases": [
+        "branch protection"
+      ],
+      "pages": [
+        {
+          "id": "github",
+          "boost": 18
+        },
+        {
+          "id": "cicd",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "public-bucket",
+      "phrases": [
+        "public access",
+        "s3 bucket public"
+      ],
+      "pages": [
+        {
+          "id": "aws-fundamentals",
+          "boost": 22
+        }
+      ]
+    },
+    {
+      "id": "gcp-project",
+      "phrases": [
+        "gcp project"
+      ],
+      "pages": [
+        {
+          "id": "gcp-fundamentals",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "which-cloud",
+      "phrases": [
+        "which cloud should i start"
+      ],
+      "pages": [
+        {
+          "id": "azure-fundamentals",
+          "boost": 12
+        },
+        {
+          "id": "aws-fundamentals",
+          "boost": 12
+        },
+        {
+          "id": "gcp-fundamentals",
+          "boost": 12
+        }
+      ]
+    }
+  ]
+}

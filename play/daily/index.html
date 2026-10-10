@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#ec4899">
+  <meta name="description" content="Daily Knowledge Challenge — test your mind every day with 5 curated questions in science, technology, geography, and logic. Track streaks privately offline.">
+  <link rel="canonical" href="https://intellitools.online/play/daily/">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../v2.css">
+  <link rel="stylesheet" href="../../v5.css">
+  <title>Daily Knowledge Challenge — IntelliTools Play</title>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header>
+    <div class="wrap">
+      <nav aria-label="Main navigation">
+        <a class="brand" href="../../" aria-label="IntelliTools home"><span>Intelli</span>Tools</a>
+        <div class="navlinks">
+          <a href="../../">Tools</a>
+          <a href="../../learn/">Learn</a>
+          <a href="../../knowledge/">Knowledge</a>
+          <a href="../../labs/">Labs</a>
+          <a href="../" class="active" aria-current="page">Play <span class="nav-pillar-badge play">New</span></a>
+          <a href="../../#about">About</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" style="padding: 20px 0 40px;">
+    <nav class="breadcrumb-trail" aria-label="Breadcrumb">
+      <a href="../../">Home</a>
+      <span>/</span>
+      <a href="../">Play</a>
+      <span>/</span>
+      <strong>Daily Knowledge Challenge</strong>
+    </nav>
+
+    <div class="play-container">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <span class="eyebrow" style="color:#ec4899;">DAILY CHALLENGE</span>
+          <h1 style="font-size:28px; margin:4px 0; letter-spacing:-.03em;">Daily Knowledge Challenge</h1>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span id="streakBadge" class="v5-badge featured" style="background:#fce7f3; color:#be185d;">🔥 0 Day Streak</span>
+          <span id="categoryBadge" class="v5-badge">General</span>
+        </div>
+      </div>
+
+      <!-- Quiz Progress -->
+      <div style="margin-bottom: 20px;">
+        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--muted); font-weight:700;">
+          <span id="progressLabel">Question 1 of 5</span>
+          <span>Keyboard: 1-4 / A-D</span>
+        </div>
+        <div class="quiz-progress-bar">
+          <div id="progressFill" class="quiz-progress-fill" style="width: 0%; background: linear-gradient(90deg, #ec4899, #8b5cf6);"></div>
+        </div>
+      </div>
+
+      <!-- Main Interactive Question & Result Area -->
+      <div id="quizContainer"></div>
+
+      <!-- Privacy & Storage Disclaimer -->
+      <div style="margin-top: 36px; padding: 14px 18px; background: #fafafc; border: 1px solid var(--line); border-radius: 14px; font-size: 12px; color: var(--muted); text-align: center;">
+        <strong>Private Streak Storage:</strong> Daily challenge progress and streaks are kept exclusively in your local browser storage. No account is required, and your answers are never shared or sent to any server.
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="../../"><span>Intelli</span>Tools</a>
+        <p>Focused browser-based tools, guided learning, interactive labs, and cognitive play. Less switching. More doing.</p>
+      </div>
+      <div>
+        <strong>Pillars</strong>
+        <a href="../../#tools">Tools</a>
+        <a href="../../learn/">Learn</a>
+        <a href="../../labs/">Labs</a>
+        <a href="../">Play</a>
+      </div>
+      <div>
+        <strong>Legal & Privacy</strong>
+        <a href="../../privacy.html">Privacy</a>
+        <a href="../../terms.html">Terms</a>
+        <a href="../../contact.html">Contact</a>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <span>© 2026 IntelliTools</span>
+      <span>Version 5.0 Release Candidate</span>
+    </div>
+  </footer>
+
+  <script type="module" src="daily-app.js"></script>
+</body>
+</html>

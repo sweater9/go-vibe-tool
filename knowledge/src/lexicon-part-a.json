@@ -1,0 +1,470 @@
+{
+  "version": 1,
+  "minSolidScore": 20,
+  "maxIntentBoost": 56,
+  "glossaryBoost": 6,
+  "stopwords": [
+    "a",
+    "an",
+    "the",
+    "to",
+    "of",
+    "and",
+    "or",
+    "for",
+    "in",
+    "on",
+    "with",
+    "my",
+    "your",
+    "our",
+    "is",
+    "are",
+    "was",
+    "were",
+    "be",
+    "do",
+    "does",
+    "did",
+    "how",
+    "what",
+    "why",
+    "when",
+    "which",
+    "who",
+    "should",
+    "can",
+    "could",
+    "would",
+    "i",
+    "we",
+    "you",
+    "it",
+    "this",
+    "that",
+    "from",
+    "into",
+    "about",
+    "than",
+    "then",
+    "just",
+    "not",
+    "no",
+    "yes",
+    "vs",
+    "versus",
+    "using",
+    "use",
+    "used",
+    "into",
+    "over",
+    "than",
+    "its",
+    "if",
+    "at",
+    "as",
+    "by",
+    "me",
+    "let",
+    "keep",
+    "keeps"
+  ],
+  "synonyms": {
+    "gpt": [
+      "llm",
+      "large language model"
+    ],
+    "chatgpt": [
+      "llm",
+      "large language model"
+    ],
+    "llms": [
+      "llm",
+      "large language model"
+    ],
+    "genai": [
+      "generative ai"
+    ],
+    "hallucinating": [
+      "hallucination",
+      "hallucinations"
+    ],
+    "hallucinate": [
+      "hallucination",
+      "hallucinations"
+    ],
+    "hallucinated": [
+      "hallucination",
+      "hallucinations"
+    ],
+    "hallucinations": [
+      "hallucination"
+    ],
+    "forgetting": [
+      "forget",
+      "memory"
+    ],
+    "forgets": [
+      "forget",
+      "memory"
+    ],
+    "forgot": [
+      "forget",
+      "memory"
+    ],
+    "forgotten": [
+      "forget",
+      "memory"
+    ],
+    "remember": [
+      "memory"
+    ],
+    "remembers": [
+      "memory"
+    ],
+    "remembering": [
+      "memory"
+    ],
+    "documents": [
+      "document"
+    ],
+    "docs": [
+      "document"
+    ],
+    "files": [
+      "document"
+    ],
+    "pdfs": [
+      "document"
+    ],
+    "finetune": [
+      "fine-tuning",
+      "fine tuning"
+    ],
+    "finetuning": [
+      "fine-tuning"
+    ],
+    "finetuned": [
+      "fine-tuning"
+    ],
+    "embeddings": [
+      "embedding"
+    ],
+    "vectors": [
+      "vector",
+      "embedding"
+    ],
+    "vectordb": [
+      "vector database"
+    ],
+    "js": [
+      "javascript"
+    ],
+    "ts": [
+      "typescript"
+    ],
+    "nodejs": [
+      "node"
+    ],
+    "postgres": [
+      "postgresql",
+      "sql"
+    ],
+    "toolcalling": [
+      "function calling",
+      "tool calling"
+    ],
+    "tools": [
+      "tool"
+    ],
+    "agents": [
+      "agent"
+    ],
+    "models": [
+      "model"
+    ],
+    "prompts": [
+      "prompt"
+    ],
+    "chunk": [
+      "chunking"
+    ],
+    "chunks": [
+      "chunking"
+    ],
+    "retrieval": [
+      "rag"
+    ],
+    "grounding": [
+      "rag",
+      "grounded"
+    ],
+    "locally": [
+      "local"
+    ],
+    "running": [
+      "run"
+    ],
+    "databases": [
+      "database"
+    ],
+    "security": [
+      "privacy",
+      "injection"
+    ],
+    "spfx": [
+      "sharepoint framework"
+    ],
+    "huggingface": [
+      "hugging face"
+    ],
+    "m365": [
+      "microsoft 365"
+    ],
+    "entra": [
+      "microsoft entra"
+    ],
+    "oidc": [
+      "openid connect"
+    ],
+    "jwt": [
+      "json web token"
+    ],
+    "jwts": [
+      "jwt",
+      "json web token"
+    ],
+    "golang": [
+      "go language"
+    ],
+    "k8s": [
+      "kubernetes"
+    ],
+    "mysql": [
+      "sql"
+    ],
+    "nextjs": [
+      "next"
+    ],
+    "websockets": [
+      "websocket"
+    ],
+    "authz": [
+      "authorization"
+    ],
+    "authn": [
+      "authentication"
+    ]
+  },
+  "coverageGaps": [],
+  "tools": [
+    {
+      "id": "ai-prompt-builder",
+      "name": "AI Prompt Builder",
+      "url": "tools/ai-prompt-builder.html",
+      "reason": "Use it when you are drafting a prompt. It walks through role, request, context, process, tone and output, then assembles one prompt you can copy. It does not call a model.",
+      "when": [
+        "write a prompt",
+        "write better prompts",
+        "write effective prompts",
+        "how do i write prompts",
+        "how to write prompts",
+        "draft a prompt",
+        "structure a prompt",
+        "prompt template",
+        "draft a system prompt",
+        "write a system prompt",
+        "create a system prompt",
+        "improve my prompt",
+        "fix my prompt",
+        "build a prompt"
+      ]
+    },
+    {
+      "id": "prompt-diff",
+      "name": "Prompt Diff",
+      "url": "index.html?tool=prompt-diff",
+      "reason": "Use it to compare two prompt versions and see which lines were added or removed. It does not measure whether the model got better.",
+      "when": [
+        "compare two prompts",
+        "compare prompt versions",
+        "compare prompts",
+        "prompt diff",
+        "diff my prompts",
+        "what changed in my prompt",
+        "prompt regression",
+        "prompt versions",
+        "two prompt versions",
+        "compare two prompt"
+      ]
+    },
+    {
+      "id": "fact-anchor-checker",
+      "name": "Fact Anchor Checker",
+      "url": "tools/fact-anchor-checker.html",
+      "reason": "Use it to check claims in an answer against source text you paste. It is a manual spot-check, not a way to stop hallucinations in general.",
+      "when": [
+        "check claims against",
+        "verify claims against",
+        "supported by the source",
+        "against the evidence",
+        "against my source",
+        "fact anchor",
+        "compare claims to"
+      ]
+    },
+    {
+      "id": "pii-secret-redactor",
+      "name": "PII & Secret Redactor",
+      "url": "tools/pii-secret-redactor.html",
+      "reason": "Use it to mask emails, phone numbers and API-key-like strings before you paste text anywhere. Pattern matching is not exhaustive, so read the result.",
+      "when": [
+        "redact secrets",
+        "redact pii",
+        "remove secrets",
+        "strip secrets",
+        "remove pii",
+        "mask pii",
+        "mask emails",
+        "before pasting a prompt",
+        "api keys out of",
+        "strip api keys"
+      ]
+    },
+    {
+      "id": "agentic-workflow-generator",
+      "name": "Agentic Workflow Generator",
+      "url": "index.html?tool=agentic-workflow-generator",
+      "reason": "Use it when you already know you want a workflow and need roles, handoffs, inputs and guardrails written down. It does not explain what an agent is, and it does not run the workflow.",
+      "when": [
+        "design a multi-agent workflow",
+        "design an agentic workflow",
+        "roles and handoffs",
+        "workflow with roles",
+        "handoffs and guardrails"
+      ]
+    },
+    {
+      "id": "json-formatter",
+      "name": "JSON Formatter",
+      "url": "index.html?tool=json-formatter",
+      "reason": "Use it to validate and pretty-print JSON in the browser. It does not design a schema or call a model.",
+      "when": [
+        "validate json",
+        "pretty-print json",
+        "pretty print json",
+        "format json",
+        "format this json",
+        "invalid json",
+        "json syntax"
+      ]
+    }
+  ],
+  "queryTechnologies": [
+    {
+      "match": [
+        "python"
+      ],
+      "name": "Python",
+      "kind": "language you mentioned"
+    },
+    {
+      "match": [
+        "javascript",
+        "js"
+      ],
+      "name": "JavaScript",
+      "kind": "language you mentioned"
+    },
+    {
+      "match": [
+        "typescript"
+      ],
+      "name": "TypeScript",
+      "kind": "language you mentioned"
+    },
+    {
+      "match": [
+        "react"
+      ],
+      "name": "React",
+      "kind": "library you mentioned"
+    },
+    {
+      "match": [
+        "node js",
+        "nodejs",
+        "node.js"
+      ],
+      "name": "Node.js",
+      "kind": "runtime you mentioned"
+    },
+    {
+      "match": [
+        "gmail"
+      ],
+      "name": "Gmail",
+      "kind": "system you mentioned"
+    },
+    {
+      "match": [
+        "spfx",
+        "sharepoint framework"
+      ],
+      "name": "SharePoint Framework",
+      "kind": "framework you mentioned"
+    },
+    {
+      "match": [
+        "sharepoint"
+      ],
+      "name": "SharePoint",
+      "kind": "product you mentioned"
+    },
+    {
+      "match": [
+        "typescript",
+        "ts"
+      ],
+      "name": "TypeScript",
+      "kind": "language you mentioned"
+    },
+    {
+      "match": [
+        "postgresql",
+        "postgres"
+      ],
+      "name": "PostgreSQL",
+      "kind": "database you mentioned"
+    },
+    {
+      "match": [
+        "hugging face",
+        "huggingface"
+      ],
+      "name": "Hugging Face",
+      "kind": "platform you mentioned"
+    },
+    {
+      "match": [
+        "langchain"
+      ],
+      "name": "LangChain",
+      "kind": "framework you mentioned"
+    },
+    {
+      "match": [
+        "docker"
+      ],
+      "name": "Docker",
+      "kind": "tool you mentioned"
+    },
+    {
+      "match": [
+        "oauth"
+      ],
+      "name": "OAuth",
+      "kind": "protocol you mentioned"
+    }
+  ]
+}

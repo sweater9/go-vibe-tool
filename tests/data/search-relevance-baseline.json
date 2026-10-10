@@ -1,0 +1,2335 @@
+{
+ "version": 1,
+ "engine": "knowledge/search-core.mjs, unmodified, over the committed search-index.json and search-lexicon.json",
+ "queries": 303,
+ "summary": {
+  "total": 303,
+  "pass": 221,
+  "passRate": 72.9,
+  "confidentAccuracy": 80,
+  "confidentTotal": 225,
+  "weakCorrect": 92.1,
+  "weakTotal": 38,
+  "wrongConfident": 12,
+  "wrongConfidentQueries": [
+   "build rag with python",
+   "what is an AI agent",
+   "can an AI agent read my gmail",
+   "how can I reduce my LLM API costs",
+   "best python libraries for machine learning",
+   "call the openai api from python",
+   "call an LLM API with javascript",
+   "strip the auth token from a curl command",
+   "how should I react when someone is rude to me",
+   "token of appreciation gift ideas",
+   "embedding a youtube video in my website",
+   "benchmarks vs task evals"
+  ],
+  "toolRecall": 20,
+  "toolCases": 25,
+  "toolFalsePositives": 0,
+  "mrr": 0.861
+ },
+ "results": {
+  "machine learning": {
+   "pass": false,
+   "answer": "what-is-ai",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "only 0/3 required topic guides visible"
+   ]
+  },
+  "what is machine learning": {
+   "pass": false,
+   "answer": "what-is-ai",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "only 0/3 required topic guides visible"
+   ]
+  },
+  "machine learning for beginners": {
+   "pass": false,
+   "answer": "what-is-ai",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "only 0/3 required topic guides visible"
+   ]
+  },
+  "how does machine learning work": {
+   "pass": false,
+   "answer": "what-is-ai",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "only 0/3 required topic guides visible"
+   ]
+  },
+  "types of machine learning": {
+   "pass": false,
+   "answer": "what-is-ai",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "only 0/3 required topic guides visible"
+   ]
+  },
+  "machine learning basics explained simply": {
+   "pass": false,
+   "answer": "what-is-ai",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "only 0/3 required topic guides visible"
+   ]
+  },
+  "ml": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer",
+    "only 0/3 required topic guides visible"
+   ]
+  },
+  "ml basics": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer",
+    "only 1/3 required topic guides visible"
+   ]
+  },
+  "machien learning": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "supervised vs unsupervised learning": {
+   "pass": true,
+   "answer": "unsupervised-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is supervised learning": {
+   "pass": true,
+   "answer": "supervised-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is unsupervised learning": {
+   "pass": true,
+   "answer": "unsupervised-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is clustering in machine learning": {
+   "pass": true,
+   "answer": "unsupervised-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "classification vs regression": {
+   "pass": true,
+   "answer": "supervised-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is deep learning": {
+   "pass": true,
+   "answer": "deep-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "difference between deep learning and machine learning": {
+   "pass": true,
+   "answer": "deep-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is the difference between AI and machine learning": {
+   "pass": true,
+   "answer": "what-is-ai",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a neural network": {
+   "pass": true,
+   "answer": "neural-networks",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do neural networks learn": {
+   "pass": true,
+   "answer": "neural-networks",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is backpropagation": {
+   "pass": true,
+   "answer": "backpropagation-and-gradient-descent",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is overfitting": {
+   "pass": true,
+   "answer": "overfitting-and-regularization",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "why is my model overfitting": {
+   "pass": true,
+   "answer": "overfitting-and-regularization",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is reinforcement learning": {
+   "pass": true,
+   "answer": "reinforcement-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is transfer learning": {
+   "pass": true,
+   "answer": "transfer-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is self-supervised learning": {
+   "pass": true,
+   "answer": "self-supervised-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a convolutional neural network": {
+   "pass": true,
+   "answer": "convolutional-neural-networks",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is mlops": {
+   "pass": true,
+   "answer": "mlops",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I detect model drift in production": {
+   "pass": true,
+   "answer": "model-drift-and-monitoring",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what are GANs": {
+   "pass": true,
+   "answer": "generative-adversarial-networks",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is generative AI": {
+   "pass": true,
+   "answer": "generative-ai",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is artificial intelligence": {
+   "pass": true,
+   "answer": "what-is-ai",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "ai for beginners": {
+   "pass": true,
+   "answer": "what-is-ai",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a large language model": {
+   "pass": true,
+   "answer": "large-language-models",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do LLMs work": {
+   "pass": true,
+   "answer": "large-language-models",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a token in an LLM": {
+   "pass": true,
+   "answer": "tokens",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a context window": {
+   "pass": true,
+   "answer": "context-windows",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "why does the model forget the start of a long document": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "none of context-windows in the first 6 guides"
+   ]
+  },
+  "what is attention in transformers": {
+   "pass": true,
+   "answer": "transformers",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do transformers work for beginners": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "advanced transformer attention internals": {
+   "pass": true,
+   "answer": "transformers",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is positional encoding": {
+   "pass": true,
+   "answer": "positional-encoding",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a kv cache": {
+   "pass": true,
+   "answer": "kv-cache",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how does temperature change the output": {
+   "pass": true,
+   "answer": "sampling-and-decoding",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is top-p sampling": {
+   "pass": true,
+   "answer": "sampling-and-decoding",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is mixture of experts": {
+   "pass": true,
+   "answer": "mixture-of-experts",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is quantization": {
+   "pass": true,
+   "answer": "quantization",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a small language model": {
+   "pass": true,
+   "answer": "small-language-models",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what are open weights models": {
+   "pass": true,
+   "answer": "open-weights-models",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is speculative decoding": {
+   "pass": true,
+   "answer": "speculative-decoding",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is prompt engineering": {
+   "pass": true,
+   "answer": "prompt-engineering",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I write a good prompt": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer",
+    "missing tool: ai-prompt-builder"
+   ]
+  },
+  "prompt engineering tips for beginners": {
+   "pass": true,
+   "answer": "prompt-engineering",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "advanced prompting techniques": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is a system prompt": {
+   "pass": true,
+   "answer": "system-prompts",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is chain of thought prompting": {
+   "pass": true,
+   "answer": "chain-of-thought",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "why does my chatbot ignore my instructions": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "what is context engineering": {
+   "pass": true,
+   "answer": "context-engineering",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how to stop prompt injection attacks": {
+   "pass": true,
+   "answer": "prompt-injection",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a jailbreak": {
+   "pass": true,
+   "answer": "prompt-injection",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I compare two versions of a prompt": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: prompt-diff"
+   ]
+  },
+  "what is prompt caching": {
+   "pass": true,
+   "answer": "prompt-caching",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I get structured JSON output from an LLM": {
+   "pass": true,
+   "answer": "structured-outputs",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "promt engineering": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "why does AI make things up": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "my chatbot makes things up": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "how to reduce hallucinations in LLMs": {
+   "pass": true,
+   "answer": "how-to-reduce-hallucinations",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "halucination": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "check whether an AI answer is supported by the source text": {
+   "pass": true,
+   "answer": "ai-evaluation",
+   "solid": true,
+   "tools": [
+    "fact-anchor-checker"
+   ],
+   "failures": []
+  },
+  "is it safe to put customer data into ChatGPT": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "how do I remove personal data from text before sending it to an AI": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer",
+    "missing tool: pii-secret-redactor"
+   ]
+  },
+  "redact api keys from logs": {
+   "pass": false,
+   "answer": "api-keys",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "missing tool: pii-secret-redactor"
+   ]
+  },
+  "mask emails and phone numbers in a document before sharing": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [
+    "pii-secret-redactor"
+   ],
+   "failures": []
+  },
+  "what is red teaming": {
+   "pass": true,
+   "answer": "red-teaming",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what are AI guardrails": {
+   "pass": true,
+   "answer": "ai-guardrails",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is the OWASP top 10 for LLM applications": {
+   "pass": true,
+   "answer": "owasp-llm-top-10",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is the EU AI Act": {
+   "pass": true,
+   "answer": "eu-ai-act",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is the NIST AI risk management framework": {
+   "pass": true,
+   "answer": "nist-ai-rmf",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is sycophancy in AI models": {
+   "pass": true,
+   "answer": "sycophancy",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is reward hacking": {
+   "pass": true,
+   "answer": "reward-hacking",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do AI systems become biased": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is AI alignment": {
+   "pass": true,
+   "answer": "ai-alignment",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is RAG": {
+   "pass": true,
+   "answer": "rag",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how does retrieval augmented generation work": {
+   "pass": true,
+   "answer": "rag",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "retreival augmented generation": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "let the AI answer questions from my own documents": {
+   "pass": true,
+   "answer": "rag",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how should I chunk documents": {
+   "pass": true,
+   "answer": "chunking",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what are embeddings": {
+   "pass": true,
+   "answer": "embeddings",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "embeding models": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is a vector database": {
+   "pass": true,
+   "answer": "vector-databases",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "vecotr database": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "which vector database should I choose": {
+   "pass": true,
+   "answer": "choosing-a-vector-store",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "pgvector vs a dedicated vector database": {
+   "pass": true,
+   "answer": "pgvector",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "rag vs fine-tuning": {
+   "pass": true,
+   "answer": "rag-vs-fine-tuning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "rag vs finetuning": {
+   "pass": true,
+   "answer": "rag-vs-fine-tuning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "fine tunning": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is LoRA": {
+   "pass": true,
+   "answer": "lora-and-peft",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how to evaluate a RAG pipeline": {
+   "pass": true,
+   "answer": "rag-evaluation",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "my RAG returns irrelevant results": {
+   "pass": true,
+   "answer": "rag",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is hybrid search and reranking": {
+   "pass": true,
+   "answer": "hybrid-search-and-reranking",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is agentic RAG": {
+   "pass": true,
+   "answer": "agentic-rag",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is graph rag": {
+   "pass": true,
+   "answer": "graph-rag",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "build rag with python": {
+   "pass": false,
+   "answer": "rag",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "wrong confident answer: rag"
+   ]
+  },
+  "semantic search explained": {
+   "pass": true,
+   "answer": "embeddings",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "which RAG framework should I use": {
+   "pass": true,
+   "answer": "rag-frameworks",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is an AI agent": {
+   "pass": false,
+   "answer": "ai-agent-vs-chatbot",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "wrong confident answer: ai-agent-vs-chatbot"
+   ]
+  },
+  "ai agent vs chatbot": {
+   "pass": true,
+   "answer": "ai-agent-vs-chatbot",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do agents use tools": {
+   "pass": true,
+   "answer": "agent-tools",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is function calling": {
+   "pass": true,
+   "answer": "function-calling",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is MCP": {
+   "pass": true,
+   "answer": "mcp",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "model context protocol": {
+   "pass": true,
+   "answer": "mcp",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "mcp vs api": {
+   "pass": true,
+   "answer": "mcp-vs-api",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "function calling vs mcp": {
+   "pass": true,
+   "answer": "function-calling-vs-mcp",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I secure an MCP server": {
+   "pass": true,
+   "answer": "mcp-security",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a multi-agent system": {
+   "pass": true,
+   "answer": "multi-agent-systems",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "design an agentic workflow": {
+   "pass": true,
+   "answer": "agentic-workflows",
+   "solid": true,
+   "tools": [
+    "agentic-workflow-generator"
+   ],
+   "failures": []
+  },
+  "help me plan a multi-agent workflow with roles and handoffs": {
+   "pass": true,
+   "answer": "agentic-workflows",
+   "solid": true,
+   "tools": [
+    "agentic-workflow-generator"
+   ],
+   "failures": []
+  },
+  "what is an agentic workflow": {
+   "pass": true,
+   "answer": "agentic-workflows",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "agentic workflw": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "how do I give an agent memory": {
+   "pass": true,
+   "answer": "agent-memory",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I evaluate an AI agent": {
+   "pass": true,
+   "answer": "agent-evaluation",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is the ReAct agent pattern": {
+   "pass": true,
+   "answer": "react-agent-pattern",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how does agent planning work": {
+   "pass": true,
+   "answer": "agent-planning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is the agent2agent protocol": {
+   "pass": true,
+   "answer": "a2a-protocol",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "a2a vs mcp": {
+   "pass": true,
+   "answer": "a2a-vs-mcp",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what are computer use agents": {
+   "pass": true,
+   "answer": "computer-use-agents",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I run agent generated code safely": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "can an AI agent read my gmail": {
+   "pass": false,
+   "answer": "ai-agent-vs-chatbot",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "wrong confident answer: ai-agent-vs-chatbot"
+   ]
+  },
+  "my agent gets stuck in a loop": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "ai assistant keeps forgetting what I said earlier": {
+   "pass": true,
+   "answer": "agent-memory",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "chatbot memmory": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "langchain vs langgraph": {
+   "pass": true,
+   "answer": "langgraph",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "langchian": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is langgraph": {
+   "pass": true,
+   "answer": "langgraph",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is crewai": {
+   "pass": true,
+   "answer": "crewai",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is dspy": {
+   "pass": true,
+   "answer": "dspy",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is the openai agents sdk": {
+   "pass": true,
+   "answer": "openai-agents-sdk",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is llamaindex": {
+   "pass": true,
+   "answer": "llamaindex",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is semantic kernel": {
+   "pass": true,
+   "answer": "semantic-kernel",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "should I use a framework or call the API directly": {
+   "pass": true,
+   "answer": "framework-vs-direct-api",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "which agent framework should I pick": {
+   "pass": true,
+   "answer": "agent-frameworks-compared",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what are reasoning models": {
+   "pass": true,
+   "answer": "reasoning-models",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "reasoning models vs standard models": {
+   "pass": true,
+   "answer": "reasoning-models",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is test time compute": {
+   "pass": true,
+   "answer": "test-time-compute",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I run an LLM on my laptop": {
+   "pass": true,
+   "answer": "local-ai",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is ollama": {
+   "pass": true,
+   "answer": "ollama",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "ollama vs llama.cpp vs vllm": {
+   "pass": true,
+   "answer": "llama-cpp",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "local ai vs cloud ai": {
+   "pass": true,
+   "answer": "local-ai-vs-cloud-ai",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how can I reduce my LLM API costs": {
+   "pass": false,
+   "answer": "model-apis",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "wrong confident answer: model-apis"
+   ]
+  },
+  "how do I monitor an LLM app in production": {
+   "pass": true,
+   "answer": "llm-observability",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what are GPUs used for in AI": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what are scaling laws": {
+   "pass": true,
+   "answer": "scaling-laws",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I serve a model for inference": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is knowledge distillation": {
+   "pass": true,
+   "answer": "knowledge-distillation",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is RLHF": {
+   "pass": true,
+   "answer": "rlhf",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "dpo vs rlhf": {
+   "pass": true,
+   "answer": "dpo-vs-rlhf",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is instruction tuning": {
+   "pass": true,
+   "answer": "instruction-tuning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "lora vs full fine-tuning": {
+   "pass": true,
+   "answer": "lora-vs-full-fine-tuning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a reward model": {
+   "pass": true,
+   "answer": "rlhf",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is python used for in AI": {
+   "pass": true,
+   "answer": "python",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "best python libraries for machine learning": {
+   "pass": false,
+   "answer": "python",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "wrong confident answer: python"
+   ]
+  },
+  "call the openai api from python": {
+   "pass": false,
+   "answer": "python",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "wrong confident answer: python"
+   ]
+  },
+  "call an LLM API with javascript": {
+   "pass": false,
+   "answer": "javascript",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "wrong confident answer: javascript"
+   ]
+  },
+  "how do I stream AI responses to the browser": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is typescript": {
+   "pass": true,
+   "answer": "typescript",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "typscript": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is node.js": {
+   "pass": true,
+   "answer": "nodejs",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "build a chat interface in react": {
+   "pass": true,
+   "answer": "react-ai-interfaces",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a REST API": {
+   "pass": true,
+   "answer": "rest-apis",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "rest vs graphql": {
+   "pass": true,
+   "answer": "rest-vs-graphql",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I keep API keys safe": {
+   "pass": true,
+   "answer": "api-keys",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is oauth": {
+   "pass": true,
+   "answer": "oauth",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "oauth vs openid connect": {
+   "pass": true,
+   "answer": "openid-connect",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a JWT": {
+   "pass": true,
+   "answer": "json-web-tokens",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "decode a jwt token and read its claims": {
+   "pass": false,
+   "answer": "json-web-tokens",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "missing tool: oauth-jwt-decoder"
+   ]
+  },
+  "authentication vs authorization": {
+   "pass": true,
+   "answer": "authentication-vs-authorization",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is CORS": {
+   "pass": true,
+   "answer": "cors",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "cors error in my fetch request": {
+   "pass": true,
+   "answer": "cors",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what are environment variables": {
+   "pass": true,
+   "answer": "environment-variables",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "compare two .env files for missing keys": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: env-diff"
+   ]
+  },
+  "what are webhooks": {
+   "pass": true,
+   "answer": "webhooks",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is JSON": {
+   "pass": true,
+   "answer": "what-is-json",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I validate JSON": {
+   "pass": true,
+   "answer": "json-validation",
+   "solid": true,
+   "tools": [
+    "json-formatter"
+   ],
+   "failures": []
+  },
+  "pretty print a json file": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: json-formatter"
+   ]
+  },
+  "strip the auth token from a curl command": {
+   "pass": false,
+   "answer": "tokens",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "wrong confident answer: tokens",
+    "missing tool: curl-code-sanitizer"
+   ]
+  },
+  "generate a create table statement and mock data": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: sql-mock-builder"
+   ]
+  },
+  "what is SQL": {
+   "pass": true,
+   "answer": "sql",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "sql vs nosql": {
+   "pass": true,
+   "answer": "sql-vs-nosql",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is postgresql": {
+   "pass": true,
+   "answer": "postgresql",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is redis used for": {
+   "pass": true,
+   "answer": "redis",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is mongodb": {
+   "pass": true,
+   "answer": "mongodb",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is an ORM": {
+   "pass": true,
+   "answer": "prisma-and-orms",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "which database should I use for my AI app": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is docker": {
+   "pass": true,
+   "answer": "docker",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is CI/CD": {
+   "pass": true,
+   "answer": "cicd",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is git": {
+   "pass": true,
+   "answer": "git",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "AWS basics for beginners": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is azure": {
+   "pass": true,
+   "answer": "azure-fundamentals",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is microsoft graph": {
+   "pass": true,
+   "answer": "microsoft-graph",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is microsoft entra id": {
+   "pass": true,
+   "answer": "microsoft-entra-id",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I build a SharePoint web part": {
+   "pass": true,
+   "answer": "build-spfx-web-part",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "compress an image": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: image-studio"
+   ]
+  },
+  "resize an image for the web": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: image-studio"
+   ]
+  },
+  "convert png to webp": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: image-studio"
+   ]
+  },
+  "make a favicon from my logo": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: image-studio"
+   ]
+  },
+  "merge pdf files": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: pdf-studio"
+   ]
+  },
+  "split a pdf into separate pages": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: pdf-studio"
+   ]
+  },
+  "reduce the file size of a pdf": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: pdf-studio"
+   ]
+  },
+  "rotate pages in a pdf": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: pdf-studio"
+   ]
+  },
+  "decode a base64 string": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: base64"
+   ]
+  },
+  "convert a unix timestamp to a date": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: timestamp"
+   ]
+  },
+  "explain this cron expression": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "missing tool: cron-humanizer"
+   ]
+  },
+  "what is a pdf": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "image generation models": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "how does diffusion image generation work": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is a pdf reader for ai documents": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "best pizza recipe": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "who won the world cup": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "how to lose weight fast": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "weather in dubai tomorrow": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "cheapest flights to london": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "how to tie a tie": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "what is the capital of france": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "symptoms of the flu": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "how do I train a puppy": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "best laptop for gaming": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "how do I get a mortgage": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "learn guitar chords": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "python snake food": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "transformers toys for kids birthday": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "java coffee beans": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "how do I remove rust from a bicycle chain": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "docker brand clothing": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "how should I react when someone is rude to me": {
+   "pass": false,
+   "answer": "react",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "false confident answer: react"
+   ]
+  },
+  "token of appreciation gift ideas": {
+   "pass": false,
+   "answer": "tokens",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "false confident answer: tokens"
+   ]
+  },
+  "memory foam mattress reviews": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "embedding a youtube video in my website": {
+   "pass": false,
+   "answer": "embeddings",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "false confident answer: embeddings"
+   ]
+  },
+  "graph paper to print": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "vector art software for logos": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "model train sets for beginners": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "secret agent movies": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "chain of command in the army": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "python": {
+   "pass": true,
+   "answer": "python",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "tokens": {
+   "pass": true,
+   "answer": "tokens",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "agent": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "orm": {
+   "pass": true,
+   "answer": "prisma-and-orms",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "embedding": {
+   "pass": true,
+   "answer": "embeddings",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "transformers": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "graph": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "cache": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "api token": {
+   "pass": true,
+   "answer": "tokens",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "bias": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "dl": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "rl": {
+   "pass": true,
+   "answer": "reinforcement-learning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "cnn": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "rnn": {
+   "pass": true,
+   "answer": "recurrent-neural-networks",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "vlm": {
+   "pass": true,
+   "answer": "vision-language-models",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "moe models": {
+   "pass": true,
+   "answer": "mixture-of-experts",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "ssm": {
+   "pass": true,
+   "answer": "state-space-models",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "peft": {
+   "pass": true,
+   "answer": "lora-and-peft",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "cot prompting": {
+   "pass": true,
+   "answer": "chain-of-thought",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "oidc": {
+   "pass": true,
+   "answer": "openid-connect",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "gpu": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "neural netwrok": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "reinforcment learning": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "transfomer attention": {
+   "pass": true,
+   "answer": "transformers",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "quantisation": {
+   "pass": true,
+   "answer": "quantization",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "pyhton for ai": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "javscript": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "dockr containers": {
+   "pass": true,
+   "answer": "containers",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "sematic search embeddings": {
+   "pass": true,
+   "answer": "embeddings",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I learn machine learning from scratch": {
+   "pass": false,
+   "answer": "what-is-ai",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "only 0/3 required topic guides visible"
+   ]
+  },
+  "explain neural networks like I am five": {
+   "pass": true,
+   "answer": "neural-networks",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "deep dive into how attention works under the hood": {
+   "pass": true,
+   "answer": "transformers",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I fine-tune a model cheaply": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "is fine-tuning better than prompting": {
+   "pass": true,
+   "answer": "fine-tuning",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I make my RAG answers cite sources": {
+   "pass": true,
+   "answer": "rag",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how do I know if my AI app is working well": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "what is llm as a judge": {
+   "pass": true,
+   "answer": "llm-as-a-judge",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is benchmark contamination": {
+   "pass": true,
+   "answer": "benchmark-contamination",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "benchmarks vs task evals": {
+   "pass": false,
+   "answer": "benchmarks-and-leaderboards",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "wrong confident answer: benchmarks-and-leaderboards"
+   ]
+  },
+  "what is swe-bench": {
+   "pass": true,
+   "answer": "swe-bench",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a model card": {
+   "pass": true,
+   "answer": "model-cards",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is multimodal AI": {
+   "pass": true,
+   "answer": "multimodal-ai",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what are vision language models": {
+   "pass": true,
+   "answer": "vision-language-models",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is speech recognition in AI": {
+   "pass": true,
+   "answer": "speech-ai",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is a world model": {
+   "pass": true,
+   "answer": "world-models",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what is alphafold": {
+   "pass": true,
+   "answer": "alphafold",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "how is AI used in drug discovery": {
+   "pass": true,
+   "answer": "ai-drug-discovery",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "databases": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "only 2/3 required topic guides visible"
+   ]
+  },
+  "cloud computing": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "only 1/2 required topic guides visible"
+   ]
+  },
+  "programming languages": {
+   "pass": true,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": []
+  },
+  "authentication": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "only 2/3 required topic guides visible"
+   ]
+  },
+  "agent frameworks": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "no confident answer"
+   ]
+  },
+  "ai safety": {
+   "pass": true,
+   "answer": "ai-alignment",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "ai security": {
+   "pass": true,
+   "answer": "ai-privacy-and-security",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "learn ai": {
+   "pass": false,
+   "answer": null,
+   "solid": false,
+   "tools": [],
+   "failures": [
+    "none of what-is-ai in the first 6 guides"
+   ]
+  },
+  "RAG for beginners": {
+   "pass": true,
+   "answer": "rag",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "advanced RAG techniques": {
+   "pass": false,
+   "answer": "rag",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "learn-more lacks agentic-rag/graph-rag/hybrid-search-and-reranking/rag-evaluation"
+   ]
+  },
+  "what should I learn before agentic rag": {
+   "pass": true,
+   "answer": "agentic-rag",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "prerequisites for lora fine-tuning": {
+   "pass": false,
+   "answer": "fine-tuning",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "learn-more lacks fine-tuning/neural-networks"
+   ]
+  },
+  "what do I need to know before learning mcp authorization": {
+   "pass": true,
+   "answer": "mcp-authorization",
+   "solid": true,
+   "tools": [],
+   "failures": []
+  },
+  "what to learn after rag": {
+   "pass": false,
+   "answer": "rag",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "learn-more lacks rag-evaluation/hybrid-search-and-reranking/agentic-rag/graph-rag"
+   ]
+  },
+  "next steps after prompt engineering": {
+   "pass": false,
+   "answer": "prompt-engineering",
+   "solid": true,
+   "tools": [],
+   "failures": [
+    "learn-more lacks chain-of-thought/structured-outputs/context-engineering/agent-tools"
+   ]
+  }
+ }
+}

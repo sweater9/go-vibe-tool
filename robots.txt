@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://intellitools.online/sitemap.xml

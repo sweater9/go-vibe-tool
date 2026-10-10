@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TypeScript Types for an API Client | IntelliTools Knowledge</title><meta name="description" content="Define TypeScript types for the request body, success response and error response of each API call, then implement a client function that returns a typed result and handles non-2xx cases.">
+<link rel="canonical" href="https://intellitools.online/knowledge/typescript-api-client-types.html"><meta property="og:type" content="article"><meta property="og:site_name" content="IntelliTools"><meta property="og:title" content="TypeScript Types for an API Client | IntelliTools Knowledge"><meta property="og:description" content="Define TypeScript types for the request body, success response and error response of each API call, then implement a client function that returns a typed result and handles non-2xx cases."><meta property="og:url" content="https://intellitools.online/knowledge/typescript-api-client-types.html">
+<meta name="twitter:card" content="summary"><link rel="icon" href="../assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="../v2.css"><link rel="stylesheet" href="knowledge.css"><link rel="stylesheet" href="learning.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"TypeScript Types for an API Client","description":"Define TypeScript types for the request body, success response and error response of each API call, then implement a client function that returns a typed result and handles non-2xx cases.","url":"https://intellitools.online/knowledge/typescript-api-client-types.html","publisher":{"@type":"Organization","name":"IntelliTools"},"inLanguage":"en"}</script></head>
+<body><header><div class="wrap"><nav aria-label="Main navigation"><a class="brand" href="../index.html"><span>Intelli</span>Tools</a><div class="navlinks"><a href="../index.html#tools">All tools</a><a href="index.html">Knowledge</a><a href="../index.html#about">About</a></div></nav></div></header>
+<main><section class="kn-head"><div class="wrap kn-wrap"><nav class="kn-crumb" aria-label="Breadcrumb"><a href="index.html">Knowledge</a> › <span>JavaScript</span></nav>
+<span class="eyebrow">EXPLAINER</span><h1>TypeScript Types for an API Client</h1><p class="kn-lede">Define TypeScript types for the request body, success response and error response of each API call, then implement a client function that returns a typed result and handles non-2xx cases.</p>
+<p class="kn-quick"><strong>Short answer:</strong> For a typed API client: <strong>one type for the request, one for success, one for errors</strong>, plus a function that parses JSON safely. That is what &quot;TypeScript types for an API client&quot; means in practice.</p></div></section>
+<div class="wrap kn-wrap kn-layout"><article class="kn-article"><section id="what-is-it"><h2>What is it?</h2><p>An <strong>API client</strong> is the module your app uses to call HTTP endpoints. In TypeScript you describe three shapes per endpoint: what you send, what success looks like, and what failure looks like. The compiler then checks every call site. This applies to your own <code>/api/chat</code> route and to vendor model APIs wrapped behind it.</p></section>
+<section id="why-it-matters"><h2>Why it matters</h2><p>AI features often chain several JSON payloads (chat, embeddings, tools). Untyped <code>fetch</code> + <code>any</code> hides breakages until a user hits them. Explicit types document the contract for <a href="react-chatbot-state.html">UI state</a> and make refactors safer.</p></section>
+<section id="how-to-do-it"><h2>How to do it</h2><ol><li>Write <code>Request</code>, <code>Success</code>, and <code>ErrorBody</code> types for the endpoint.</li><li>Implement <code>async function call(...): Promise&lt;Success&gt;</code> that:</li></ol>
+<p>   - JSON.stringify the request;    - checks <code>res.ok</code>;    - parses JSON as <code>unknown</code>;    - validates required fields (<a href="json-validation.html">How to Validate JSON</a>);    - throws a typed error or returns a Result union.</p>
+<ol><li>Export a narrow public surface; keep vendor quirks private.</li><li>Optionally use generics for shared <code>apiPost&lt;TReq, TRes&gt;()</code>.</li><li>Never put API keys in the client module if it ships to the browser (<a href="javascript-for-ai.html">JavaScript for AI Applications</a>).</li></ol></section>
+<section id="example"><h2>Example</h2><pre><code>export type CreateChatRequest = {
+  messages: { role: &quot;user&quot; | &quot;assistant&quot; | &quot;system&quot;; content: string }[];
+};
+
+export type CreateChatResponse = {
+  id: string;
+  text: string;
+};
+
+export type ApiError = {
+  error: string;
+  status: number;
+};
+
+export async function createChat(body: CreateChatRequest): Promise&lt;CreateChatResponse&gt; {
+  const res = await fetch(&quot;/api/chat&quot;, {
+    method: &quot;POST&quot;,
+    headers: { &quot;Content-Type&quot;: &quot;application/json&quot; },
+    body: JSON.stringify(body),
+  });
+  const data: unknown = await res.json().catch(() =&gt; null);
+  if (!res.ok) {
+    const err = (data &amp;&amp; typeof data === &quot;object&quot; &amp;&amp; &quot;error&quot; in data)
+      ? String((data as { error: unknown }).error)
+      : res.statusText;
+    const e: ApiError = { error: err, status: res.status };
+    throw e;
+  }
+  if (!data || typeof data !== &quot;object&quot; || !(&quot;text&quot; in data) || !(&quot;id&quot; in data)) {
+    throw { error: &quot;invalid response&quot;, status: res.status } satisfies ApiError;
+  }
+  const { id, text } = data as { id: unknown; text: unknown };
+  if (typeof id !== &quot;string&quot; || typeof text !== &quot;string&quot;) {
+    throw { error: &quot;invalid response fields&quot;, status: res.status } satisfies ApiError;
+  }
+  return { id, text };
+}</code></pre>
+<p>This is the pattern to reuse for embeddings or tool proxy routes.</p></section>
+<section id="when-to-use-it"><h2>When to use it</h2><p>Add typed clients as soon as two components call the same endpoint, or when you wrap a third-party model API on the server (<a href="calling-ai-apis-with-javascript.html">Calling AI Services from JavaScript and TypeScript</a>).</p></section>
+<section id="common-mistakes"><h2>Common mistakes</h2><ul><li>Returning <code>Promise&lt;any&gt;</code>.</li><li>Trusting <code>res.json()</code> without checking shape.</li><li>Sharing one mega-type across unrelated endpoints.</li><li>Putting secrets in a &quot;client&quot; that is imported by React.</li></ul></section>
+<section id="related-concepts"><h2>Related concepts</h2><div class="kn-cards"><a class="kn-card" href="typescript-for-ai.html"><span class="kn-kind">Concept</span><strong>TypeScript for AI Applications</strong><small>TypeScript adds types to JavaScript so request and response shapes for model APIs and your own backend stay consistent, catching many integration bugs before runtime.</small></a><a class="kn-card" href="calling-ai-apis-with-javascript.html"><span class="kn-kind">Concept</span><strong>Calling AI Services from JavaScript and TypeScript</strong><small>From Node (or another server), call the model vendor with fetch, an API key from the environment, timeouts and careful JSON parsing. Expose only your own authenticated route to browsers.</small></a><a class="kn-card" href="what-is-an-api.html"><span class="kn-kind">Concept</span><strong>What is an API?</strong><small>An API is how one program asks another program to do work or return data — commonly over HTTP with JSON. Model providers expose APIs; your app exposes APIs to your own UI.</small></a><a class="kn-card" href="rest-apis.html"><span class="kn-kind">Concept</span><strong>REST APIs for Application Development</strong><small>REST APIs expose resources over HTTP using methods like GET, POST, PUT and DELETE, usually with JSON bodies and status codes that tell you whether the call worked.</small></a><a class="kn-card" href="json-validation.html"><span class="kn-kind">Concept</span><strong>How to Validate JSON</strong><small>Validate JSON by parsing it safely, then checking required fields, types and allowed values — ideally with a schema. Reject unexpected shapes before they reach your model or database.</small></a><a class="kn-card" href="api-authentication.html"><span class="kn-kind">Concept</span><strong>API Authentication: Keys, Sessions and OAuth</strong><small>Choose API keys for server-to-server access, session cookies for browser users, and OAuth when acting on a user's behalf at another provider. Always keep secrets on the server.</small></a></div></section><div class="kn-path"><div class="kn-path-title">Learning path: Web AI with JavaScript <span>(step 3 of 5)</span></div><div class="kn-path-nav"><a href="nodejs-for-ai.html">← Node.js for AI Applications</a><a href="react-chatbot-state.html">Chatbot State and Conversation UI in React →</a></div></div></article>
+<aside class="kn-toc" aria-label="On this page"><strong>On this page</strong><a href="#what-is-it">What is it?</a><a href="#why-it-matters">Why it matters</a><a href="#how-to-do-it">How to do it</a><a href="#example">Example</a><a href="#when-to-use-it">When to use it</a><a href="#common-mistakes">Common mistakes</a><a href="#related-concepts">Related concepts</a><a class="kn-glossary-link" href="glossary.html">AI Glossary A–Z</a></aside></div></main>
+<footer><div class="wrap"><div class="footer-bottom"><span>© IntelliTools. Free, browser-based tools.</span><span><a href="index.html">Knowledge</a> · <a href="glossary.html">AI Glossary</a> · <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a></span></div></div></footer><script type="module" src="learning-ui.mjs"></script></body></html>

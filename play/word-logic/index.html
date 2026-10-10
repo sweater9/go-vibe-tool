@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#ec4899">
+  <meta name="description" content="Logic Crypt — deductive word and cipher logic puzzle. Use constraint clues and elimination reasoning to crack the secret word.">
+  <link rel="canonical" href="https://intellitools.online/play/word-logic/">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../v2.css">
+  <link rel="stylesheet" href="../../v5.css">
+  <title>Logic Crypt: Word & Deduction — IntelliTools Play</title>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header>
+    <div class="wrap">
+      <nav aria-label="Main navigation">
+        <a class="brand" href="../../" aria-label="IntelliTools home"><span>Intelli</span>Tools</a>
+        <div class="navlinks">
+          <a href="../../">Tools</a>
+          <a href="../../learn/">Learn</a>
+          <a href="../../knowledge/">Knowledge</a>
+          <a href="../../labs/">Labs</a>
+          <a href="../" class="active" aria-current="page">Play <span class="nav-pillar-badge play">New</span></a>
+          <a href="../../#about">About</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" style="padding: 20px 0 40px;">
+    <nav class="breadcrumb-trail" aria-label="Breadcrumb">
+      <a href="../../">Home</a>
+      <span>/</span>
+      <a href="../">Play</a>
+      <span>/</span>
+      <strong>Word & Logic Challenge</strong>
+    </nav>
+
+    <div class="play-container">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <span class="eyebrow" style="color:#ec4899;">DEDUCTIVE PUZZLE</span>
+          <h1 style="font-size:28px; margin:4px 0; letter-spacing:-.03em;">Logic Crypt</h1>
+          <p class="sub">Decipher the secret code word using constraint logic and letter elimination.</p>
+        </div>
+        <div class="actions">
+          <select id="difficultySelect" aria-label="Select puzzle difficulty" style="padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); font-size: 13px; font-weight: 650; background: var(--surface);">
+            <option value="novice">Novice (4 Letters)</option>
+            <option value="practitioner">Practitioner (5 Letters)</option>
+            <option value="master">Master (6 Letters)</option>
+          </select>
+          <button id="btnRestartPuzzle" type="button" class="btn alt small">Restart</button>
+          <button id="btnNextPuzzle" type="button" class="btn alt small">Next Crypt →</button>
+        </div>
+      </div>
+
+      <!-- Main Game Card -->
+      <div class="quiz-card" style="padding: 28px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h2 id="puzzleTitle" style="font-size:20px; margin:0; color:var(--ink);">Four-Letter Logic Crypt #1</h2>
+          <span id="attemptCountBadge" class="v5-badge">0 Attempts</span>
+        </div>
+
+        <!-- Interactive Letter Slots -->
+        <div id="slotsContainer" class="cipher-slots" role="group" aria-label="Letter input slots"></div>
+
+        <!-- Clue Checklist -->
+        <div style="margin: 20px 0 16px;">
+          <strong style="font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); display:block; margin-bottom:8px;">Deductive Clues (Check off resolved clues)</strong>
+          <div id="cluesList" class="clue-list"></div>
+        </div>
+
+        <!-- Hints & Controls -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin: 16px 0; flex-wrap:wrap; gap:10px;">
+          <button id="btnUseHint" type="button" class="btn alt small" style="color:#92400e;">💡 Get Clue Hint (2 Left)</button>
+          <span style="font-size:12px; color:var(--muted);">Type letters or click keys below</span>
+        </div>
+        <div id="hintDisplay"></div>
+
+        <!-- On-Screen Keyboard -->
+        <div id="keyboardContainer" class="letter-keyboard" role="group" aria-label="Virtual keyboard"></div>
+
+        <!-- Attempts History -->
+        <div style="margin-top: 24px; border-top: 1px solid var(--line); padding-top: 18px;">
+          <strong style="font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); display:block; margin-bottom:8px;">Guess Evaluation History</strong>
+          <div id="attemptsHistory" style="max-height: 200px; overflow-y: auto;"></div>
+        </div>
+      </div>
+
+      <!-- Cross-Pillar Recommendations -->
+      <div class="related-tools" style="margin-top: 36px;">
+        <span class="eyebrow">INTELLITOOLS ECOSYSTEM</span>
+        <h3>Practice Connects to Utility</h3>
+        <p class="sub">Enjoyed solving logic constraints? Explore automated workflow rules or take today's general knowledge quiz.</p>
+        <div class="actions">
+          <a href="../daily/" class="btn alt small" style="text-decoration:none;">Play Daily Knowledge Challenge</a>
+          <a href="../../labs/workflow/" class="btn alt small" style="text-decoration:none;">Visual Workflow Lab</a>
+          <a href="../../learn/" class="btn alt small" style="text-decoration:none;">Learn Coding Guides</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="../../"><span>Intelli</span>Tools</a>
+        <p>Focused browser-based tools, guided learning, interactive labs, and cognitive play. Less switching. More doing.</p>
+      </div>
+      <div>
+        <strong>Pillars</strong>
+        <a href="../../#tools">Tools</a>
+        <a href="../../learn/">Learn</a>
+        <a href="../../labs/">Labs</a>
+        <a href="../">Play</a>
+      </div>
+      <div>
+        <strong>Legal & Privacy</strong>
+        <a href="../../privacy.html">Privacy</a>
+        <a href="../../terms.html">Terms</a>
+        <a href="../../contact.html">Contact</a>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <span>© 2026 IntelliTools</span>
+      <span>Version 5.0 Release Candidate</span>
+    </div>
+  </footer>
+
+  <script type="module" src="logic-app.js"></script>
+</body>
+</html>

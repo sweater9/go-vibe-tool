@@ -1,0 +1,19 @@
+{"pass":true,"query":"toy transformer robot for kids birthday","expectedSolid":false,"actualSolid":false,"answer":null}
+{"pass":true,"query":"transformer toy","expectedSolid":false,"actualSolid":false,"answer":null}
+{"pass":true,"query":"can my python pet eat mice","expectedSolid":false,"actualSolid":false,"answer":null}
+{"pass":true,"query":"docker is a clothing brand right","expectedSolid":false,"actualSolid":false,"answer":null}
+{"pass":true,"query":"react to this message politely","expectedSolid":false,"actualSolid":false,"answer":null}
+{"pass":true,"query":"how do I remove rust from a bicycle chain","expectedSolid":false,"actualSolid":false,"answer":null}
+{"pass":true,"query":"java coffee beans for espresso","expectedSolid":false,"actualSolid":false,"answer":null}
+{"pass":true,"query":"mamba snake habitat","expectedSolid":false,"actualSolid":false,"answer":null}
+{"pass":true,"query":"arcade token collection","expectedSolid":false,"actualSolid":false,"answer":null}
+{"pass":true,"query":"Rust ownership and borrowing","expectedSolid":true,"actualSolid":true,"answer":"rust"}
+{"pass":true,"query":"Java Spring API","expectedSolid":true,"actualSolid":true,"answer":"java"}
+{"pass":true,"query":"Mamba state space model","expectedSolid":true,"actualSolid":true,"answer":"state-space-models"}
+{"pass":true,"query":"LLM token limits","expectedSolid":true,"actualSolid":true,"answer":"tokens"}
+{"pass":true,"query":"how to build an SPFx web part","expectedSolid":true,"actualSolid":true,"answer":"build-spfx-web-part"}
+{"pass":true,"query":"What is the SharePoint Framework?","expectedSolid":true,"actualSolid":true,"answer":"sharepoint-framework"}
+{"pass":true,"query":"what is model context protocol","expectedSolid":true,"actualSolid":true,"answer":"mcp"}
+{"pass":true,"query":"how to build RAG with Python","expectedSolid":true,"actualSolid":true,"answer":"rag"}
+{"pass":true,"query":"how do I connect an AI agent to Gmail","expectedSolid":true,"actualSolid":true,"answer":"gmail-for-ai-agents"}
+Ambiguity gate: 18/18 passed

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#6252f3">
+  <meta name="description" content="Visual Workflow Lab — design, connect, validate, and simulate automated logic pipelines visually in your browser without code.">
+  <link rel="canonical" href="https://intellitools.online/labs/workflow/">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../v2.css">
+  <link rel="stylesheet" href="../../v5.css">
+  <title>Visual Workflow Lab — IntelliTools Labs</title>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header>
+    <div class="wrap">
+      <nav aria-label="Main navigation">
+        <a class="brand" href="../../" aria-label="IntelliTools home"><span>Intelli</span>Tools</a>
+        <div class="navlinks">
+          <a href="../../">Tools</a>
+          <a href="../../learn/">Learn</a>
+          <a href="../../knowledge/">Knowledge</a>
+          <a href="../" class="active" aria-current="page">Labs <span class="nav-pillar-badge labs">New</span></a>
+          <a href="../../play/">Play</a>
+          <a href="../../#about">About</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" style="padding: 20px 0 40px;">
+    <nav class="breadcrumb-trail" aria-label="Breadcrumb">
+      <a href="../../">Home</a>
+      <span>/</span>
+      <a href="../">Labs</a>
+      <span>/</span>
+      <strong>Visual Workflow Lab</strong>
+    </nav>
+
+    <div class="section-heading" style="margin-bottom: 12px;">
+      <div>
+        <span class="eyebrow">LAB 01 — AUTOMATION & LOGIC SIMULATOR</span>
+        <h1 style="font-size: clamp(26px, 3.5vw, 36px); margin: 6px 0; letter-spacing: -.03em;">Visual Workflow Lab</h1>
+        <p class="sub">Design, connect, validate, and simulate decision workflows on an interactive canvas. 100% deterministic & client-side.</p>
+      </div>
+      <div class="actions">
+        <select id="sampleSelect" aria-label="Load a sample workflow template" style="padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); font-size: 13px; font-weight: 650; background: var(--surface);">
+          <option value="customerSupport">Sample: Customer Support Triage</option>
+          <option value="leadQualification">Sample: Lead Qualification & Routing</option>
+          <option value="documentPrivacy">Sample: Document Privacy & Redaction</option>
+        </select>
+        <button id="btnSaveWorkflow" type="button" class="btn alt small" title="Save workflow to browser storage">Save</button>
+        <button id="btnExportJson" type="button" class="btn alt small" title="Download workflow as JSON file">Export JSON</button>
+        <button id="btnImportJson" type="button" class="btn alt small" title="Load workflow from JSON file">Import JSON</button>
+        <button id="btnResetWorkflow" type="button" class="btn danger small" title="Clear canvas to start over">Reset</button>
+      </div>
+    </div>
+
+    <!-- Main Workspace Grid -->
+    <div class="workflow-app">
+      <!-- Left Column: Tool Palette & Simulation Controls -->
+      <section class="panel-container" aria-label="Simulation & Testing Deck">
+        <div class="panel-header">
+          <h2>Simulation Controls</h2>
+          <span class="v5-badge live">Local</span>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label for="simPayloadInput">Initial Payload (JSON)</label>
+            <textarea id="simPayloadInput" rows="5" class="code-editor" style="height:110px; background:#fafafc; color:#18192f; border:1px solid var(--line);" aria-label="Initial JSON Context">{
+  "customerTier": "enterprise",
+  "urgency": "high",
+  "ticketSubject": "Production downtime"
+}</textarea>
+            <span class="field-help">Payload data variables passed into the Start node.</span>
+          </div>
+
+          <div class="actions" style="margin: 12px 0;">
+            <button id="btnStartSim" type="button" class="btn small" style="flex:1;">▶ Start</button>
+            <button id="btnStepSim" type="button" class="btn alt small" style="flex:1;" title="Step forward one node">Step ⏭</button>
+            <button id="btnRunAllSim" type="button" class="btn alt small" style="flex:1;">Run All</button>
+            <button id="btnResetSim" type="button" class="btn alt small">↺</button>
+          </div>
+
+          <div style="margin-top: 18px;">
+            <label style="font-weight: 750; font-size: 13px; display: block; margin-bottom: 6px;">Execution Trace</label>
+            <div id="simLogContainer" style="height: 160px; overflow-y: auto; background: #fafafc; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-family: ui-monospace, Menlo, monospace;" aria-live="polite">
+              <div style="color:var(--muted); font-size:12px;">Click "Start" or "Step" to simulate the workflow.</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 18px;">
+            <label style="font-weight: 750; font-size: 13px; display: block; margin-bottom: 6px;">Active Context State</label>
+            <pre id="simContextContainer" style="margin:0; max-height: 130px; overflow: auto; background: #18192f; color: #a5f3fc; border-radius: 10px; padding: 10px; font-size: 11px; font-family: ui-monospace, Menlo, monospace;">{}</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Center: Visual Canvas -->
+      <section class="panel-container canvas-container" aria-label="Visual Canvas">
+        <div class="canvas-toolbar">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button id="btnAddStart" type="button" class="btn small" style="background:var(--v5-node-start);">+ Start</button>
+            <button id="btnAddAction" type="button" class="btn small" style="background:var(--v5-node-action);">+ Action</button>
+            <button id="btnAddCondition" type="button" class="btn small" style="background:var(--v5-node-condition);">+ Condition</button>
+            <button id="btnAddEnd" type="button" class="btn small" style="background:var(--v5-node-end);">+ End</button>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button id="btnValidate" type="button" class="btn alt small">Verify Graph</button>
+            <span style="font-size:11px; color:var(--muted); display:inline-block;">Drag nodes • Connect ports</span>
+          </div>
+        </div>
+
+        <div id="canvasViewport" class="canvas-viewport" tabindex="0" role="region" aria-label="Workflow Canvas">
+          <svg id="svgLayer" class="workflow-svg-layer">
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366f1" />
+              </marker>
+            </defs>
+          </svg>
+          <div id="nodesContainer"></div>
+        </div>
+      </section>
+
+      <!-- Right Column: Step Inspector & Validation Status -->
+      <section class="panel-container" aria-label="Step Inspector & Validation">
+        <div class="panel-header">
+          <h2>Step Inspector</h2>
+        </div>
+        <div class="panel-body">
+          <div id="validationAlerts" style="margin-bottom: 16px;"></div>
+          <div id="nodeInspector">
+            <div style="color:var(--muted); text-align:center; padding:32px 10px;">
+              <p><strong>No Step Selected</strong></p>
+              <small>Click any node on the canvas to configure its properties, rules, and parameters.</small>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Related Cross-Pillar Guides -->
+    <div class="related-tools" style="margin-top: 36px;">
+      <span class="eyebrow">CROSS-PILLAR INTEGRATION</span>
+      <h3>Take Your Automated Workflows Further</h3>
+      <p class="sub">Connect what you designed here with IntelliTools' production utilities and educational guides.</p>
+      <div class="actions">
+        <a href="../../?tool=agentic-workflow-generator" class="btn alt small" style="text-decoration:none;">Open Agentic Workflow Generator</a>
+        <a href="../../?tool=pii-secret-redactor" class="btn alt small" style="text-decoration:none;">Open PII Redactor</a>
+        <a href="../../learn/index.html#api" class="btn alt small" style="text-decoration:none;">Read API & OAuth Architecture Guides</a>
+        <a href="../api-playground/" class="btn alt small" style="text-decoration:none;">Explore API & JSON Playground →</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="../../"><span>Intelli</span>Tools</a>
+        <p>Focused browser-based tools, guided learning, interactive labs, and cognitive play. Less switching. More doing.</p>
+      </div>
+      <div>
+        <strong>Pillars</strong>
+        <a href="../../#tools">Tools</a>
+        <a href="../../learn/">Learn</a>
+        <a href="../">Labs</a>
+        <a href="../../play/">Play</a>
+      </div>
+      <div>
+        <strong>Legal & Privacy</strong>
+        <a href="../../privacy.html">Privacy</a>
+        <a href="../../terms.html">Terms</a>
+        <a href="../../contact.html">Contact</a>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <span>© 2026 IntelliTools</span>
+      <span>Version 5.0 Release Candidate</span>
+    </div>
+  </footer>
+
+  <script type="module" src="workflow-app.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+name: V5 Cross-Browser PR Gate
+on:
+  push:
+    branches: [feature/v5-labs-play]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  v5-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Serve PR checkout
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/intellitools-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/intellitools-server.log
+          exit 1
+      - name: V5 browser smoke on PR code
+        env:
+          BASE_URL: http://127.0.0.1:8765
+        run: |
+          node tests/v5-browser-smoke.mjs ${{ matrix.browser }}
+          node tests/v5-maintenance-browser.mjs ${{ matrix.browser }}
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-pr-browser-${{ matrix.browser }}
+          path: artifacts/
+          if-no-files-found: ignore

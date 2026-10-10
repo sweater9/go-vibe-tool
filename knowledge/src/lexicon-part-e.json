@@ -1,0 +1,219 @@
+{
+  "version": 1,
+  "intents": [
+    {
+      "id": "v3e-gmail-agent-connect",
+      "phrases": [
+        "connect an ai agent to gmail",
+        "connect an agent to gmail",
+        "connect ai agent to gmail",
+        "connect my agent to gmail",
+        "give an agent access to gmail",
+        "give my agent access to gmail",
+        "let an agent use gmail",
+        "let my agent read my gmail",
+        "ai agent gmail access"
+      ],
+      "pages": [
+        {
+          "id": "gmail-for-ai-agents",
+          "boost": 44
+        },
+        {
+          "id": "oauth-for-ai-agents",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "v3e-gmail-scopes",
+      "phrases": [
+        "gmail scope",
+        "gmail scopes",
+        "gmail readonly",
+        "gmail restricted scope",
+        "gmail restricted scopes",
+        "gmail security assessment",
+        "gmail app verification",
+        "gmail oauth verification",
+        "gmail limited use",
+        "limited use policy",
+        "gmail data to train",
+        "gmail api permissions"
+      ],
+      "pages": [
+        {
+          "id": "gmail-api-scopes-and-verification",
+          "boost": 46
+        },
+        {
+          "id": "gmail-for-ai-agents",
+          "boost": 6
+        }
+      ]
+    },
+    {
+      "id": "v3e-mcp-authorization",
+      "phrases": [
+        "mcp authorization",
+        "mcp authorisation",
+        "mcp oauth",
+        "oauth for mcp",
+        "oauth mcp",
+        "authorization in mcp",
+        "authentication for mcp",
+        "authenticate an mcp",
+        "authorize an mcp",
+        "mcp bearer token",
+        "mcp access token",
+        "mcp token passthrough",
+        "token passthrough",
+        "protected resource metadata",
+        "resource indicators",
+        "client id metadata document",
+        "mcp client registration",
+        "oauth work for mcp",
+        "log in to an mcp server",
+        "sign in to an mcp server",
+        "mcp server login"
+      ],
+      "pages": [
+        {
+          "id": "mcp-authorization",
+          "boost": 54
+        },
+        {
+          "id": "mcp-security",
+          "boost": 4
+        }
+      ]
+    },
+    {
+      "id": "v3e-autogen-conversation",
+      "phrases": [
+        "chat with each other",
+        "agents converse",
+        "conversing agents",
+        "conversational multi agent",
+        "group chat of agents",
+        "agent group chat"
+      ],
+      "pages": [
+        {
+          "id": "autogen",
+          "boost": 56
+        },
+        {
+          "id": "multi-agent-systems",
+          "boost": 12
+        }
+      ]
+    },
+    {
+      "id": "v3e-attention-alternative",
+      "phrases": [
+        "sequence layer than attention",
+        "alternative to attention",
+        "attention alternative",
+        "linear time alternative",
+        "subquadratic",
+        "sub quadratic",
+        "replace attention",
+        "instead of attention",
+        "more efficient than attention"
+      ],
+      "pages": [
+        {
+          "id": "state-space-models",
+          "boost": 40
+        },
+        {
+          "id": "transformers-vs-state-space-models",
+          "boost": 14
+        }
+      ]
+    },
+    {
+      "id": "v3e-planner-worker",
+      "phrases": [
+        "planner and worker",
+        "planner agent",
+        "researcher agent",
+        "writer agent",
+        "coordinate agents",
+        "agents hand work",
+        "hands work to",
+        "orchestrator and worker",
+        "agents work together"
+      ],
+      "pages": [
+        {
+          "id": "multi-agent-systems",
+          "boost": 26
+        },
+        {
+          "id": "agentic-workflows",
+          "boost": 10
+        }
+      ]
+    },
+    {
+      "id": "v3e-cross-vendor-agents",
+      "phrases": [
+        "agents from different vendors",
+        "agents from different companies",
+        "agents from different frameworks",
+        "delegate tasks to each other",
+        "agents collaborate across"
+      ],
+      "pages": [
+        {
+          "id": "a2a-protocol",
+          "boost": 28
+        },
+        {
+          "id": "agent-protocol-landscape",
+          "boost": 26
+        }
+      ]
+    },
+    {
+      "id": "v3e-email-agent-permissions",
+      "phrases": [
+        "permissions should an email",
+        "email reading agent",
+        "agent permissions for email",
+        "permissions for an email agent",
+        "least privilege email agent"
+      ],
+      "pages": [
+        {
+          "id": "integration-permissions",
+          "boost": 30
+        },
+        {
+          "id": "gmail-for-ai-agents",
+          "boost": 14
+        }
+      ]
+    },
+    {
+      "id": "v3e-production-agent-framework",
+      "phrases": [
+        "framework for a production agent",
+        "framework for production agents",
+        "production agent framework"
+      ],
+      "pages": [
+        {
+          "id": "choosing-an-agent-framework",
+          "boost": 24
+        },
+        {
+          "id": "agent-frameworks-compared",
+          "boost": 20
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4747 @@
+{
+  "version": 1,
+  "synonyms": {
+    "quantisation": [
+      "quantization"
+    ],
+    "optimisation": [
+      "optimization"
+    ],
+    "behaviour": [
+      "behavior"
+    ],
+    "regularisation": [
+      "regularization"
+    ],
+    "generalisation": [
+      "generalization"
+    ],
+    "guardrail": [
+      "guardrails"
+    ],
+    "tokeniser": [
+      "tokenizer"
+    ],
+    "labelled": [
+      "labeled"
+    ],
+    "normalisation": [
+      "normalization"
+    ],
+    "modelling": [
+      "modeling"
+    ],
+    "summarisation": [
+      "summarization"
+    ],
+    "reranker": [
+      "rerank",
+      "reranking"
+    ],
+    "rerankers": [
+      "reranker",
+      "reranking"
+    ],
+    "hallucinated": [
+      "hallucination"
+    ],
+    "gpus": [
+      "gpu"
+    ],
+    "llms": [
+      "llm"
+    ]
+  },
+  "intents": [
+    {
+      "id": "qa-bon-acronym",
+      "phrases": [
+        "bon",
+        "best of n",
+        "best-of-n"
+      ],
+      "pages": [
+        {
+          "id": "best-of-n-sampling",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "qa-deep-learning-framework",
+      "phrases": [
+        "which framework should i use for deep learning",
+        "framework for deep learning",
+        "deep learning framework should i use"
+      ],
+      "pages": [
+        {
+          "id": "pytorch",
+          "boost": 60
+        }
+      ]
+    },
+    {
+      "id": "qa-testtime-vs-model-scaling",
+      "phrases": [
+        "difference between scaling model size and scaling inference compute",
+        "model size vs inference compute",
+        "scaling inference compute vs parameters"
+      ],
+      "pages": [
+        {
+          "id": "test-time-compute",
+          "boost": 58
+        },
+        {
+          "id": "scaling-laws",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "qa-agent-context-info",
+      "phrases": [
+        "deciding what information goes into the model context for an agent",
+        "information goes into agent context",
+        "manage information in agent context"
+      ],
+      "pages": [
+        {
+          "id": "context-engineering",
+          "boost": 60
+        }
+      ]
+    },
+    {
+      "id": "qa-model-limits-doc",
+      "phrases": [
+        "documentation that describes a model's limits",
+        "document model limitations",
+        "model limitations documentation"
+      ],
+      "pages": [
+        {
+          "id": "model-cards",
+          "boost": 60
+        }
+      ]
+    },
+    {
+      "id": "qa-ai-accountability",
+      "phrases": [
+        "who is accountable for ai decisions in a company",
+        "accountability for ai decisions",
+        "ai decision accountability company"
+      ],
+      "pages": [
+        {
+          "id": "ai-governance",
+          "boost": 60
+        }
+      ]
+    },
+    {
+      "id": "qa-human-ratings",
+      "phrases": [
+        "chatbots learn from human ratings",
+        "learn from human ratings",
+        "human ratings train chatbot"
+      ],
+      "pages": [
+        {
+          "id": "rlhf",
+          "boost": 60
+        },
+        {
+          "id": "preference-optimization",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "qa-phone-small-models",
+      "phrases": [
+        "models small enough to run on a phone",
+        "llm on a phone",
+        "small model mobile device"
+      ],
+      "pages": [
+        {
+          "id": "small-language-models",
+          "boost": 58
+        },
+        {
+          "id": "local-ai",
+          "boost": 24
+        }
+      ]
+    },
+    {
+      "id": "qa-base-vs-chat",
+      "phrases": [
+        "difference between a base model and a chat model",
+        "base model vs chat model",
+        "base model chat model difference"
+      ],
+      "pages": [
+        {
+          "id": "instruction-tuning",
+          "boost": 58
+        }
+      ]
+    },
+    {
+      "id": "qa-training-token-scaling",
+      "phrases": [
+        "how many tokens should a model be trained on",
+        "training tokens model size",
+        "tokens should model train on"
+      ],
+      "pages": [
+        {
+          "id": "scaling-laws",
+          "boost": 60
+        }
+      ]
+    },
+    {
+      "id": "qa-kv-context-memory",
+      "phrases": [
+        "generation memory grow with context length",
+        "memory grows with context length",
+        "context length memory inference"
+      ],
+      "pages": [
+        {
+          "id": "kv-cache",
+          "boost": 60
+        }
+      ]
+    },
+    {
+      "id": "qa-linear-attention-alt",
+      "phrases": [
+        "linear time alternative to attention",
+        "linear alternative to attention",
+        "attention alternative linear time"
+      ],
+      "pages": [
+        {
+          "id": "state-space-models",
+          "boost": 62
+        }
+      ]
+    },
+    {
+      "id": "qa-weather-ml-vs-numerical",
+      "phrases": [
+        "machine learning weather forecasting versus numerical models",
+        "ai weather forecasting vs numerical models",
+        "ml weather forecast numerical"
+      ],
+      "pages": [
+        {
+          "id": "ai-weather-forecasting",
+          "boost": 62
+        }
+      ]
+    },
+    {
+      "id": "qa-pinn-differential",
+      "phrases": [
+        "neural networks that obey differential equations",
+        "neural network differential equations",
+        "physics equations neural network"
+      ],
+      "pages": [
+        {
+          "id": "physics-informed-neural-networks",
+          "boost": 62
+        }
+      ]
+    },
+    {
+      "id": "qa-onnx-mobile-browser",
+      "phrases": [
+        "export a pytorch model for mobile and browser",
+        "pytorch model mobile browser",
+        "run exported pytorch model in browser"
+      ],
+      "pages": [
+        {
+          "id": "onnx-runtime",
+          "boost": 60
+        }
+      ]
+    },
+    {
+      "id": "qa-mcp-third-party-security",
+      "phrases": [
+        "security risks of third party mcp servers",
+        "third party mcp server security",
+        "untrusted mcp server"
+      ],
+      "pages": [
+        {
+          "id": "mcp-security",
+          "boost": 62
+        }
+      ]
+    },
+    {
+      "id": "qa-a2a-cross-company",
+      "phrases": [
+        "agents from different companies talk to each other",
+        "cross company agents communicate",
+        "agents across companies communicate"
+      ],
+      "pages": [
+        {
+          "id": "a2a-protocol",
+          "boost": 58
+        },
+        {
+          "id": "agent-protocol-landscape",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "qa-valid-enum-output",
+      "phrases": [
+        "output only valid enum values",
+        "valid enum values",
+        "restrict model output to enum"
+      ],
+      "pages": [
+        {
+          "id": "constrained-decoding",
+          "boost": 58
+        },
+        {
+          "id": "structured-outputs",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "qa-self-consistency-majority",
+      "phrases": [
+        "sample several answers and pick the majority",
+        "majority vote across model answers",
+        "pick majority from multiple reasoning samples"
+      ],
+      "pages": [
+        {
+          "id": "self-consistency",
+          "boost": 60
+        }
+      ]
+    },
+    {
+      "id": "qa-agent-evaluation",
+      "phrases": [
+        "agent completes tasks reliably",
+        "agent completion reliability",
+        "measure agent reliability",
+        "evaluate agent task completion"
+      ],
+      "pages": [
+        {
+          "id": "agent-evaluation",
+          "boost": 52
+        }
+      ]
+    },
+    {
+      "id": "qa-langgraph-state-machine",
+      "phrases": [
+        "state machine style orchestration",
+        "state machine orchestration",
+        "stateful agent orchestration",
+        "graph based agent orchestration"
+      ],
+      "pages": [
+        {
+          "id": "langgraph",
+          "boost": 52
+        },
+        {
+          "id": "agent-frameworks-compared",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "qa-dspy-prompt-optimization",
+      "phrases": [
+        "automatically optimise my prompts",
+        "automatically optimize my prompts",
+        "optimize prompts with a metric",
+        "optimise prompts with a metric",
+        "metric driven prompt optimization"
+      ],
+      "pages": [
+        {
+          "id": "dspy",
+          "boost": 52
+        }
+      ]
+    },
+    {
+      "id": "qa-agent-rewards",
+      "phrases": [
+        "agents learn from rewards",
+        "agent learn from rewards",
+        "learn from rewards"
+      ],
+      "pages": [
+        {
+          "id": "reinforcement-learning",
+          "boost": 50
+        }
+      ]
+    },
+    {
+      "id": "qa-vision-patches",
+      "phrases": [
+        "image models use patches",
+        "images into patches",
+        "why use image patches",
+        "vision transformer patches"
+      ],
+      "pages": [
+        {
+          "id": "vision-transformers",
+          "boost": 52
+        }
+      ]
+    },
+    {
+      "id": "qa-faster-same-output",
+      "phrases": [
+        "inference faster without changing outputs",
+        "make llm inference faster",
+        "speed up llm inference",
+        "faster llm inference"
+      ],
+      "pages": [
+        {
+          "id": "speculative-decoding",
+          "boost": 46
+        },
+        {
+          "id": "flash-attention",
+          "boost": 34
+        },
+        {
+          "id": "kv-cache",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "qa-meeting-transcription",
+      "phrases": [
+        "transcribe meetings",
+        "transcribe meeting",
+        "meeting transcription",
+        "automatically transcribe"
+      ],
+      "pages": [
+        {
+          "id": "speech-ai",
+          "boost": 52
+        }
+      ]
+    },
+    {
+      "id": "qa-invoice-fields",
+      "phrases": [
+        "structured fields out of invoices",
+        "fields from invoices",
+        "extract invoice fields",
+        "extract structured data from invoices"
+      ],
+      "pages": [
+        {
+          "id": "document-understanding-ai",
+          "boost": 52
+        },
+        {
+          "id": "structured-outputs",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "qa-content-provenance",
+      "phrases": [
+        "tamper evident labels",
+        "tamper-evident labels",
+        "provenance labels",
+        "ai generated media provenance",
+        "content provenance"
+      ],
+      "pages": [
+        {
+          "id": "c2pa-content-provenance",
+          "boost": 52
+        }
+      ]
+    },
+    {
+      "id": "qa-why-gpu",
+      "phrases": [
+        "why is a gpu needed",
+        "why gpu for neural networks",
+        "why use gpu for ai",
+        "why do neural networks need gpu"
+      ],
+      "pages": [
+        {
+          "id": "gpus-and-ai-accelerators",
+          "boost": 52
+        }
+      ]
+    },
+    {
+      "id": "qa-runtime-comparison",
+      "phrases": [
+        "ollama vs vllm",
+        "vllm vs llama cpp",
+        "ollama vs vllm vs llama cpp"
+      ],
+      "pages": [
+        {
+          "id": "local-runtimes-compared",
+          "boost": 58
+        }
+      ]
+    },
+    {
+      "id": "qa-agent-framework-comparison",
+      "phrases": [
+        "langgraph vs crewai",
+        "crewai vs autogen",
+        "langgraph vs crewai vs autogen"
+      ],
+      "pages": [
+        {
+          "id": "agent-frameworks-compared",
+          "boost": 58
+        }
+      ]
+    },
+    {
+      "id": "v3-invalid-json",
+      "phrases": [
+        "invalid json",
+        "returning invalid json",
+        "broken json",
+        "json parse error",
+        "llm returns json with extra text",
+        "force valid json",
+        "output valid json",
+        "valid json output",
+        "enforce json",
+        "guarantee json",
+        "json from a model",
+        "get json from",
+        "force an llm to output"
+      ],
+      "pages": [
+        {
+          "id": "structured-outputs",
+          "boost": 42
+        },
+        {
+          "id": "constrained-decoding",
+          "boost": 30
+        },
+        {
+          "id": "structured-output-methods-compared",
+          "boost": 14
+        }
+      ]
+    },
+    {
+      "id": "v3-truncated-reasoning",
+      "phrases": [
+        "answer get cut off",
+        "answer cut off",
+        "response cut off",
+        "output cut off",
+        "truncated output",
+        "output truncated",
+        "empty final answer"
+      ],
+      "pages": [
+        {
+          "id": "thinking-budgets",
+          "boost": 34
+        },
+        {
+          "id": "reasoning-models",
+          "boost": 24
+        }
+      ]
+    },
+    {
+      "id": "v3-reasoning-cost",
+      "phrases": [
+        "why do reasoning models cost more",
+        "reasoning models cost more",
+        "reasoning tokens cost",
+        "reasoning model cost",
+        "reasoning model expensive"
+      ],
+      "pages": [
+        {
+          "id": "reasoning-models",
+          "boost": 36
+        },
+        {
+          "id": "test-time-compute",
+          "boost": 30
+        },
+        {
+          "id": "thinking-budgets",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-repetition",
+      "phrases": [
+        "repeat itself",
+        "repeating itself",
+        "repeats itself",
+        "repeats phrases",
+        "repetition loop",
+        "repetitive output",
+        "stop repeating"
+      ],
+      "pages": [
+        {
+          "id": "sampling-and-decoding",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-loss-nan",
+      "phrases": [
+        "loss is nan",
+        "nan loss",
+        "loss nan",
+        "loss not decreasing",
+        "loss exploding",
+        "training diverges",
+        "loss does not decrease",
+        "loss stuck"
+      ],
+      "pages": [
+        {
+          "id": "backpropagation-and-gradient-descent",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-overfit-symptoms",
+      "phrases": [
+        "model overfit",
+        "overfits",
+        "training accuracy high",
+        "test accuracy low",
+        "good on training bad on test",
+        "does well on training data",
+        "poor generalization",
+        "validation loss rising",
+        "validation loss increasing",
+        "memorizing training data"
+      ],
+      "pages": [
+        {
+          "id": "overfitting-and-regularization",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-worse-over-time",
+      "phrases": [
+        "model got worse",
+        "model getting worse",
+        "worse over time",
+        "accuracy dropped after deployment",
+        "degrades after launch",
+        "degrade after launch",
+        "model degradation",
+        "performance dropped in production",
+        "model degrades"
+      ],
+      "pages": [
+        {
+          "id": "model-drift-and-monitoring",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-gpu-oom",
+      "phrases": [
+        "out of memory",
+        "cuda out of memory",
+        "oom",
+        "gpu memory",
+        "run out of vram",
+        "not enough vram",
+        "vram requirements",
+        "how much vram",
+        "how much gpu memory"
+      ],
+      "pages": [
+        {
+          "id": "model-serving-and-inference",
+          "boost": 28
+        },
+        {
+          "id": "gpus-and-ai-accelerators",
+          "boost": 28
+        },
+        {
+          "id": "kv-cache",
+          "boost": 24
+        },
+        {
+          "id": "quantization",
+          "boost": 20
+        },
+        {
+          "id": "vllm",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "v3-cache-miss",
+      "phrases": [
+        "cache not hitting",
+        "cache miss",
+        "cache hit rate",
+        "cheaper repeated prompts",
+        "long system prompt cost",
+        "repeated prompt cost",
+        "cheap across requests",
+        "repeated prefix",
+        "same prefix"
+      ],
+      "pages": [
+        {
+          "id": "prompt-caching",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-agrees-everything",
+      "phrases": [
+        "agree with everything",
+        "agrees with everything",
+        "flatters me",
+        "caves to pushback",
+        "changes its answer when i push back",
+        "yes man"
+      ],
+      "pages": [
+        {
+          "id": "sycophancy",
+          "boost": 44
+        }
+      ]
+    },
+    {
+      "id": "v3-sim-fails-real",
+      "phrases": [
+        "works in simulation",
+        "fails on the real robot",
+        "fails on hardware",
+        "sim to real gap",
+        "works in sim",
+        "simulation but fails",
+        "real robot fails"
+      ],
+      "pages": [
+        {
+          "id": "sim-to-real-transfer",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-agent-loops",
+      "phrases": [
+        "loops forever",
+        "looping forever",
+        "infinite loop agent",
+        "agent loops",
+        "agent stuck in a loop",
+        "agent keeps looping",
+        "repeats the same tool call",
+        "never stops",
+        "runaway agent",
+        "step limit"
+      ],
+      "pages": [
+        {
+          "id": "react-agent-pattern",
+          "boost": 36
+        },
+        {
+          "id": "ai-agents",
+          "boost": 20
+        },
+        {
+          "id": "agentic-workflows",
+          "boost": 20
+        },
+        {
+          "id": "agent-planning",
+          "boost": 14
+        }
+      ]
+    },
+    {
+      "id": "v3-rag-wrong-passages",
+      "phrases": [
+        "wrong passages",
+        "retrieval returning wrong",
+        "retrieval returns irrelevant",
+        "irrelevant chunks",
+        "rag retrieval wrong",
+        "poor retrieval",
+        "rag gives wrong answers"
+      ],
+      "pages": [
+        {
+          "id": "hybrid-search-and-reranking",
+          "boost": 30
+        },
+        {
+          "id": "rag-evaluation",
+          "boost": 30
+        },
+        {
+          "id": "chunking",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "v3-vlm-hallucinate",
+      "phrases": [
+        "hallucinate objects",
+        "hallucinates objects in images",
+        "image hallucination",
+        "vlm hallucination",
+        "describes things that are not in the image",
+        "misreads image text"
+      ],
+      "pages": [
+        {
+          "id": "vision-language-models",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-quant-quality",
+      "phrases": [
+        "after quantizing",
+        "after quantization",
+        "quantized model worse",
+        "quantization quality",
+        "quality dropped after quantiz",
+        "quantised model worse",
+        "4 bit quality"
+      ],
+      "pages": [
+        {
+          "id": "quantization",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-langchain-upgrade",
+      "phrases": [
+        "after upgrading langchain",
+        "langchain upgrade",
+        "langchain deprecated",
+        "langchain import error",
+        "langchain breaking changes",
+        "langchain code broke"
+      ],
+      "pages": [
+        {
+          "id": "langchain",
+          "boost": 40
+        },
+        {
+          "id": "agent-frameworks-compared",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "v3-eval-not-reproduce",
+      "phrases": [
+        "scores do not reproduce",
+        "cannot reproduce benchmark",
+        "reproduce benchmark scores",
+        "evaluation scores differ",
+        "different benchmark scores",
+        "scores differ from paper",
+        "evaluation not reproducible"
+      ],
+      "pages": [
+        {
+          "id": "benchmarks-and-leaderboards",
+          "boost": 36
+        },
+        {
+          "id": "ai-evaluation",
+          "boost": 20
+        },
+        {
+          "id": "llm-as-a-judge",
+          "boost": 18
+        }
+      ]
+    },
+    {
+      "id": "v3-lora-practical",
+      "phrases": [
+        "adapter barely changes",
+        "lora has no effect",
+        "lora not working",
+        "lora rank",
+        "what rank for lora",
+        "lora hyperparameters",
+        "lora learning rate",
+        "lora memory",
+        "reduce memory for fine tuning",
+        "fine tune on one gpu",
+        "fine tune on a single gpu",
+        "fine tune with limited gpu",
+        "fine tune with limited memory",
+        "fine tune on consumer gpu",
+        "how does lora"
+      ],
+      "pages": [
+        {
+          "id": "lora-and-peft",
+          "boost": 46
+        },
+        {
+          "id": "lora-vs-full-fine-tuning",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "v3-bench-vs-product",
+      "phrases": [
+        "high on benchmarks but fails",
+        "benchmark score does not match",
+        "benchmarks do not reflect",
+        "benchmarks fail in production",
+        "good benchmarks bad results",
+        "fails in my product"
+      ],
+      "pages": [
+        {
+          "id": "llm-benchmarks-vs-task-evals",
+          "boost": 42
+        },
+        {
+          "id": "benchmark-contamination",
+          "boost": 28
+        },
+        {
+          "id": "benchmarks-and-leaderboards",
+          "boost": 24
+        }
+      ]
+    },
+    {
+      "id": "v3-mcp-perms",
+      "phrases": [
+        "too many permissions",
+        "asked for permissions",
+        "excessive permissions",
+        "how to secure mcp",
+        "secure an mcp server",
+        "securing mcp",
+        "is mcp secure",
+        "is mcp safe",
+        "mcp safe to install",
+        "install community mcp"
+      ],
+      "pages": [
+        {
+          "id": "mcp-security",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-multi-gpu",
+      "phrases": [
+        "scales poorly",
+        "poor scaling",
+        "multi gpu",
+        "multiple gpus",
+        "across multiple gpus",
+        "several gpus",
+        "multi node training",
+        "train on many gpus",
+        "fine tune on multiple gpus"
+      ],
+      "pages": [
+        {
+          "id": "distributed-training",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-judge-bias",
+      "phrases": [
+        "prefers longer answers",
+        "length bias",
+        "verbosity bias",
+        "position bias",
+        "judge bias",
+        "biases of llm judges",
+        "grade answers with an llm",
+        "grade model outputs",
+        "using gpt to grade",
+        "use gpt to grade",
+        "ai to grade",
+        "llm to grade",
+        "score outputs automatically",
+        "gpt to grade"
+      ],
+      "pages": [
+        {
+          "id": "llm-as-a-judge",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-ollama-conn",
+      "phrases": [
+        "connection refused",
+        "port 11434",
+        "ollama not working",
+        "ollama api",
+        "call ollama",
+        "ollama server"
+      ],
+      "pages": [
+        {
+          "id": "ollama",
+          "boost": 40
+        }
+      ]
+    },
+    {
+      "id": "v3-token-order",
+      "phrases": [
+        "order of tokens",
+        "word order",
+        "sequence order",
+        "how transformers know order",
+        "positions in transformers",
+        "how do models know the order"
+      ],
+      "pages": [
+        {
+          "id": "positional-encoding",
+          "boost": 40
+        }
+      ]
+    },
+    {
+      "id": "v3-moe-routing",
+      "phrases": [
+        "route tokens",
+        "routes tokens",
+        "router in moe",
+        "expert routing",
+        "active parameters",
+        "few active parameters",
+        "many experts"
+      ],
+      "pages": [
+        {
+          "id": "mixture-of-experts",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-clip-align",
+      "phrases": [
+        "align images and text",
+        "images and text embeddings",
+        "image and text in the same space",
+        "shared embedding space",
+        "search images using",
+        "search images by text",
+        "image search with text"
+      ],
+      "pages": [
+        {
+          "id": "contrastive-learning-clip",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-rag-eval-e2e",
+      "phrases": [
+        "evaluate a rag",
+        "rag evaluated",
+        "how to test rag",
+        "testing a rag",
+        "rag test set",
+        "measure rag quality",
+        "rag quality",
+        "rag metrics",
+        "measure retrieval quality",
+        "evaluate a rag system"
+      ],
+      "pages": [
+        {
+          "id": "rag-evaluation",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-agents-plan",
+      "phrases": [
+        "agents plan",
+        "how do agents plan",
+        "agent plan multi step",
+        "multi step tasks",
+        "break a goal into sub tasks",
+        "break down tasks",
+        "decompose tasks",
+        "task breakdown agents"
+      ],
+      "pages": [
+        {
+          "id": "agent-planning",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-which-alignment",
+      "phrases": [
+        "dpo or ppo",
+        "dpo or rlhf",
+        "which alignment method",
+        "choose an alignment method",
+        "align my model",
+        "preference tuning method",
+        "should i use dpo"
+      ],
+      "pages": [
+        {
+          "id": "dpo-vs-rlhf",
+          "boost": 48
+        },
+        {
+          "id": "dpo",
+          "boost": 20
+        },
+        {
+          "id": "rlhf",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "v3-is-dpo-rl",
+      "phrases": [
+        "is dpo reinforcement learning",
+        "is dpo rl",
+        "dpo reinforcement learning",
+        "dpo a form of reinforcement learning"
+      ],
+      "pages": [
+        {
+          "id": "dpo",
+          "boost": 56
+        },
+        {
+          "id": "preference-optimization",
+          "boost": 32
+        },
+        {
+          "id": "dpo-vs-rlhf",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-need-framework",
+      "phrases": [
+        "do i need an agent framework",
+        "do i need a framework",
+        "need a framework for agents",
+        "agent framework or direct",
+        "agent framework should i use",
+        "which framework for agents",
+        "framework for ai agents",
+        "framework for llm apps"
+      ],
+      "pages": [
+        {
+          "id": "agent-frameworks-compared",
+          "boost": 42
+        },
+        {
+          "id": "choosing-an-agent-framework",
+          "boost": 22
+        },
+        {
+          "id": "framework-vs-direct-api",
+          "boost": 22
+        }
+      ]
+    },
+    {
+      "id": "v3-lora-or-full",
+      "phrases": [
+        "lora or full",
+        "full fine tuning or lora",
+        "lora or fine tune",
+        "full fine tune",
+        "fine tune with lora or"
+      ],
+      "pages": [
+        {
+          "id": "lora-vs-full-fine-tuning",
+          "boost": 48
+        }
+      ]
+    },
+    {
+      "id": "v3-bias-test",
+      "phrases": [
+        "test for bias",
+        "test an ai system for bias",
+        "bias in my model",
+        "audit for bias",
+        "audit a model for bias",
+        "check for bias",
+        "which fairness",
+        "measure fairness",
+        "evaluate fairness"
+      ],
+      "pages": [
+        {
+          "id": "ai-bias-and-fairness",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-eval-agent",
+      "phrases": [
+        "evaluate an ai agent",
+        "test an agent",
+        "test my agent",
+        "agent testing",
+        "measure agent",
+        "agent reliability",
+        "agent benchmark"
+      ],
+      "pages": [
+        {
+          "id": "agent-evaluation",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-cpu-only",
+      "phrases": [
+        "on cpu",
+        "cpu only",
+        "without a gpu",
+        "no gpu",
+        "on a laptop",
+        "on my laptop",
+        "on a mac",
+        "apple silicon",
+        "run an llm on cpu",
+        "run llm on cpu",
+        "run llm locally on a mac"
+      ],
+      "pages": [
+        {
+          "id": "llama-cpp",
+          "boost": 32
+        },
+        {
+          "id": "local-runtimes-compared",
+          "boost": 28
+        },
+        {
+          "id": "ollama",
+          "boost": 24
+        },
+        {
+          "id": "local-ai",
+          "boost": 16
+        },
+        {
+          "id": "quantization",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "v3-monitor-llm",
+      "phrases": [
+        "monitor an llm",
+        "monitor llm application",
+        "monitor an ai application",
+        "llm application in production",
+        "monitoring ai in production",
+        "production monitoring llm",
+        "track token spend",
+        "log prompts",
+        "log llm calls",
+        "tracing prompts",
+        "tracking prompts"
+      ],
+      "pages": [
+        {
+          "id": "llm-observability",
+          "boost": 46
+        },
+        {
+          "id": "model-drift-and-monitoring",
+          "boost": 20
+        },
+        {
+          "id": "llm-cost-optimization",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "v3-improve-retrieval",
+      "phrases": [
+        "improve rag retrieval",
+        "rag retrieval accuracy",
+        "improve retrieval accuracy",
+        "better rag retrieval",
+        "retrieval accuracy",
+        "retrieval quality",
+        "keyword plus semantic retrieval"
+      ],
+      "pages": [
+        {
+          "id": "hybrid-search-and-reranking",
+          "boost": 42
+        },
+        {
+          "id": "rag-evaluation",
+          "boost": 24
+        },
+        {
+          "id": "chunking",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "v3-robot-demos",
+      "phrases": [
+        "learn from demonstrations",
+        "robot learn from demonstrations",
+        "teach a robot",
+        "show a robot",
+        "by demonstration",
+        "demonstrations to a robot",
+        "teach a robot arm",
+        "robot arm by showing"
+      ],
+      "pages": [
+        {
+          "id": "imitation-learning",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-kg-retrieval",
+      "phrases": [
+        "build a knowledge graph",
+        "knowledge graph from documents",
+        "graph for rag"
+      ],
+      "pages": [
+        {
+          "id": "graph-rag",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-redteam-app",
+      "phrases": [
+        "red team an llm",
+        "red team my app",
+        "red team a chatbot",
+        "test chatbot for abuse",
+        "adversarial testing of chatbots",
+        "jailbreak my own app",
+        "pen test llm",
+        "penetration testing llm",
+        "security testing llm"
+      ],
+      "pages": [
+        {
+          "id": "red-teaming",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-track-experiments",
+      "phrases": [
+        "track experiments",
+        "track training runs",
+        "compare training runs",
+        "log experiments"
+      ],
+      "pages": [
+        {
+          "id": "mlflow",
+          "boost": 42
+        },
+        {
+          "id": "mlops",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "v3-run-code-safely",
+      "phrases": [
+        "run code safely",
+        "run generated code",
+        "run model generated code",
+        "execute generated code",
+        "run llm generated code",
+        "safely execute code",
+        "code from an llm",
+        "sandbox code",
+        "sandbox for agents",
+        "isolation for agent code",
+        "stop a model from reading private files"
+      ],
+      "pages": [
+        {
+          "id": "code-execution-sandboxing",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-pick-lr",
+      "phrases": [
+        "pick a learning rate",
+        "choose a learning rate",
+        "tune learning rate",
+        "how to choose learning rate",
+        "learning rate too high",
+        "learning rate schedule"
+      ],
+      "pages": [
+        {
+          "id": "backpropagation-and-gradient-descent",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-label-ai-images",
+      "phrases": [
+        "label ai generated images",
+        "label ai images",
+        "watermark ai images",
+        "mark ai generated content",
+        "tag ai generated",
+        "disclose ai generated content",
+        "detect ai generated images",
+        "is this image ai generated"
+      ],
+      "pages": [
+        {
+          "id": "c2pa-content-provenance",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-vision-backbone",
+      "phrases": [
+        "vision backbone",
+        "image model for small dataset",
+        "image classification small dataset",
+        "cnn or transformer for images",
+        "backbone for small datasets",
+        "which image model",
+        "edge device vision model"
+      ],
+      "pages": [
+        {
+          "id": "cnn-vs-vision-transformer",
+          "boost": 42
+        },
+        {
+          "id": "convolutional-neural-networks",
+          "boost": 24
+        },
+        {
+          "id": "transfer-learning",
+          "boost": 24
+        }
+      ]
+    },
+    {
+      "id": "v3-serve-many-users",
+      "phrases": [
+        "serve an open model",
+        "serve open models",
+        "many users",
+        "multiple users",
+        "concurrent users",
+        "high throughput serving",
+        "self hosted inference",
+        "self host an llm",
+        "self hosting llm",
+        "host an open model",
+        "production inference server"
+      ],
+      "pages": [
+        {
+          "id": "vllm",
+          "boost": 34
+        },
+        {
+          "id": "local-runtimes-compared",
+          "boost": 36
+        },
+        {
+          "id": "model-serving-and-inference",
+          "boost": 24
+        }
+      ]
+    },
+    {
+      "id": "v3-gpu-7b",
+      "phrases": [
+        "run a 7b model",
+        "7b model",
+        "13b model",
+        "70b model",
+        "gpu for llm",
+        "gpu do i need",
+        "gpu requirements",
+        "hardware requirements llm",
+        "memory for a 7b"
+      ],
+      "pages": [
+        {
+          "id": "gpus-and-ai-accelerators",
+          "boost": 34
+        },
+        {
+          "id": "quantization",
+          "boost": 28
+        },
+        {
+          "id": "local-ai",
+          "boost": 20
+        },
+        {
+          "id": "local-runtimes-compared",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "v3-choose-llm",
+      "phrases": [
+        "choose an llm",
+        "pick an llm",
+        "which llm",
+        "select a model for my use case",
+        "choose a model for my use case",
+        "how to choose a model",
+        "choose a model",
+        "model selection",
+        "evaluate llms for my use case",
+        "which model should i use"
+      ],
+      "pages": [
+        {
+          "id": "llm-benchmarks-vs-task-evals",
+          "boost": 38
+        },
+        {
+          "id": "benchmarks-and-leaderboards",
+          "boost": 24
+        },
+        {
+          "id": "ai-evaluation",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "v3-dl-framework",
+      "phrases": [
+        "framework for deep learning",
+        "deep learning framework",
+        "pytorch or tensorflow",
+        "tensorflow or pytorch",
+        "which deep learning framework",
+        "library for neural networks",
+        "framework to train models"
+      ],
+      "pages": [
+        {
+          "id": "pytorch",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-metric-choice",
+      "phrases": [
+        "which metric",
+        "what metric",
+        "choose a metric",
+        "metric for classification",
+        "metrics for classification",
+        "metric for summarization",
+        "accuracy or f1",
+        "evaluation metric",
+        "evaluation metrics",
+        "what does f1",
+        "f1 score tell"
+      ],
+      "pages": [
+        {
+          "id": "evaluation-metrics-for-ai",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-graph-vs-plain",
+      "phrases": [
+        "graphrag vs rag",
+        "graphrag or plain rag",
+        "graph rag vs rag",
+        "plain rag or graph",
+        "when do i need a knowledge graph",
+        "knowledge graph or vector"
+      ],
+      "pages": [
+        {
+          "id": "graph-rag",
+          "boost": 42
+        },
+        {
+          "id": "rag",
+          "boost": 10
+        }
+      ]
+    },
+    {
+      "id": "v3-pgvector-or",
+      "phrases": [
+        "pgvector or",
+        "pgvector vs",
+        "vector database or postgres",
+        "postgres or a vector database"
+      ],
+      "pages": [
+        {
+          "id": "pgvector",
+          "boost": 42
+        },
+        {
+          "id": "vector-databases",
+          "boost": 20
+        }
+      ]
+    },
+    {
+      "id": "v3-risk-standard",
+      "phrases": [
+        "standard for ai risk",
+        "ai risk framework",
+        "which standard",
+        "ai risk management standard",
+        "framework for ai risk",
+        "follow for ai risk"
+      ],
+      "pages": [
+        {
+          "id": "nist-ai-rmf",
+          "boost": 30
+        },
+        {
+          "id": "iso-iec-42001",
+          "boost": 30
+        },
+        {
+          "id": "ai-governance",
+          "boost": 24
+        }
+      ]
+    },
+    {
+      "id": "v3-mcp-or-a2a",
+      "phrases": [
+        "mcp or a2a",
+        "a2a or mcp",
+        "use mcp or a2a",
+        "mcp or agent to agent"
+      ],
+      "pages": [
+        {
+          "id": "a2a-vs-mcp",
+          "boost": 52
+        }
+      ]
+    },
+    {
+      "id": "v3-protocols-compared",
+      "phrases": [
+        "mcp vs a2a vs function calling",
+        "protocols compared",
+        "which agent protocol",
+        "agent protocol stack"
+      ],
+      "pages": [
+        {
+          "id": "agent-protocol-landscape",
+          "boost": 42
+        }
+      ]
+    },
+    {
+      "id": "v3-reasoning-vs",
+      "phrases": [
+        "reasoning model vs regular",
+        "reasoning vs regular",
+        "reasoning vs standard",
+        "reasoning vs non reasoning",
+        "thinking vs non thinking",
+        "reasoning model or regular",
+        "reasoning model or standard",
+        "should i use a reasoning model",
+        "when to use a reasoning model",
+        "regular llm vs reasoning",
+        "reasoning model vs llm"
+      ],
+      "pages": [
+        {
+          "id": "reasoning-vs-standard-models",
+          "boost": 50
+        },
+        {
+          "id": "reasoning-models",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "v3-json-mode-vs",
+      "phrases": [
+        "json mode vs structured",
+        "json mode or",
+        "structured outputs vs json mode",
+        "best way to get json",
+        "way to get structured",
+        "which structured output",
+        "structured output method",
+        "function calling or structured"
+      ],
+      "pages": [
+        {
+          "id": "structured-output-methods-compared",
+          "boost": 48
+        },
+        {
+          "id": "structured-outputs",
+          "boost": 16
+        }
+      ]
+    },
+    {
+      "id": "v3-bench-vs-custom",
+      "phrases": [
+        "benchmarks vs custom",
+        "benchmarks vs evals",
+        "custom evals vs benchmarks",
+        "benchmark or custom eval",
+        "build my own evals",
+        "own evals",
+        "custom evaluation set",
+        "task specific eval"
+      ],
+      "pages": [
+        {
+          "id": "llm-benchmarks-vs-task-evals",
+          "boost": 48
+        }
+      ]
+    },
+    {
+      "id": "v3-quant-vs-distill",
+      "phrases": [
+        "quantization vs distillation",
+        "quantisation vs distillation",
+        "distillation vs quantization",
+        "quantize or distill",
+        "distill or quantize"
+      ],
+      "pages": [
+        {
+          "id": "quantization",
+          "boost": 32
+        },
+        {
+          "id": "knowledge-distillation",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "v3-sup-vs-unsup",
+      "phrases": [
+        "supervised vs unsupervised",
+        "supervised or unsupervised",
+        "supervised versus unsupervised"
+      ],
+      "pages": [
+        {
+          "id": "supervised-learning",
+          "boost": 36
+        },
+        {
+          "id": "unsupervised-learning",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-gan-vs-diff",
+      "phrases": [
+        "gan vs diffusion",
+        "diffusion vs gan",
+        "gans vs diffusion",
+        "gan or diffusion"
+      ],
+      "pages": [
+        {
+          "id": "generative-adversarial-networks",
+          "boost": 36
+        },
+        {
+          "id": "diffusion-models",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-ppo-vs-dqn",
+      "phrases": [
+        "ppo vs dqn",
+        "dqn vs ppo"
+      ],
+      "pages": [
+        {
+          "id": "proximal-policy-optimization",
+          "boost": 36
+        },
+        {
+          "id": "deep-q-networks",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-nist-vs-iso",
+      "phrases": [
+        "nist vs iso",
+        "iso 42001 vs nist",
+        "nist ai rmf vs iso",
+        "iso vs nist"
+      ],
+      "pages": [
+        {
+          "id": "nist-ai-rmf",
+          "boost": 40
+        },
+        {
+          "id": "iso-iec-42001",
+          "boost": 40
+        }
+      ]
+    },
+    {
+      "id": "v3-lc-vs-li",
+      "phrases": [
+        "langchain vs llamaindex",
+        "langchain vs llama index",
+        "llamaindex vs langchain",
+        "langchain or llamaindex"
+      ],
+      "pages": [
+        {
+          "id": "langchain",
+          "boost": 38
+        },
+        {
+          "id": "llamaindex",
+          "boost": 38
+        },
+        {
+          "id": "agent-frameworks-compared",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-rag-vs-fine-tuning-guard",
+      "phrases": [
+        "lora or full fine tuning"
+      ],
+      "pages": [
+        {
+          "id": "lora-vs-full-fine-tuning",
+          "boost": 48
+        }
+      ]
+    },
+    {
+      "id": "v3-how-tokens-words",
+      "phrases": [
+        "how do language models turn probabilities into words",
+        "turn probabilities into words",
+        "probabilities into tokens"
+      ],
+      "pages": [
+        {
+          "id": "sampling-and-decoding",
+          "boost": 44
+        }
+      ]
+    },
+    {
+      "id": "v3-how-train-weights",
+      "phrases": [
+        "how do neural networks learn",
+        "neural networks learn weights",
+        "how networks learn"
+      ],
+      "pages": [
+        {
+          "id": "backpropagation-and-gradient-descent",
+          "boost": 40
+        },
+        {
+          "id": "neural-networks",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-rag-eval-more",
+      "phrases": [
+        "rag system evaluated",
+        "evaluated end to end",
+        "rag system is evaluated",
+        "evaluating a rag",
+        "evaluating rag",
+        "end to end rag evaluation"
+      ],
+      "pages": [
+        {
+          "id": "rag-evaluation",
+          "boost": 50
+        }
+      ]
+    },
+    {
+      "id": "v3-one-gpu",
+      "phrases": [
+        "model on one gpu",
+        "on one gpu",
+        "on a single gpu",
+        "on 1 gpu",
+        "one gpu"
+      ],
+      "pages": [
+        {
+          "id": "lora-and-peft",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-gbnf-howto",
+      "phrases": [
+        "grammars in llama cpp",
+        "llama cpp grammars",
+        "grammar in llama cpp",
+        "use grammars"
+      ],
+      "pages": [
+        {
+          "id": "gbnf-grammars",
+          "boost": 50
+        }
+      ]
+    },
+    {
+      "id": "v3-share-trace",
+      "phrases": [
+        "share a trace",
+        "leaking customer data",
+        "leak customer data",
+        "sensitive data in logs",
+        "redact logs",
+        "sensitive data in traces",
+        "pii in logs",
+        "customer data in logs"
+      ],
+      "pages": [
+        {
+          "id": "llm-observability",
+          "boost": 38
+        },
+        {
+          "id": "ai-privacy-and-security",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "v3-dl-framework-more",
+      "phrases": [
+        "for deep learning",
+        "use for deep learning"
+      ],
+      "pages": [
+        {
+          "id": "pytorch",
+          "boost": 46
+        }
+      ]
+    }
+  ],
+  "concepts": [
+    {
+      "id": "v3-test-time-compute",
+      "terms": [
+        "test time compute",
+        "inference time compute",
+        "inference time scaling",
+        "test time scaling",
+        "inference scaling"
+      ],
+      "pages": [
+        {
+          "id": "test-time-compute",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-reasoning-models",
+      "terms": [
+        "reasoning model",
+        "reasoning models",
+        "thinking model",
+        "thinking models",
+        "reasoning llm",
+        "reasoning llms",
+        "large reasoning model"
+      ],
+      "pages": [
+        {
+          "id": "reasoning-models",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-cot",
+      "terms": [
+        "chain of thought",
+        "cot",
+        "step by step prompting",
+        "think step by step"
+      ],
+      "pages": [
+        {
+          "id": "chain-of-thought",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-hidden-reasoning",
+      "terms": [
+        "hidden reasoning",
+        "hidden chain of thought",
+        "reasoning trace",
+        "reasoning traces",
+        "reasoning tokens",
+        "reasoning summary",
+        "reasoning summaries",
+        "private reasoning",
+        "hidden thoughts"
+      ],
+      "pages": [
+        {
+          "id": "reasoning-transparency",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-self-consistency",
+      "terms": [
+        "self consistency",
+        "majority voting",
+        "majority vote"
+      ],
+      "pages": [
+        {
+          "id": "self-consistency",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-best-of-n",
+      "terms": [
+        "best of n",
+        "rejection sampling",
+        "n best",
+        "sample several answers",
+        "pick the best of several"
+      ],
+      "pages": [
+        {
+          "id": "best-of-n-sampling",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-search-reasoning",
+      "terms": [
+        "tree of thoughts",
+        "tree search reasoning",
+        "mcts",
+        "monte carlo tree search",
+        "beam search reasoning"
+      ],
+      "pages": [
+        {
+          "id": "search-over-reasoning",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-orm",
+      "terms": [
+        "outcome reward model",
+        "outcome reward models",
+        "outcome supervision",
+        "outcome based reward",
+        "final answer verifier"
+      ],
+      "pages": [
+        {
+          "id": "outcome-reward-model",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-prm",
+      "terms": [
+        "process reward model",
+        "process reward models",
+        "process supervision",
+        "step level reward",
+        "grade each step",
+        "step by step verifier"
+      ],
+      "pages": [
+        {
+          "id": "process-reward-model",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-prm-vs-orm",
+      "terms": [
+        "prm vs orm",
+        "orm vs prm",
+        "process vs outcome",
+        "process or outcome reward",
+        "outcome vs process",
+        "process supervision vs outcome supervision"
+      ],
+      "pages": [
+        {
+          "id": "prm-vs-orm",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-rlvr",
+      "terms": [
+        "grpo",
+        "rlvr",
+        "group relative policy optimization",
+        "verifiable rewards",
+        "rule based rewards"
+      ],
+      "pages": [
+        {
+          "id": "reinforcement-learning-for-reasoning",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-thinking-budget",
+      "terms": [
+        "thinking budget",
+        "reasoning effort",
+        "budget tokens",
+        "extended thinking",
+        "thinking budgets"
+      ],
+      "pages": [
+        {
+          "id": "thinking-budgets",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-constrained",
+      "terms": [
+        "constrained decoding",
+        "guided generation",
+        "guided decoding",
+        "logit masking",
+        "constrained generation",
+        "structured generation"
+      ],
+      "pages": [
+        {
+          "id": "constrained-decoding",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-structured",
+      "terms": [
+        "structured output",
+        "structured outputs",
+        "json mode",
+        "json output",
+        "valid json",
+        "schema output",
+        "enforce a schema"
+      ],
+      "pages": [
+        {
+          "id": "structured-outputs",
+          "boost": 30
+        },
+        {
+          "id": "constrained-decoding",
+          "boost": 8
+        }
+      ]
+    },
+    {
+      "id": "v3-grammar",
+      "terms": [
+        "grammar constrained",
+        "grammar guided",
+        "grammar guided generation",
+        "cfg decoding",
+        "regex constrained",
+        "regex constrained generation",
+        "grammar sampling"
+      ],
+      "pages": [
+        {
+          "id": "grammar-guided-generation",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-gbnf",
+      "terms": [
+        "gbnf",
+        "llama cpp grammar",
+        "json schema to gbnf"
+      ],
+      "pages": [
+        {
+          "id": "gbnf-grammars",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-json-schema",
+      "terms": [
+        "json schema"
+      ],
+      "pages": [
+        {
+          "id": "json-schema",
+          "boost": 28
+        }
+      ]
+    },
+    {
+      "id": "v3-sampling",
+      "terms": [
+        "temperature setting",
+        "llm temperature",
+        "temperature in an llm",
+        "temperature parameter",
+        "top p",
+        "top k",
+        "nucleus sampling",
+        "greedy decoding",
+        "beam search",
+        "decoding strategies",
+        "sampling parameters",
+        "repetition penalty",
+        "min p"
+      ],
+      "pages": [
+        {
+          "id": "sampling-and-decoding",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-vla",
+      "terms": [
+        "vla",
+        "vla model",
+        "vla models",
+        "vision language action",
+        "rt 2",
+        "openvla",
+        "pi0",
+        "robot foundation model",
+        "language conditioned robot",
+        "robots that follow natural language"
+      ],
+      "pages": [
+        {
+          "id": "vision-language-action-models",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-world-models",
+      "terms": [
+        "world model",
+        "world models",
+        "dreamer",
+        "jepa",
+        "model based reinforcement learning",
+        "learned simulator",
+        "learned simulators"
+      ],
+      "pages": [
+        {
+          "id": "world-models",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-embodied",
+      "terms": [
+        "embodied ai",
+        "embodied intelligence",
+        "physical ai",
+        "robot learning"
+      ],
+      "pages": [
+        {
+          "id": "embodied-ai",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-imitation",
+      "terms": [
+        "imitation learning",
+        "behavior cloning",
+        "behaviour cloning",
+        "dagger",
+        "learning from demonstration",
+        "learn from demonstrations",
+        "teleoperation data",
+        "diffusion policy"
+      ],
+      "pages": [
+        {
+          "id": "imitation-learning",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-sim2real",
+      "terms": [
+        "sim to real",
+        "sim2real",
+        "domain randomization",
+        "domain randomisation",
+        "reality gap"
+      ],
+      "pages": [
+        {
+          "id": "sim-to-real-transfer",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-benchmarks",
+      "terms": [
+        "benchmark",
+        "benchmarks",
+        "leaderboard",
+        "leaderboards",
+        "benchmark scores"
+      ],
+      "pages": [
+        {
+          "id": "benchmarks-and-leaderboards",
+          "boost": 26
+        }
+      ]
+    },
+    {
+      "id": "v3-contamination",
+      "terms": [
+        "contamination",
+        "data contamination",
+        "test set leakage",
+        "trained on the test",
+        "benchmark leakage",
+        "train on the test"
+      ],
+      "pages": [
+        {
+          "id": "benchmark-contamination",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-judge",
+      "terms": [
+        "llm as a judge",
+        "llm judge",
+        "model graded",
+        "ai judge",
+        "gpt as judge",
+        "g eval",
+        "mt bench"
+      ],
+      "pages": [
+        {
+          "id": "llm-as-a-judge",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-arena",
+      "terms": [
+        "chatbot arena",
+        "lmarena",
+        "elo rating",
+        "elo ratings",
+        "bradley terry",
+        "human preference evaluation"
+      ],
+      "pages": [
+        {
+          "id": "human-preference-evaluation",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-mmlu",
+      "terms": [
+        "mmlu",
+        "mmlu pro",
+        "gpqa"
+      ],
+      "pages": [
+        {
+          "id": "mmlu",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-humaneval",
+      "terms": [
+        "humaneval",
+        "pass at k",
+        "pass k",
+        "mbpp",
+        "evalplus"
+      ],
+      "pages": [
+        {
+          "id": "humaneval",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-swebench",
+      "terms": [
+        "swe bench",
+        "swe agent"
+      ],
+      "pages": [
+        {
+          "id": "swe-bench",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-gsm8k",
+      "terms": [
+        "gsm8k",
+        "math benchmark",
+        "aime"
+      ],
+      "pages": [
+        {
+          "id": "gsm8k-and-math-benchmarks",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-metrics",
+      "terms": [
+        "f1 score",
+        "precision and recall",
+        "bleu",
+        "rouge",
+        "perplexity",
+        "roc auc",
+        "confusion matrix"
+      ],
+      "pages": [
+        {
+          "id": "evaluation-metrics-for-ai",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-rag-eval",
+      "terms": [
+        "rag evaluation",
+        "evaluate rag",
+        "ragas",
+        "faithfulness",
+        "recall at k",
+        "context precision"
+      ],
+      "pages": [
+        {
+          "id": "rag-evaluation",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-agent-eval",
+      "terms": [
+        "agent evaluation",
+        "evaluate an agent",
+        "evaluate agents",
+        "tau bench",
+        "agentbench",
+        "trajectory evaluation"
+      ],
+      "pages": [
+        {
+          "id": "agent-evaluation",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-a2a",
+      "terms": [
+        "a2a",
+        "agent2agent",
+        "agent to agent",
+        "agent card",
+        "a2a protocol"
+      ],
+      "pages": [
+        {
+          "id": "a2a-protocol",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-a2a-vs-mcp",
+      "terms": [
+        "a2a vs mcp",
+        "mcp vs a2a",
+        "a2a and mcp",
+        "mcp and a2a",
+        "a2a versus mcp"
+      ],
+      "pages": [
+        {
+          "id": "a2a-vs-mcp",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-agent-protocols",
+      "terms": [
+        "agent protocols",
+        "agent protocol",
+        "agent interoperability",
+        "agent communication standards"
+      ],
+      "pages": [
+        {
+          "id": "agent-protocol-landscape",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-mcp-security",
+      "terms": [
+        "mcp security",
+        "secure mcp",
+        "mcp risks",
+        "tool poisoning",
+        "malicious mcp",
+        "mcp permissions",
+        "mcp authorization"
+      ],
+      "pages": [
+        {
+          "id": "mcp-security",
+          "boost": 38
+        }
+      ]
+    },
+    {
+      "id": "v3-langgraph",
+      "terms": [
+        "langgraph"
+      ],
+      "pages": [
+        {
+          "id": "langgraph",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-dspy",
+      "terms": [
+        "dspy"
+      ],
+      "pages": [
+        {
+          "id": "dspy",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-crewai",
+      "terms": [
+        "crewai",
+        "crew ai"
+      ],
+      "pages": [
+        {
+          "id": "crewai",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-autogen",
+      "terms": [
+        "autogen",
+        "ag2",
+        "autogen studio"
+      ],
+      "pages": [
+        {
+          "id": "autogen",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-semantic-kernel",
+      "terms": [
+        "semantic kernel"
+      ],
+      "pages": [
+        {
+          "id": "semantic-kernel",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-agents-sdk",
+      "terms": [
+        "openai agents sdk",
+        "agents sdk"
+      ],
+      "pages": [
+        {
+          "id": "openai-agents-sdk",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-agent-frameworks",
+      "terms": [
+        "agent framework comparison",
+        "which agent framework",
+        "best agent framework",
+        "langchain alternatives",
+        "framework comparison",
+        "langgraph vs",
+        "crewai vs",
+        "autogen vs"
+      ],
+      "pages": [
+        {
+          "id": "agent-frameworks-compared",
+          "boost": 44
+        }
+      ]
+    },
+    {
+      "id": "v3-vllm",
+      "terms": [
+        "vllm",
+        "pagedattention",
+        "paged attention",
+        "continuous batching"
+      ],
+      "pages": [
+        {
+          "id": "vllm",
+          "boost": 40
+        }
+      ]
+    },
+    {
+      "id": "v3-llamacpp",
+      "terms": [
+        "llama cpp",
+        "llamacpp",
+        "gguf"
+      ],
+      "pages": [
+        {
+          "id": "llama-cpp",
+          "boost": 38
+        }
+      ]
+    },
+    {
+      "id": "v3-ollama",
+      "terms": [
+        "ollama"
+      ],
+      "pages": [
+        {
+          "id": "ollama",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-onnx",
+      "terms": [
+        "onnx",
+        "onnx runtime",
+        "onnxruntime",
+        "execution provider",
+        "transformers js"
+      ],
+      "pages": [
+        {
+          "id": "onnx-runtime",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-pytorch",
+      "terms": [
+        "pytorch",
+        "torch compile",
+        "autograd",
+        "pytorch vs tensorflow",
+        "tensorflow vs pytorch"
+      ],
+      "pages": [
+        {
+          "id": "pytorch",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-runtimes",
+      "terms": [
+        "ollama vs",
+        "vllm vs",
+        "llama cpp vs",
+        "which inference engine",
+        "self host llm",
+        "self hosted llm"
+      ],
+      "pages": [
+        {
+          "id": "local-runtimes-compared",
+          "boost": 44
+        }
+      ]
+    },
+    {
+      "id": "v3-alphafold",
+      "terms": [
+        "alphafold",
+        "protein folding",
+        "protein structure prediction",
+        "plddt",
+        "esmfold"
+      ],
+      "pages": [
+        {
+          "id": "alphafold",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-pinn",
+      "terms": [
+        "pinn",
+        "pinns",
+        "physics informed",
+        "neural operator",
+        "neural operators"
+      ],
+      "pages": [
+        {
+          "id": "physics-informed-neural-networks",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-weather",
+      "terms": [
+        "graphcast",
+        "pangu weather",
+        "fourcastnet",
+        "aifs",
+        "ai weather",
+        "weather forecasting model"
+      ],
+      "pages": [
+        {
+          "id": "ai-weather-forecasting",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-drug",
+      "terms": [
+        "drug discovery",
+        "virtual screening",
+        "admet",
+        "molecule generation",
+        "generative chemistry"
+      ],
+      "pages": [
+        {
+          "id": "ai-drug-discovery",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-materials",
+      "terms": [
+        "materials discovery",
+        "gnome",
+        "interatomic potential",
+        "materials informatics",
+        "new materials"
+      ],
+      "pages": [
+        {
+          "id": "ai-materials-discovery",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-ai4science",
+      "terms": [
+        "ai for science",
+        "scientific machine learning",
+        "sciml",
+        "ai4science",
+        "surrogate model",
+        "surrogate models"
+      ],
+      "pages": [
+        {
+          "id": "ai-for-science",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-supervised",
+      "terms": [
+        "supervised learning",
+        "classification and regression",
+        "labelled data",
+        "labeled data",
+        "classification vs regression"
+      ],
+      "pages": [
+        {
+          "id": "supervised-learning",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-unsupervised",
+      "terms": [
+        "unsupervised learning",
+        "clustering",
+        "k means",
+        "kmeans"
+      ],
+      "pages": [
+        {
+          "id": "unsupervised-learning",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-selfsup",
+      "terms": [
+        "self supervised",
+        "self supervised learning",
+        "masked language modeling",
+        "masked language modelling",
+        "pretext task"
+      ],
+      "pages": [
+        {
+          "id": "self-supervised-learning",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "v3-neural-nets",
+      "terms": [
+        "neural network",
+        "neural networks",
+        "neural net",
+        "activation function",
+        "multilayer perceptron"
+      ],
+      "pages": [
+        {
+          "id": "neural-networks",
+          "boost": 24
+        }
+      ]
+    },
+    {
+      "id": "v3-deep-learning",
+      "terms": [
+        "deep learning"
+      ],
+      "pages": [
+        {
+          "id": "deep-learning",
+          "boost": 22
+        }
+      ]
+    },
+    {
+      "id": "v3-backprop",
+      "terms": [
+        "backpropagation",
+        "backprop",
+        "gradient descent",
+        "learning rate",
+        "adam optimizer",
+        "loss function",
+        "sgd"
+      ],
+      "pages": [
+        {
+          "id": "backpropagation-and-gradient-descent",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-overfit",
+      "terms": [
+        "overfitting",
+        "overfit",
+        "underfitting",
+        "regularization",
+        "regularisation",
+        "dropout",
+        "weight decay",
+        "bias variance",
+        "generalization gap",
+        "early stopping"
+      ],
+      "pages": [
+        {
+          "id": "overfitting-and-regularization",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-transfer",
+      "terms": [
+        "transfer learning",
+        "pretrained model",
+        "pre trained model",
+        "feature extraction",
+        "domain adaptation",
+        "catastrophic forgetting"
+      ],
+      "pages": [
+        {
+          "id": "transfer-learning",
+          "boost": 30
+        }
+      ]
+    },
+    {
+      "id": "v3-rl",
+      "terms": [
+        "reinforcement learning",
+        "exploration vs exploitation",
+        "reward function",
+        "policy gradient"
+      ],
+      "pages": [
+        {
+          "id": "reinforcement-learning",
+          "boost": 24
+        }
+      ]
+    },
+    {
+      "id": "v3-mdp",
+      "terms": [
+        "markov decision process",
+        "mdp",
+        "bellman equation",
+        "pomdp",
+        "value function"
+      ],
+      "pages": [
+        {
+          "id": "markov-decision-processes",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-ppo",
+      "terms": [
+        "proximal policy optimization",
+        "actor critic",
+        "trpo",
+        "ppo reinforcement learning",
+        "ppo rl",
+        "ppo algorithm",
+        "ppo rlhf",
+        "ppo training"
+      ],
+      "pages": [
+        {
+          "id": "proximal-policy-optimization",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-dqn",
+      "terms": [
+        "dqn",
+        "deep q network",
+        "deep q networks",
+        "q learning",
+        "experience replay"
+      ],
+      "pages": [
+        {
+          "id": "deep-q-networks",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-cnn",
+      "terms": [
+        "convolutional neural network",
+        "convolutional neural networks",
+        "convnet",
+        "resnet",
+        "cnn deep learning",
+        "cnn image",
+        "cnn model",
+        "cnn architecture",
+        "cnn neural"
+      ],
+      "pages": [
+        {
+          "id": "convolutional-neural-networks",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-rnn",
+      "terms": [
+        "rnn",
+        "lstm",
+        "gru",
+        "recurrent neural network",
+        "long short term memory",
+        "vanishing gradient"
+      ],
+      "pages": [
+        {
+          "id": "recurrent-neural-networks",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-vit",
+      "terms": [
+        "vit",
+        "vision transformer",
+        "vision transformers",
+        "swin transformer"
+      ],
+      "pages": [
+        {
+          "id": "vision-transformers",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-cnn-vs-vit",
+      "terms": [
+        "cnn vs vit",
+        "cnn vs vision transformer",
+        "convnet vs transformer",
+        "vit vs resnet",
+        "vit vs cnn",
+        "cnn or vit"
+      ],
+      "pages": [
+        {
+          "id": "cnn-vs-vision-transformer",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-moe",
+      "terms": [
+        "mixture of experts",
+        "moe",
+        "sparse mixture",
+        "switch transformer",
+        "mixtral"
+      ],
+      "pages": [
+        {
+          "id": "mixture-of-experts",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-ssm",
+      "terms": [
+        "state space model",
+        "state space models",
+        "mamba model",
+        "mamba architecture",
+        "mamba llm",
+        "mamba ssm",
+        "ssm mamba",
+        "mamba 2",
+        "selective state space",
+        "structured state space"
+      ],
+      "pages": [
+        {
+          "id": "state-space-models",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-ssm-vs",
+      "terms": [
+        "mamba vs transformer",
+        "transformer vs mamba",
+        "ssm vs transformer",
+        "attention vs ssm",
+        "transformer alternatives",
+        "state space vs transformer",
+        "mamba transformer"
+      ],
+      "pages": [
+        {
+          "id": "transformers-vs-state-space-models",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-diffusion",
+      "terms": [
+        "diffusion model",
+        "diffusion models",
+        "stable diffusion",
+        "latent diffusion",
+        "ddpm",
+        "denoising diffusion",
+        "classifier free guidance",
+        "text to image generation",
+        "text to image generators"
+      ],
+      "pages": [
+        {
+          "id": "diffusion-models",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-gan",
+      "terms": [
+        "gan",
+        "gans",
+        "generative adversarial",
+        "mode collapse",
+        "stylegan"
+      ],
+      "pages": [
+        {
+          "id": "generative-adversarial-networks",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-vae",
+      "terms": [
+        "vae",
+        "variational autoencoder",
+        "autoencoder",
+        "latent space",
+        "vq vae"
+      ],
+      "pages": [
+        {
+          "id": "variational-autoencoders",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-gnn",
+      "terms": [
+        "gnn",
+        "gnns",
+        "graph neural network",
+        "graph neural networks",
+        "message passing",
+        "graph convolutional"
+      ],
+      "pages": [
+        {
+          "id": "graph-neural-networks",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-enc-dec",
+      "terms": [
+        "encoder decoder",
+        "decoder only",
+        "encoder only",
+        "bert vs gpt",
+        "gpt vs bert",
+        "t5 model"
+      ],
+      "pages": [
+        {
+          "id": "encoder-decoder-vs-decoder-only",
+          "boost": 40
+        }
+      ]
+    },
+    {
+      "id": "v3-kv",
+      "terms": [
+        "kv cache",
+        "key value cache",
+        "grouped query attention",
+        "gqa",
+        "multi query attention",
+        "prefix caching"
+      ],
+      "pages": [
+        {
+          "id": "kv-cache",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-flash",
+      "terms": [
+        "flashattention",
+        "flash attention",
+        "flash attn"
+      ],
+      "pages": [
+        {
+          "id": "flash-attention",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-pos",
+      "terms": [
+        "positional encoding",
+        "position embeddings",
+        "rope",
+        "rotary position embedding",
+        "rotary embeddings",
+        "alibi",
+        "token order",
+        "context extension",
+        "position interpolation"
+      ],
+      "pages": [
+        {
+          "id": "positional-encoding",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-scaling",
+      "terms": [
+        "scaling laws",
+        "scaling law",
+        "chinchilla",
+        "compute optimal",
+        "tokens per parameter"
+      ],
+      "pages": [
+        {
+          "id": "scaling-laws",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-instruct",
+      "terms": [
+        "instruction tuning",
+        "instruct model",
+        "base model vs chat model",
+        "base vs instruct",
+        "supervised fine tuning",
+        "sft"
+      ],
+      "pages": [
+        {
+          "id": "instruction-tuning",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-lora",
+      "terms": [
+        "lora",
+        "qlora",
+        "peft",
+        "low rank adaptation",
+        "adapter fine tuning",
+        "parameter efficient"
+      ],
+      "pages": [
+        {
+          "id": "lora-and-peft",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-lora-vs-full",
+      "terms": [
+        "lora vs full",
+        "lora or full",
+        "full fine tuning vs lora",
+        "lora vs fine tuning",
+        "peft vs full"
+      ],
+      "pages": [
+        {
+          "id": "lora-vs-full-fine-tuning",
+          "boost": 46
+        }
+      ]
+    },
+    {
+      "id": "v3-quant",
+      "terms": [
+        "quantization",
+        "quantisation",
+        "gptq",
+        "awq",
+        "int4",
+        "4 bit",
+        "8 bit",
+        "k quants"
+      ],
+      "pages": [
+        {
+          "id": "quantization",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-distill",
+      "terms": [
+        "distillation",
+        "distill",
+        "distilled",
+        "teacher student",
+        "distilbert"
+      ],
+      "pages": [
+        {
+          "id": "knowledge-distillation",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-spec",
+      "terms": [
+        "speculative decoding",
+        "speculative sampling",
+        "draft model",
+        "assisted generation",
+        "medusa decoding"
+      ],
+      "pages": [
+        {
+          "id": "speculative-decoding",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-slm",
+      "terms": [
+        "slm",
+        "slms",
+        "small language model",
+        "small language models",
+        "small llm",
+        "on device model",
+        "on device models"
+      ],
+      "pages": [
+        {
+          "id": "small-language-models",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-openweights",
+      "terms": [
+        "open weights",
+        "open weight",
+        "open source llm",
+        "open source vs closed",
+        "closed source llm",
+        "open vs closed models",
+        "open source vs closed llms"
+      ],
+      "pages": [
+        {
+          "id": "open-weights-models",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-vlm",
+      "terms": [
+        "vlm",
+        "vlms",
+        "vision language model",
+        "vision language models",
+        "llava",
+        "multimodal llm",
+        "visual question answering",
+        "image understanding model"
+      ],
+      "pages": [
+        {
+          "id": "vision-language-models",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-clip",
+      "terms": [
+        "clip embeddings",
+        "clip model",
+        "openai clip",
+        "contrastive learning",
+        "zero shot image classification",
+        "openclip",
+        "siglip",
+        "image text embeddings",
+        "text to image search"
+      ],
+      "pages": [
+        {
+          "id": "contrastive-learning-clip",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-speech",
+      "terms": [
+        "speech recognition",
+        "speech to text",
+        "text to speech",
+        "whisper",
+        "asr",
+        "tts",
+        "voice assistant",
+        "word error rate",
+        "voice cloning",
+        "transcribe audio",
+        "transcription",
+        "wer"
+      ],
+      "pages": [
+        {
+          "id": "speech-ai",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-docai",
+      "terms": [
+        "document ai",
+        "ocr",
+        "invoice extraction",
+        "pdf extraction",
+        "extract data from pdf",
+        "extract data from pdfs",
+        "table extraction",
+        "intelligent document processing",
+        "layoutlm"
+      ],
+      "pages": [
+        {
+          "id": "document-understanding-ai",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-video",
+      "terms": [
+        "video generation",
+        "text to video",
+        "video diffusion",
+        "ai video"
+      ],
+      "pages": [
+        {
+          "id": "video-generation-models",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-alignment",
+      "terms": [
+        "ai alignment",
+        "alignment problem",
+        "value alignment",
+        "scalable oversight",
+        "outer alignment"
+      ],
+      "pages": [
+        {
+          "id": "ai-alignment",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "v3-prefopt",
+      "terms": [
+        "preference optimization",
+        "preference optimisation",
+        "preference tuning",
+        "preference data",
+        "chosen and rejected",
+        "kto",
+        "orpo",
+        "simpo"
+      ],
+      "pages": [
+        {
+          "id": "preference-optimization",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-dpo",
+      "terms": [
+        "dpo loss",
+        "dpo training",
+        "dpo beta",
+        "dpo trainer",
+        "direct preference optimization",
+        "direct preference optimisation",
+        "dpo algorithm",
+        "what is dpo",
+        "dpo model",
+        "dpo alignment"
+      ],
+      "pages": [
+        {
+          "id": "dpo",
+          "boost": 40
+        }
+      ]
+    },
+    {
+      "id": "v3-dpo-vs",
+      "terms": [
+        "dpo vs rlhf",
+        "rlhf vs dpo",
+        "dpo vs ppo",
+        "ppo vs dpo",
+        "dpo or rlhf",
+        "dpo versus ppo",
+        "dpo or ppo"
+      ],
+      "pages": [
+        {
+          "id": "dpo-vs-rlhf",
+          "boost": 48
+        }
+      ]
+    },
+    {
+      "id": "v3-rlhf",
+      "terms": [
+        "rlhf",
+        "reinforcement learning from human feedback",
+        "reward model training",
+        "human feedback training",
+        "kl penalty"
+      ],
+      "pages": [
+        {
+          "id": "rlhf",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-cai",
+      "terms": [
+        "constitutional ai",
+        "rlaif",
+        "ai feedback",
+        "self critique",
+        "principle based alignment"
+      ],
+      "pages": [
+        {
+          "id": "constitutional-ai-and-rlaif",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-rewardhack",
+      "terms": [
+        "reward hacking",
+        "specification gaming",
+        "goodharts law",
+        "goodhart",
+        "reward overoptimization",
+        "reward over optimization",
+        "gaming the metric",
+        "exploits the scoring",
+        "exploits the reward"
+      ],
+      "pages": [
+        {
+          "id": "reward-hacking",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-sycophancy",
+      "terms": [
+        "sycophancy",
+        "sycophantic",
+        "flattery",
+        "yes man ai",
+        "agrees with everything",
+        "tells me what i want to hear",
+        "telling users what they want to hear"
+      ],
+      "pages": [
+        {
+          "id": "sycophancy",
+          "boost": 38
+        }
+      ]
+    },
+    {
+      "id": "v3-redteam",
+      "terms": [
+        "red teaming",
+        "red team",
+        "adversarial testing",
+        "jailbreak testing",
+        "automated red teaming"
+      ],
+      "pages": [
+        {
+          "id": "red-teaming",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-guardrails",
+      "terms": [
+        "guardrails",
+        "guardrail",
+        "llama guard",
+        "nemo guardrails",
+        "content moderation",
+        "output validation"
+      ],
+      "pages": [
+        {
+          "id": "ai-guardrails",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-interp",
+      "terms": [
+        "interpretability",
+        "mechanistic interpretability",
+        "sparse autoencoders",
+        "explainable ai",
+        "xai",
+        "shap lime",
+        "activation patching"
+      ],
+      "pages": [
+        {
+          "id": "mechanistic-interpretability",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-bias",
+      "terms": [
+        "algorithmic bias",
+        "ai bias",
+        "bias in ai",
+        "fairness metric",
+        "fairness metrics",
+        "demographic parity",
+        "equalized odds",
+        "bias audit",
+        "ai fairness",
+        "disparate impact"
+      ],
+      "pages": [
+        {
+          "id": "ai-bias-and-fairness",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-governance",
+      "terms": [
+        "ai governance",
+        "responsible ai",
+        "ai policy",
+        "ai risk management",
+        "ai compliance",
+        "ai accountability",
+        "ai impact assessment",
+        "trustworthy ai"
+      ],
+      "pages": [
+        {
+          "id": "ai-governance",
+          "boost": 32
+        }
+      ]
+    },
+    {
+      "id": "v3-euact",
+      "terms": [
+        "eu ai act",
+        "ai act",
+        "european ai regulation",
+        "regulation 2024 1689",
+        "high risk ai",
+        "prohibited ai practices",
+        "gpai",
+        "banned in europe"
+      ],
+      "pages": [
+        {
+          "id": "eu-ai-act",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-nist",
+      "terms": [
+        "nist ai rmf",
+        "ai rmf",
+        "nist ai",
+        "nist ai 100 1",
+        "generative ai profile"
+      ],
+      "pages": [
+        {
+          "id": "nist-ai-rmf",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-iso",
+      "terms": [
+        "iso 42001",
+        "iso iec 42001",
+        "ai management system",
+        "iso ai standard"
+      ],
+      "pages": [
+        {
+          "id": "iso-iec-42001",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-modelcards",
+      "terms": [
+        "model card",
+        "model cards",
+        "datasheets for datasets",
+        "system card",
+        "ai documentation",
+        "dataset card"
+      ],
+      "pages": [
+        {
+          "id": "model-cards",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-c2pa",
+      "terms": [
+        "c2pa",
+        "content credentials",
+        "content provenance",
+        "ai watermarking",
+        "synthid",
+        "deepfake detection",
+        "detect ai generated",
+        "label ai generated"
+      ],
+      "pages": [
+        {
+          "id": "c2pa-content-provenance",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-owasp",
+      "terms": [
+        "owasp llm",
+        "owasp top 10 for llm",
+        "llm01",
+        "owasp genai",
+        "excessive agency",
+        "insecure output handling"
+      ],
+      "pages": [
+        {
+          "id": "owasp-llm-top-10",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-mlops",
+      "terms": [
+        "mlops",
+        "llmops",
+        "ml pipeline",
+        "model lifecycle",
+        "ci cd for ml"
+      ],
+      "pages": [
+        {
+          "id": "mlops",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-serving",
+      "terms": [
+        "model serving",
+        "llm serving",
+        "inference server",
+        "time to first token",
+        "ttft",
+        "tokens per second",
+        "inference optimization",
+        "inference endpoint",
+        "serve an llm",
+        "serving an llm"
+      ],
+      "pages": [
+        {
+          "id": "model-serving-and-inference",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-gpus",
+      "terms": [
+        "gpu for ai",
+        "vram",
+        "cuda",
+        "tpu",
+        "hbm",
+        "ai accelerators",
+        "which gpu",
+        "what gpu",
+        "memory bandwidth",
+        "tensor cores"
+      ],
+      "pages": [
+        {
+          "id": "gpus-and-ai-accelerators",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-distributed",
+      "terms": [
+        "distributed training",
+        "fsdp",
+        "zero optimizer",
+        "deepspeed",
+        "megatron",
+        "data parallel",
+        "tensor parallelism",
+        "pipeline parallelism",
+        "multi gpu training",
+        "model sharding"
+      ],
+      "pages": [
+        {
+          "id": "distributed-training",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-observability",
+      "terms": [
+        "llm observability",
+        "llm monitoring",
+        "tracing llm",
+        "llm tracing",
+        "opentelemetry",
+        "langsmith",
+        "langfuse",
+        "prompt logging",
+        "token usage tracking",
+        "monitor an llm",
+        "monitoring llm",
+        "debug llm app"
+      ],
+      "pages": [
+        {
+          "id": "llm-observability",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-drift",
+      "terms": [
+        "model drift",
+        "data drift",
+        "concept drift",
+        "model decay",
+        "training serving skew",
+        "psi",
+        "drift monitoring",
+        "performance degradation"
+      ],
+      "pages": [
+        {
+          "id": "model-drift-and-monitoring",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-promptcache",
+      "terms": [
+        "prompt caching",
+        "context caching",
+        "cached tokens",
+        "cache control",
+        "prompt cache"
+      ],
+      "pages": [
+        {
+          "id": "prompt-caching",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-cost",
+      "terms": [
+        "llm cost",
+        "reduce llm cost",
+        "llm costs",
+        "token cost",
+        "api cost",
+        "model routing",
+        "frugalgpt",
+        "batch api",
+        "cheaper llm",
+        "ai cost",
+        "token spend",
+        "llm pricing"
+      ],
+      "pages": [
+        {
+          "id": "llm-cost-optimization",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-mlflow",
+      "terms": [
+        "mlflow",
+        "experiment tracking",
+        "track ml experiments",
+        "model registry",
+        "wandb",
+        "weights and biases"
+      ],
+      "pages": [
+        {
+          "id": "mlflow",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-ray",
+      "terms": [
+        "ray serve",
+        "ray train",
+        "rllib",
+        "kuberay",
+        "anyscale",
+        "ray tune",
+        "distributed python"
+      ],
+      "pages": [
+        {
+          "id": "ray",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-pgvector",
+      "terms": [
+        "pgvector",
+        "postgres vector",
+        "postgres embeddings",
+        "hnsw index",
+        "ivfflat",
+        "vector search in postgres"
+      ],
+      "pages": [
+        {
+          "id": "pgvector",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-hybrid",
+      "terms": [
+        "hybrid search",
+        "reranker",
+        "reranking",
+        "rerank",
+        "bm25",
+        "reciprocal rank fusion",
+        "cross encoder",
+        "colbert"
+      ],
+      "pages": [
+        {
+          "id": "hybrid-search-and-reranking",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-graphrag",
+      "terms": [
+        "graphrag",
+        "graph rag",
+        "knowledge graph rag",
+        "knowledge graph for retrieval",
+        "knowledge graph retrieval",
+        "multi hop retrieval",
+        "community summaries"
+      ],
+      "pages": [
+        {
+          "id": "graph-rag",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-agentic-rag",
+      "terms": [
+        "agentic rag",
+        "self rag",
+        "corrective rag",
+        "adaptive rag",
+        "iterative retrieval",
+        "query decomposition",
+        "multi hop rag"
+      ],
+      "pages": [
+        {
+          "id": "agentic-rag",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-ctx-eng",
+      "terms": [
+        "context engineering",
+        "context compaction",
+        "context management",
+        "context rot",
+        "manage context for agents"
+      ],
+      "pages": [
+        {
+          "id": "context-engineering",
+          "boost": 38
+        }
+      ]
+    },
+    {
+      "id": "v3-react",
+      "terms": [
+        "react pattern",
+        "react agent",
+        "react prompting",
+        "reason and act",
+        "agent loop",
+        "thought action observation"
+      ],
+      "pages": [
+        {
+          "id": "react-agent-pattern",
+          "boost": 44
+        }
+      ]
+    },
+    {
+      "id": "v3-planning",
+      "terms": [
+        "agent planning",
+        "plan and execute",
+        "task decomposition",
+        "plan and solve",
+        "reflexion",
+        "replanning"
+      ],
+      "pages": [
+        {
+          "id": "agent-planning",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-computer-use",
+      "terms": [
+        "computer use",
+        "browser agent",
+        "browser agents",
+        "web agents",
+        "gui agents",
+        "operator agent",
+        "control my computer",
+        "operate my browser",
+        "webarena",
+        "osworld"
+      ],
+      "pages": [
+        {
+          "id": "computer-use-agents",
+          "boost": 36
+        }
+      ]
+    },
+    {
+      "id": "v3-sandbox",
+      "terms": [
+        "sandbox",
+        "sandboxing",
+        "code interpreter",
+        "gvisor",
+        "firecracker"
+      ],
+      "pages": [
+        {
+          "id": "code-execution-sandboxing",
+          "boost": 34
+        }
+      ]
+    },
+    {
+      "id": "v3-cnn-context",
+      "terms": [
+        "cnn deep learning",
+        "cnn image",
+        "cnn model",
+        "cnn architecture",
+        "cnn neural",
+        "cnn vs",
+        "what is a cnn"
+      ],
+      "pages": [
+        {
+          "id": "convolutional-neural-networks",
+          "boost": 52
+        }
+      ]
+    },
+    {
+      "id": "v3-ppo-context",
+      "terms": [
+        "ppo reinforcement learning",
+        "ppo rl",
+        "ppo algorithm",
+        "ppo rlhf",
+        "ppo training",
+        "ppo vs",
+        "what is ppo"
+      ],
+      "pages": [
+        {
+          "id": "proximal-policy-optimization",
+          "boost": 52
+        }
+      ]
+    },
+    {
+      "id": "v3-runtimes-vs",
+      "terms": [
+        "ollama vs vllm",
+        "vllm vs ollama",
+        "vllm vs llama cpp",
+        "llama cpp vs ollama",
+        "ollama vs llama cpp",
+        "llama cpp vs vllm",
+        "which runtime"
+      ],
+      "pages": [
+        {
+          "id": "local-runtimes-compared",
+          "boost": 56
+        }
+      ]
+    },
+    {
+      "id": "v3-frameworks-vs",
+      "terms": [
+        "langgraph vs crewai",
+        "crewai vs langgraph",
+        "langgraph vs autogen",
+        "autogen vs langgraph",
+        "crewai vs autogen",
+        "autogen vs crewai"
+      ],
+      "pages": [
+        {
+          "id": "agent-frameworks-compared",
+          "boost": 56
+        }
+      ]
+    },
+    {
+      "id": "v3-jsonmode-vs",
+      "terms": [
+        "json mode vs structured outputs",
+        "json mode vs structured output",
+        "structured outputs vs json mode"
+      ],
+      "pages": [
+        {
+          "id": "structured-output-methods-compared",
+          "boost": 56
+        }
+      ]
+    },
+    {
+      "id": "v3-token-order-ctx",
+      "terms": [
+        "token order",
+        "handle token order",
+        "know token order",
+        "how transformers handle token order"
+      ],
+      "pages": [
+        {
+          "id": "positional-encoding",
+          "boost": 50
+        }
+      ]
+    }
+  ],
+  "pageTechnologies": {
+    "vllm": [
+      {
+        "name": "A GPU server with enough memory for the model weights plus KV cache",
+        "kind": "hardware"
+      },
+      {
+        "name": "Python",
+        "kind": "language"
+      }
+    ],
+    "llama-cpp": [
+      {
+        "name": "Enough RAM or VRAM for the quantized model file",
+        "kind": "hardware"
+      },
+      {
+        "name": "A GGUF model file from a source you trust",
+        "kind": "model"
+      }
+    ],
+    "ollama": [
+      {
+        "name": "A computer with enough memory for the model you pull",
+        "kind": "hardware"
+      },
+      {
+        "name": "A downloaded model",
+        "kind": "model"
+      }
+    ],
+    "pytorch": [
+      {
+        "name": "Python",
+        "kind": "language"
+      },
+      {
+        "name": "Optional: a CUDA-capable GPU",
+        "kind": "hardware"
+      }
+    ],
+    "onnx-runtime": [
+      {
+        "name": "A model exported to ONNX",
+        "kind": "model"
+      }
+    ],
+    "lora-and-peft": [
+      {
+        "name": "A base model whose licence allows fine-tuning",
+        "kind": "model"
+      },
+      {
+        "name": "A GPU with enough memory for the base model",
+        "kind": "hardware"
+      },
+      {
+        "name": "A fine-tuning library such as Hugging Face PEFT or TRL",
+        "kind": "library"
+      }
+    ],
+    "dpo": [
+      {
+        "name": "An SFT model to start from and keep as the reference",
+        "kind": "model"
+      },
+      {
+        "name": "A preference-pair dataset (chosen and rejected responses)",
+        "kind": "data"
+      },
+      {
+        "name": "A training library such as TRL",
+        "kind": "library"
+      }
+    ],
+    "constrained-decoding": [
+      {
+        "name": "An engine or library that supports constraints (for example Outlines, XGrammar or llama.cpp grammars)",
+        "kind": "library"
+      },
+      {
+        "name": "A schema, regex or grammar",
+        "kind": "specification"
+      }
+    ],
+    "structured-outputs": [
+      {
+        "name": "A JSON Schema or typed model",
+        "kind": "specification"
+      },
+      {
+        "name": "A validator in your code",
+        "kind": "library"
+      }
+    ],
+    "rag-evaluation": [
+      {
+        "name": "A labelled question set with gold passages and answers",
+        "kind": "data"
+      }
+    ],
+    "agent-evaluation": [
+      {
+        "name": "A resettable sandbox environment and programmatic success checks",
+        "kind": "environment"
+      }
+    ],
+    "mlflow": [
+      {
+        "name": "A tracking server with a database and artifact store",
+        "kind": "infrastructure"
+      }
+    ],
+    "pgvector": [
+      {
+        "name": "PostgreSQL with the pgvector extension",
+        "kind": "database"
+      },
+      {
+        "name": "An embedding model",
+        "kind": "model"
+      }
+    ],
+    "distributed-training": [
+      {
+        "name": "Multiple GPUs with a fast interconnect",
+        "kind": "hardware"
+      },
+      {
+        "name": "PyTorch or another framework with distributed support",
+        "kind": "framework"
+      }
+    ],
+    "code-execution-sandboxing": [
+      {
+        "name": "A container or microVM runtime",
+        "kind": "infrastructure"
+      }
+    ],
+    "a2a-protocol": [
+      {
+        "name": "An A2A SDK or implementation of the current specification",
+        "kind": "library"
+      },
+      {
+        "name": "An HTTPS endpoint and authentication",
+        "kind": "infrastructure"
+      }
+    ],
+    "langgraph": [
+      {
+        "name": "Python or JavaScript",
+        "kind": "language"
+      },
+      {
+        "name": "A model provider and tools",
+        "kind": "service"
+      }
+    ],
+    "dspy": [
+      {
+        "name": "Python",
+        "kind": "language"
+      },
+      {
+        "name": "Labelled examples and a metric",
+        "kind": "data"
+      }
+    ],
+    "crewai": [
+      {
+        "name": "Python",
+        "kind": "language"
+      },
+      {
+        "name": "A model provider",
+        "kind": "service"
+      }
+    ],
+    "dpo-vs-rlhf": [
+      {
+        "name": "Preference data in pairs or scalar rewards",
+        "kind": "data"
+      }
+    ],
+    "hybrid-search-and-reranking": [
+      {
+        "name": "A keyword index (BM25) and a vector index",
+        "kind": "infrastructure"
+      },
+      {
+        "name": "A labelled retrieval test set",
+        "kind": "data"
+      }
+    ],
+    "graph-rag": [
+      {
+        "name": "An LLM for entity and relationship extraction",
+        "kind": "service"
+      },
+      {
+        "name": "A graph store or index",
+        "kind": "infrastructure"
+      }
+    ],
+    "alphafold": [
+      {
+        "name": "Access to the AlphaFold database or a supported implementation",
+        "kind": "service"
+      }
+    ],
+    "imitation-learning": [
+      {
+        "name": "Teleoperated demonstrations",
+        "kind": "data"
+      },
+      {
+        "name": "A robot or simulator",
+        "kind": "hardware"
+      }
+    ],
+    "sim-to-real-transfer": [
+      {
+        "name": "A physics simulator such as MuJoCo or Isaac Sim",
+        "kind": "software"
+      },
+      {
+        "name": "A real robot for validation",
+        "kind": "hardware"
+      }
+    ]
+  },
+  "queryTechnologies": [],
+  "coverageGaps": [
+    {
+      "id": "v3-not-ai-context",
+      "phrases": [
+        "data protection officer",
+        "project management",
+        "snake",
+        "venom",
+        "toy",
+        "toys",
+        "for kids",
+        "animal facts",
+        "job role"
+      ],
+      "message": "This looks like it may be about something other than AI. Knowledge covers AI and developer topics.",
+      "suppressTools": true,
+      "demoteWithoutTopic": true
+    }
+  ]
+}

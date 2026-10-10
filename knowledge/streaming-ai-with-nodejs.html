@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Streaming AI Responses with Node.js | IntelliTools Knowledge</title><meta name="description" content="In Node.js, call the vendor streaming endpoint, then forward chunks to the browser as SSE or chunked HTTP while handling backpressure, aborts and errors.">
+<link rel="canonical" href="https://intellitools.online/knowledge/streaming-ai-with-nodejs.html"><meta property="og:type" content="article"><meta property="og:site_name" content="IntelliTools"><meta property="og:title" content="Streaming AI Responses with Node.js | IntelliTools Knowledge"><meta property="og:description" content="In Node.js, call the vendor streaming endpoint, then forward chunks to the browser as SSE or chunked HTTP while handling backpressure, aborts and errors."><meta property="og:url" content="https://intellitools.online/knowledge/streaming-ai-with-nodejs.html">
+<meta name="twitter:card" content="summary"><link rel="icon" href="../assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="../v2.css"><link rel="stylesheet" href="knowledge.css"><link rel="stylesheet" href="learning.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Streaming AI Responses with Node.js","description":"In Node.js, call the vendor streaming endpoint, then forward chunks to the browser as SSE or chunked HTTP while handling backpressure, aborts and errors.","url":"https://intellitools.online/knowledge/streaming-ai-with-nodejs.html","publisher":{"@type":"Organization","name":"IntelliTools"},"inLanguage":"en"}</script></head>
+<body><header><div class="wrap"><nav aria-label="Main navigation"><a class="brand" href="../index.html"><span>Intelli</span>Tools</a><div class="navlinks"><a href="../index.html#tools">All tools</a><a href="index.html">Knowledge</a><a href="../index.html#about">About</a></div></nav></div></header>
+<main><section class="kn-head"><div class="wrap kn-wrap"><nav class="kn-crumb" aria-label="Breadcrumb"><a href="index.html">Knowledge</a> › <span>Interfaces</span></nav>
+<span class="eyebrow">EXPLAINER</span><h1>Streaming AI Responses with Node.js</h1><p class="kn-lede">In Node.js, call the vendor streaming endpoint, then forward chunks to the browser as SSE or chunked HTTP while handling backpressure, aborts and errors.</p>
+<p class="kn-quick"><strong>Short answer:</strong> Node.js streaming from an API means <strong>piping vendor tokens through your server</strong> to the client as SSE/chunked data, with cancel support.</p></div></section>
+<div class="wrap kn-wrap kn-layout"><article class="kn-article"><section id="what-is-it"><h2>What is it?</h2><p>Vendors often return <strong>streamed</strong> completions. Your Node process is the middle layer: it authenticates the user, opens the vendor stream with the secret key, and writes events to the browser. This page focuses on the server side; client parsing is in <a href="streaming-ai-responses.html">Streaming AI Responses for Chat UIs</a>.</p></section>
+<section id="why-it-matters"><h2>Why it matters</h2><p>Without a server proxy, the browser would need the vendor key. With a proxy, you can enforce auth, hide provider formats, and cancel upstream work when the client disconnects — essential for cost control.</p></section>
+<section id="how-to-do-it"><h2>How to do it</h2><ol><li>Client opens <code>GET</code> or <code>POST</code> to your <code>/api/chat/stream</code>.</li><li>Node validates the user and body.</li><li>Node <code>fetch</code>es the vendor with <code>stream: true</code> (field names vary).</li><li>Set response headers for SSE (<code>Content-Type: text/event-stream</code>, <code>Cache-Control: no-cache</code>).</li><li>For each upstream chunk, parse provider events, extract text deltas, <code>write</code> <code>data: …\n\n</code> to the client.</li><li>On client close (<code>req.on('close')</code>), abort the upstream fetch.</li><li>On upstream error after headers were sent, write an error event and end.</li></ol></section>
+<section id="example"><h2>Example</h2><pre><code>export async function streamChat(req, res, messages) {
+  const key = process.env.MODEL_API_KEY;
+  const upstream = await fetch(&quot;https://api.example.com/v1/chat/completions&quot;, {
+    method: &quot;POST&quot;,
+    headers: {
+      Authorization: `Bearer ${key}`,
+      &quot;Content-Type&quot;: &quot;application/json&quot;,
+    },
+    body: JSON.stringify({ model: &quot;your-model-id&quot;, messages, stream: true }),
+  });
+  if (!upstream.ok || !upstream.body) {
+    res.writeHead(502, { &quot;Content-Type&quot;: &quot;application/json&quot; });
+    res.end(JSON.stringify({ error: &quot;upstream&quot; }));
+    return;
+  }
+  res.writeHead(200, {
+    &quot;Content-Type&quot;: &quot;text/event-stream&quot;,
+    &quot;Cache-Control&quot;: &quot;no-cache&quot;,
+    Connection: &quot;keep-alive&quot;,
+  });
+  const reader = upstream.body.getReader();
+  const dec = new TextDecoder();
+  req.on(&quot;close&quot;, () =&gt; reader.cancel().catch(() =&gt; {}));
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    // simplify: forward decoded text; real code parses provider SSE
+    const chunk = dec.decode(value, { stream: true });
+    res.write(`data: ${JSON.stringify({ raw: chunk })}\n\n`);
+  }
+  res.write(&quot;data: [DONE]\n\n&quot;);
+  res.end();
+}</code></pre>
+<p>Production code should parse provider events and emit a stable <code>{ token }</code> schema for <a href="react-chatbot-state.html">React</a>.</p></section>
+<section id="when-to-use-it"><h2>When to use it</h2><p>Stream from Node when the UI needs token-by-token updates. For batch jobs and evals, non-streaming JSON is simpler.</p></section>
+<section id="practical-notes"><h2>Practical notes</h2><p>Watch for proxy buffering: some reverse proxies buffer SSE until a flush threshold — configure them to disable buffering on the stream route. Send a comment heartbeat (': ping') every 15–30 seconds if connections traverse idle timeouts. Normalize vendor quirks (different delta field names) before writing to the client. If the vendor supports cancellation via DELETE or by closing the body, wire that to the Node 'close' event. Backpressure: if 'res.write' returns false, pause the upstream reader until 'drain'. Record metrics for time-to-first-token and bytes streamed. Keep non-stream JSON available on a sibling route for clients and tests that do not need SSE.</p></section>
+<section id="common-mistakes"><h2>Common mistakes</h2><ul><li>Forgetting to abort upstream on client disconnect.</li><li>Buffering the entire vendor stream before writing (defeats streaming).</li><li>Mixing compressed responses without handling byte boundaries.</li><li>Leaking vendor error bodies that contain internal details.</li></ul></section>
+<section id="related-concepts"><h2>Related concepts</h2><div class="kn-cards"><a class="kn-card" href="streaming-ai-responses.html"><span class="kn-kind">Concept</span><strong>Streaming AI Responses for Chat UIs</strong><small>Streaming delivers model tokens as they are generated (often SSE or chunked HTTP) so the UI can show text immediately. The client reads the byte stream, parses events, and appends text until the stream ends.</small></a><a class="kn-card" href="nodejs-for-ai.html"><span class="kn-kind">Concept</span><strong>Node.js for AI Applications</strong><small>Use Node.js as the server that holds API keys, authenticates users, calls the model vendor, and exposes a thin route your React (or other) client can call.</small></a><a class="kn-card" href="calling-ai-apis-with-javascript.html"><span class="kn-kind">Concept</span><strong>Calling AI Services from JavaScript and TypeScript</strong><small>From Node (or another server), call the model vendor with fetch, an API key from the environment, timeouts and careful JSON parsing. Expose only your own authenticated route to browsers.</small></a><a class="kn-card" href="react-chatbot-state.html"><span class="kn-kind">Concept</span><strong>Chatbot State and Conversation UI in React</strong><small>Model chatbot state as a messages array with roles, a pending flag, and optional streaming buffers. Keep the API key off the client and treat each turn as append-only history you send to your backend.</small></a></div></section><div class="kn-path"><div class="kn-path-title">Learning path: Web AI with JavaScript <span>(step 5 of 5)</span></div><div class="kn-path-nav"><a href="react-chatbot-state.html">← Chatbot State and Conversation UI in React</a><span></span></div></div></article>
+<aside class="kn-toc" aria-label="On this page"><strong>On this page</strong><a href="#what-is-it">What is it?</a><a href="#why-it-matters">Why it matters</a><a href="#how-to-do-it">How to do it</a><a href="#example">Example</a><a href="#when-to-use-it">When to use it</a><a href="#practical-notes">Practical notes</a><a href="#common-mistakes">Common mistakes</a><a href="#related-concepts">Related concepts</a><a class="kn-glossary-link" href="glossary.html">AI Glossary A–Z</a></aside></div></main>
+<footer><div class="wrap"><div class="footer-bottom"><span>© IntelliTools. Free, browser-based tools.</span><span><a href="index.html">Knowledge</a> · <a href="glossary.html">AI Glossary</a> · <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a></span></div></div></footer><script type="module" src="learning-ui.mjs"></script></body></html>
