@@ -1,5 +1,5 @@
 /**
- * IntelliTools V5 — API & JSON Playground Core Mock Engine
+ * GoVibeTool V5 — API & JSON Playground Core Mock Engine
  * Headless, client-side deterministic HTTP request handler and JSON processor.
  * Zero external network transmission. Fully testable in Node.
  */
@@ -145,7 +145,7 @@ export function handleMockRequest(request) {
       statusText: 'OK',
       headers: {
         'content-type': 'application/json; charset=utf-8',
-        'x-mock-server': 'IntelliTools/5.0-local',
+        'x-mock-server': 'GoVibeTool/5.0-local',
         'cache-control': 'no-cache'
       },
       data: {
@@ -173,7 +173,7 @@ export function handleMockRequest(request) {
       statusText: 'OK',
       headers: {
         'content-type': 'application/json; charset=utf-8',
-        'x-mock-server': 'IntelliTools/5.0-local'
+        'x-mock-server': 'GoVibeTool/5.0-local'
       },
       data: {
         access_token: 'mock_jwt_header.payload_signed_locally.sig789xyz',
@@ -196,7 +196,7 @@ export function handleMockRequest(request) {
       statusText: 'OK',
       headers: {
         'content-type': 'application/json; charset=utf-8',
-        'x-mock-server': 'IntelliTools/5.0-local'
+        'x-mock-server': 'GoVibeTool/5.0-local'
       },
       data: {
         method,
@@ -304,7 +304,7 @@ export function handleMockRequest(request) {
     statusText: 'Not Found',
     headers: { 'content-type': 'application/json' },
     data: {
-      type: 'https://intellitools.online/errors/not-found',
+      type: 'https://govibetool.com/errors/not-found',
       title: 'Resource Not Found',
       status: 404,
       detail: `The endpoint "${path}" does not exist on this mock server.`,
@@ -356,7 +356,7 @@ function generateOverrideResponse(status, method, path) {
       'x-mock-override': 'active'
     },
     data: {
-      type: `https://intellitools.online/errors/${status}`,
+      type: `https://govibetool.com/errors/${status}`,
       title,
       status,
       detail: `Simulated ${status} ${title} response for ${method} ${path}`,
@@ -413,7 +413,7 @@ export const PRESET_REQUESTS = [
     name: 'Inspect Echo Payload (POST)',
     method: 'POST',
     url: '/api/v1/echo?trace=true&client=web',
-    headers: { 'Content-Type': 'application/json', 'X-Custom-Header': 'IntelliToolsV5' },
+    headers: { 'Content-Type': 'application/json', 'X-Custom-Header': 'GoVibeToolV5' },
     body: JSON.stringify({
       message: 'Hello from client-side mock playground',
       dataPoints: [10, 20, 30]

@@ -1,5 +1,5 @@
 import { PATHS, LEVELS } from './learning-paths.mjs';
-export const STORAGE_KEY = 'intellitools.knowledge.learning.v4';
+export const STORAGE_KEY = 'govibetool.knowledge.learning.v4';
 export const validChoice = (topic, level) => Object.hasOwn(PATHS, topic) && LEVELS.includes(level);
 export const pathKey = (topic, level) => JSON.stringify([topic, level]);
 export const emptyState = () => ({ version: 1, selected: null, paths: {} });

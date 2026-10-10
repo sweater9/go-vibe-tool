@@ -7,7 +7,7 @@ const pageIds = new Set(index.pages.map((p) => p.id));
 const failures = [];
 const need = (ok, msg) => { if (!ok) failures.push(msg); };
 
-const REQUIRED = ["id", "canonical_name", "entity_type", "domain", "plain_english_definition", "technical_definition", "aliases", "user_intents", "natural_language_questions", "prerequisites", "related_concepts", "contrasted_with", "technologies_frameworks", "implementation_patterns", "common_failure_modes", "troubleshooting", "practical_guide", "canonical_sources", "verification", "freshness_class", "time_sensitive_claims_to_verify", "intellitools_mappings"];
+const REQUIRED = ["id", "canonical_name", "entity_type", "domain", "plain_english_definition", "technical_definition", "aliases", "user_intents", "natural_language_questions", "prerequisites", "related_concepts", "contrasted_with", "technologies_frameworks", "implementation_patterns", "common_failure_modes", "troubleshooting", "practical_guide", "canonical_sources", "verification", "freshness_class", "time_sensitive_claims_to_verify", "govibetool_mappings"];
 const ALLOWED_TOOLS = new Set(["ai-prompt-builder", "fact-anchor-checker", "pii-secret-redactor", "json-formatter"]);
 const ids = new Set(onto.entities.map((e) => e.id));
 need(ids.size === onto.entities.length, "duplicate entity ids");
@@ -25,7 +25,7 @@ for (const e of onto.entities) {
   if (e.freshness_class === "volatile") need(e.time_sensitive_claims_to_verify.length > 0, at + "volatile without time-sensitive claims");
   for (const r of [...e.prerequisites, ...e.related_concepts]) need(pageIds.has(r), at + "relation does not resolve: " + r);
   for (const c of e.contrasted_with) if (/^[a-z0-9-]+$/.test(c.ref)) need(pageIds.has(c.ref), at + "contrast ref does not resolve: " + c.ref);
-  for (const m of e.intellitools_mappings) need(ALLOWED_TOOLS.has(m.tool_id), at + "unexpected tool mapping " + m.tool_id);
+  for (const m of e.govibetool_mappings) need(ALLOWED_TOOLS.has(m.tool_id), at + "unexpected tool mapping " + m.tool_id);
   if (e.page_kind !== "existing-page-overlay") {
     need(existsSync(new URL("../knowledge/" + e.id + ".html", import.meta.url)), at + "html page missing");
     need(index.pages.some((p) => p.id === e.id && p.entity && p.entity.entity_type === e.entity_type), at + "not in search index with entity metadata");

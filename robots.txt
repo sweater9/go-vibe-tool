@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://intellitools.online/sitemap.xml
+Sitemap: https://govibetool.com/sitemap.xml

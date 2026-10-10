@@ -1,4 +1,4 @@
-// Verifies knowledge/tool-map.json against the real IntelliTools catalogue and routes, and proves that a bad mapping
+// Verifies knowledge/tool-map.json against the real GoVibeTool catalogue and routes, and proves that a bad mapping
 // can never reach a visitor. No browser, no network.
 import { readFileSync, existsSync } from "node:fs";
 import { searchIntelligent, loadExtras } from "../knowledge/search-intelligence.mjs";

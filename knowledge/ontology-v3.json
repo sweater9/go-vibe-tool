@@ -166,7 +166,7 @@
     "How reasoning tokens are counted and billed by each provider.",
     "Any quantitative claim that inference compute can replace parameter scaling (task- and model-specific)."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "reasoning-models",
@@ -301,7 +301,7 @@
     "What each provider returns about reasoning (full, summary, none) and how it is billed.",
     "Claims that reasoning models outperform standard models on a given benchmark."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "chain-of-thought",
@@ -425,7 +425,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "reasoning-transparency",
@@ -557,7 +557,7 @@
     "How reasoning tokens are billed and reported.",
     "Any claim about why a particular provider withholds reasoning."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "self-consistency",
@@ -667,7 +667,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "best-of-n-sampling",
@@ -786,7 +786,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "search-over-reasoning",
@@ -903,7 +903,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "process-reward-model",
@@ -1026,7 +1026,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "outcome-reward-model",
@@ -1141,7 +1141,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "prm-vs-orm",
@@ -1243,7 +1243,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "reinforcement-learning-for-reasoning",
@@ -1379,7 +1379,7 @@
     "Specific claims about emergent behaviours from RL training.",
     "Algorithm variants and best-practice hyperparameters, which change quickly."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "thinking-budgets",
@@ -1485,7 +1485,7 @@
    "time_sensitive_claims_to_verify": [
     "Parameter names, allowed values, defaults and billing treatment, which differ by provider and change."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "reasoning-vs-standard-models",
@@ -1587,7 +1587,7 @@
    "time_sensitive_claims_to_verify": [
     "Which current models are reasoning, standard or hybrid, and their relative cost and latency."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "sampling-and-decoding",
@@ -1705,7 +1705,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "constrained-decoding",
@@ -1838,7 +1838,7 @@
     "Which engines and providers support which schema features.",
     "Performance and quality claims for specific libraries."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "structured-outputs",
@@ -1968,7 +1968,7 @@
     "Which providers support schema-enforced output, supported schema subsets and limits.",
     "Behaviour of \"JSON mode\" variants."
    ],
-   "intellitools_mappings": [
+   "govibetool_mappings": [
     {
      "tool_id": "json-formatter",
      "surface": "ontology-only",
@@ -2077,7 +2077,7 @@
    "time_sensitive_claims_to_verify": [
     "Current feature support and limits per provider."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "grammar-guided-generation",
@@ -2190,7 +2190,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "gbnf-grammars",
@@ -2298,7 +2298,7 @@
     "Which wrappers expose grammar controls.",
     "The repository's current organisation/owner."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "json-schema",
@@ -2405,7 +2405,7 @@
     "Current JSON Schema draft/dialect numbering.",
     "Which keywords each AI provider supports."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "outlines",
@@ -2511,7 +2511,7 @@
    "time_sensitive_claims_to_verify": [
     "Current API, supported backends, maintainers/organisation and licence."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "supervised-learning",
@@ -2636,7 +2636,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "unsupervised-learning",
@@ -2747,7 +2747,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "self-supervised-learning",
@@ -2862,7 +2862,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "neural-networks",
@@ -2978,7 +2978,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "deep-learning",
@@ -3089,7 +3089,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "backpropagation-and-gradient-descent",
@@ -3204,7 +3204,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "overfitting-and-regularization",
@@ -3315,7 +3315,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "transfer-learning",
@@ -3421,7 +3421,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "reinforcement-learning",
@@ -3541,7 +3541,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "markov-decision-processes",
@@ -3643,7 +3643,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "proximal-policy-optimization",
@@ -3756,7 +3756,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "deep-q-networks",
@@ -3859,7 +3859,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "convolutional-neural-networks",
@@ -3976,7 +3976,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "recurrent-neural-networks",
@@ -4091,7 +4091,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "vision-transformers",
@@ -4196,7 +4196,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "cnn-vs-vision-transformer",
@@ -4293,7 +4293,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "mixture-of-experts",
@@ -4405,7 +4405,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "state-space-models",
@@ -4523,7 +4523,7 @@
     "Comparative benchmark claims against transformers.",
     "Tooling and serving support status."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "transformers-vs-state-space-models",
@@ -4623,7 +4623,7 @@
    "time_sensitive_claims_to_verify": [
     "Current state of model availability and benchmark comparisons."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "diffusion-models",
@@ -4743,7 +4743,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "generative-adversarial-networks",
@@ -4850,7 +4850,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "variational-autoencoders",
@@ -4958,7 +4958,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "graph-neural-networks",
@@ -5075,7 +5075,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "encoder-decoder-vs-decoder-only",
@@ -5177,7 +5177,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "kv-cache",
@@ -5290,7 +5290,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "flash-attention",
@@ -5394,7 +5394,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "positional-encoding",
@@ -5504,7 +5504,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "scaling-laws",
@@ -5608,7 +5608,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "instruction-tuning",
@@ -5727,7 +5727,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "lora-and-peft",
@@ -5850,7 +5850,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "lora-vs-full-fine-tuning",
@@ -5947,7 +5947,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "quantization",
@@ -6071,7 +6071,7 @@
     "Quality-vs-bits claims for specific models.",
     "Memory requirement figures for specific models."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "knowledge-distillation",
@@ -6182,7 +6182,7 @@
    "time_sensitive_claims_to_verify": [
     "Provider terms about using outputs to train other models."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "speculative-decoding",
@@ -6285,7 +6285,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "small-language-models",
@@ -6401,7 +6401,7 @@
     "Current model names, sizes and capability claims.",
     "Licences of specific small models."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "open-weights-models",
@@ -6519,7 +6519,7 @@
     "Current OSI definition version and which releases qualify.",
     "Which models are currently released as open weights."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "vision-language-models",
@@ -6641,7 +6641,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "contrastive-learning-clip",
@@ -6759,7 +6759,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "speech-ai",
@@ -6873,7 +6873,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "document-understanding-ai",
@@ -6984,7 +6984,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "video-generation-models",
@@ -7093,7 +7093,7 @@
     "Model names, durations, resolutions and capabilities.",
     "Detection and watermarking reliability claims."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "a2a-protocol",
@@ -7256,7 +7256,7 @@
     "SDK availability and maturity.",
     "Industry adoption claims."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "agent-protocol-landscape",
@@ -7370,7 +7370,7 @@
     "Which protocols exist, their governance, versions and adoption.",
     "Any statement about protocol convergence or merger."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "a2a-vs-mcp",
@@ -7470,7 +7470,7 @@
    "time_sensitive_claims_to_verify": [
     "Current versions and any overlap or convergence between the specifications."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "mcp-security",
@@ -7590,7 +7590,7 @@
     "Current MCP authorization requirements and security best-practice guidance.",
     "Named attack techniques and their prevalence."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "langchain",
@@ -7713,7 +7713,7 @@
     "Company and product relationships (LangSmith, LangGraph platform).",
     "Licensing and pricing of commercial offerings."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "langgraph",
@@ -7826,7 +7826,7 @@
     "API surface, hosted-platform offerings and versions.",
     "Relationship to LangChain packages."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "llamaindex",
@@ -7940,7 +7940,7 @@
     "APIs, packages and versions.",
     "Commercial offerings and pricing."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "dspy",
@@ -8042,7 +8042,7 @@
    "time_sensitive_claims_to_verify": [
     "Current API, optimisers and versions."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "autogen",
@@ -8185,7 +8185,7 @@
     "Project status, forks (e.g. AG2), Microsoft agent-framework lineage and versions.",
     "Package names and APIs."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "crewai",
@@ -8289,7 +8289,7 @@
    "time_sensitive_claims_to_verify": [
     "Current API, versions, commercial offerings and licence."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "semantic-kernel",
@@ -8417,7 +8417,7 @@
     "Roadmap and relationship to other Microsoft agent frameworks.",
     "Per-language feature support and versions."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "openai-agents-sdk",
@@ -8522,7 +8522,7 @@
    "time_sensitive_claims_to_verify": [
     "Existence, API, licensing, language support and provider-agnostic claims — verify all."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "agent-frameworks-compared",
@@ -8631,7 +8631,7 @@
    "time_sensitive_claims_to_verify": [
     "All feature, status, licence and versions claims for each framework."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "vllm",
@@ -8750,7 +8750,7 @@
     "Supported hardware, models, features and flags.",
     "Project governance and hosting."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "llama-cpp",
@@ -8863,7 +8863,7 @@
     "Repository location and governance.",
     "Supported models, backends, formats and flags."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "ollama",
@@ -8971,7 +8971,7 @@
    "time_sensitive_claims_to_verify": [
     "Supported models, API fields, default ports/settings and engine internals."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "onnx-runtime",
@@ -9087,7 +9087,7 @@
    "time_sensitive_claims_to_verify": [
     "Generative-AI support, execution-provider coverage and versions."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "hugging-face",
@@ -9209,7 +9209,7 @@
     "Supported backends (PyTorch vs others), APIs and versions.",
     "Hub features and policies."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "pytorch",
@@ -9322,7 +9322,7 @@
    "time_sensitive_claims_to_verify": [
     "Current version features and foundation governance."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "local-runtimes-compared",
@@ -9418,7 +9418,7 @@
    "time_sensitive_claims_to_verify": [
     "Feature support, performance characteristics and format compatibility."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "react-agent-pattern",
@@ -9531,7 +9531,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "agent-planning",
@@ -9638,7 +9638,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "computer-use-agents",
@@ -9758,7 +9758,7 @@
     "Which providers offer computer-use features, their availability and safety guidance.",
     "Benchmark success rates."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "code-execution-sandboxing",
@@ -9868,7 +9868,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "hybrid-search-and-reranking",
@@ -9992,7 +9992,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "graph-rag",
@@ -10101,7 +10101,7 @@
    "time_sensitive_claims_to_verify": [
     "Tooling names, repository status and cost characteristics."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "agentic-rag",
@@ -10216,7 +10216,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "context-engineering",
@@ -10330,7 +10330,7 @@
     "Provenance and exact definition of the term.",
     "Provider-specific features such as context editing or memory tools."
    ],
-   "intellitools_mappings": [
+   "govibetool_mappings": [
     {
      "tool_id": "ai-prompt-builder",
      "surface": "page-block",
@@ -10467,7 +10467,7 @@
     "Current rankings, scores and which benchmarks are saturated.",
     "Existence and maintenance status of named leaderboards."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "benchmark-contamination",
@@ -10575,7 +10575,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "llm-as-a-judge",
@@ -10694,7 +10694,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "human-preference-evaluation",
@@ -10808,7 +10808,7 @@
    "time_sensitive_claims_to_verify": [
     "Current leaderboard methodology, rankings and name of the platform."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "mmlu",
@@ -10912,7 +10912,7 @@
    "time_sensitive_claims_to_verify": [
     "Saturation status, current top scores and variant adoption."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "humaneval",
@@ -11013,7 +11013,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "swe-bench",
@@ -11121,7 +11121,7 @@
     "Current leaderboard results, subsets and evaluation rules.",
     "Status of Verified/other variants."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "gsm8k-and-math-benchmarks",
@@ -11221,7 +11221,7 @@
    "time_sensitive_claims_to_verify": [
     "Saturation status and current best-known scores."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "llm-benchmarks-vs-task-evals",
@@ -11319,7 +11319,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "rag-evaluation",
@@ -11439,7 +11439,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": [
+   "govibetool_mappings": [
     {
      "tool_id": "fact-anchor-checker",
      "surface": "page-block",
@@ -11568,7 +11568,7 @@
    "time_sensitive_claims_to_verify": [
     "Benchmark versions, scoring rules and leaderboards."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "evaluation-metrics-for-ai",
@@ -11685,7 +11685,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "mlops",
@@ -11799,7 +11799,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "model-serving-and-inference",
@@ -11918,7 +11918,7 @@
    "time_sensitive_claims_to_verify": [
     "Engine feature sets, hardware support and cost/performance claims."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "gpus-and-ai-accelerators",
@@ -12034,7 +12034,7 @@
    "time_sensitive_claims_to_verify": [
     "Current hardware generations, specifications, pricing and availability."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "distributed-training",
@@ -12153,7 +12153,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "llm-observability",
@@ -12272,7 +12272,7 @@
     "Status of OpenTelemetry GenAI conventions.",
     "Platform names, features and licences."
    ],
-   "intellitools_mappings": [
+   "govibetool_mappings": [
     {
      "tool_id": "pii-secret-redactor",
      "surface": "page-block",
@@ -12389,7 +12389,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "prompt-caching",
@@ -12496,7 +12496,7 @@
    "time_sensitive_claims_to_verify": [
     "Pricing, minimum lengths, TTLs, markers and availability per provider."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "llm-cost-optimization",
@@ -12612,7 +12612,7 @@
    "time_sensitive_claims_to_verify": [
     "All prices, discounts and feature availability."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "mlflow",
@@ -12714,7 +12714,7 @@
    "time_sensitive_claims_to_verify": [
     "Feature set, versions, governance and managed offerings."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "ray",
@@ -12825,7 +12825,7 @@
    "time_sensitive_claims_to_verify": [
     "Governance/foundation status and library maturity."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "pgvector",
@@ -12936,7 +12936,7 @@
    "time_sensitive_claims_to_verify": [
     "Supported versions, index types and managed-service availability."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "ai-alignment",
@@ -13063,7 +13063,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "preference-optimization",
@@ -13210,7 +13210,7 @@
     "Which variants are current best practice and their comparative results.",
     "Library APIs and defaults."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "dpo",
@@ -13351,7 +13351,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "dpo-vs-rlhf",
@@ -13458,7 +13458,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "rlhf",
@@ -13588,7 +13588,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "constitutional-ai-and-rlaif",
@@ -13701,7 +13701,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "reward-hacking",
@@ -13817,7 +13817,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "sycophancy",
@@ -13924,7 +13924,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "red-teaming",
@@ -14039,7 +14039,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "ai-guardrails",
@@ -14161,7 +14161,7 @@
    "time_sensitive_claims_to_verify": [
     "Tool names, versions, and effectiveness claims."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "mechanistic-interpretability",
@@ -14280,7 +14280,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "ai-bias-and-fairness",
@@ -14397,7 +14397,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "ai-governance",
@@ -14522,7 +14522,7 @@
     "Regulatory scope, applicability dates and standards status.",
     "Any jurisdiction-specific legal conclusions."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "eu-ai-act",
@@ -14671,7 +14671,7 @@
     "Details of GPAI obligations, codes of practice and thresholds.",
     "Penalty levels and classification of specific use cases."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "nist-ai-rmf",
@@ -14812,7 +14812,7 @@
     "Current versions, profiles and any updates; US policy context around the framework.",
     "Status of the announced revision of AI RMF 1.0 and of the Playbook update."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "iso-iec-42001",
@@ -14914,7 +14914,7 @@
    "time_sensitive_claims_to_verify": [
     "Certification landscape and relation to EU harmonised standards."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "model-cards",
@@ -15017,7 +15017,7 @@
    },
    "freshness_class": "stable",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "c2pa-content-provenance",
@@ -15126,7 +15126,7 @@
     "Specification version, adoption by platforms and devices, and regulatory references.",
     "Robustness claims of watermarking systems."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "owasp-llm-top-10",
@@ -15261,7 +15261,7 @@
    "time_sensitive_claims_to_verify": [
     "Edition, category names and ranking."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "ai-for-science",
@@ -15371,7 +15371,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "alphafold",
@@ -15492,7 +15492,7 @@
     "Nobel Prize 2024 details.",
     "Current successor models and benchmarks."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "physics-informed-neural-networks",
@@ -15603,7 +15603,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "ai-weather-forecasting",
@@ -15721,7 +15721,7 @@
     "Operational status of ML forecast systems at national centres.",
     "Skill comparisons versus numerical models, which change as both improve."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "ai-drug-discovery",
@@ -15836,7 +15836,7 @@
     "Clinical-trial status of any AI-derived candidate.",
     "Company and product claims."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "ai-materials-discovery",
@@ -15949,7 +15949,7 @@
     "Counts and validation claims for GNoME results and related critiques.",
     "Current model/dataset availability."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "embodied-ai",
@@ -16066,7 +16066,7 @@
     "Commercial robot capabilities and deployment claims.",
     "Names and status of robotics frameworks and models."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "vision-language-action-models",
@@ -16202,7 +16202,7 @@
     "Which VLAs are open-weights and under what licence.",
     "Any statement about commercial deployments."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "world-models",
@@ -16335,7 +16335,7 @@
     "Claims that specific video or interactive models are world models or learn physics.",
     "Names and release status of recent systems."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "imitation-learning",
@@ -16456,7 +16456,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "sim-to-real-transfer",
@@ -16569,7 +16569,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "microsoft-agent-framework",
@@ -16761,7 +16761,7 @@
     "Whether distributed multi-process execution has shipped (the AutoGen migration guide says it is planned).",
     "Licence terms (not checked)."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "migrate-to-microsoft-agent-framework",
@@ -16929,7 +16929,7 @@
     "Whether distributed execution has shipped.",
     "API and package names, which changed during the framework's development."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "mcp-authorization",
@@ -17110,7 +17110,7 @@
     "Deprecation status of Dynamic Client Registration.",
     "Requirements differ between revisions (for example 2025-11-25 and 2026-07-28)."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "gmail-api-scopes-and-verification",
@@ -17274,7 +17274,7 @@
     "Limited Use wording, including the AI/ML restriction (the Workspace page was last updated 2026-09-03).",
     "Differences between consumer Gmail and Workspace-managed accounts."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "inspect-ai-evaluation-framework",
@@ -17450,7 +17450,7 @@
     "Supported providers and sandbox types.",
     "Maintenance and ownership of Inspect Evals."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "openai-reasoning-models",
@@ -17650,7 +17650,7 @@
     "Parameter names and allowed effort values.",
     "Whether the o-series naming is still used for new models."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "sora-ai-video",
@@ -17835,7 +17835,7 @@
     "Azure OpenAI's separate Sora timeline.",
     "Any successor product from OpenAI."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "nvidia-cosmos",
@@ -18022,7 +18022,7 @@
     "Benchmark claims.",
     "Which earlier Cosmos families remain supported."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "attention-sinks",
@@ -18174,7 +18174,7 @@
    },
    "freshness_class": "evolving",
    "time_sensitive_claims_to_verify": [],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   },
   {
    "id": "flashattention-3",
@@ -18336,7 +18336,7 @@
     "CUDA and PyTorch version requirements.",
     "Benchmark numbers on newer GPUs."
    ],
-   "intellitools_mappings": []
+   "govibetool_mappings": []
   }
  ]
 }

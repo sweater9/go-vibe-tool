@@ -1,4 +1,4 @@
-/* IntelliTools V2.1 browser-first utilities */
+/* GoVibeTool V2.1 browser-first utilities */
 const v21Tools=[
 ["agentic-workflow-generator","Productivity","Agentic Workflow Generator","Design a multi-agent workflow with roles, handoffs, guardrails and outputs."],
 ["link-fingerprint","Links & Web","Link Fingerprint Inspector","Inspect URL structure, trackers and short-link signals without opening the destination."],

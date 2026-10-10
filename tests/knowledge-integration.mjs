@@ -22,13 +22,13 @@ need((xml.match(/<url>/g) || []).length === (xml.match(/<\/url>/g) || []).length
 need(new Set(locs).size === locs.length, "duplicate URLs in sitemap.xml");
 need((xml.match(/knowledge:start/g) || []).length === 1 && (xml.match(/knowledge:end/g) || []).length === 1, "exactly one generated knowledge block expected");
 const pages = JSON.parse(R("knowledge/search-index.json")).pages.map((p) => p.id);
-const expected = ["index", "glossary", ...pages].map((id) => "https://intellitools.online/knowledge/" + id + ".html");
-const kn = locs.filter((l) => l.startsWith("https://intellitools.online/knowledge/"));
+const expected = ["index", "glossary", ...pages].map((id) => "https://govibetool.com/knowledge/" + id + ".html");
+const kn = locs.filter((l) => l.startsWith("https://govibetool.com/knowledge/"));
 need(kn.length === expected.length && expected.every((u) => kn.includes(u)), "sitemap Knowledge URLs must equal index + glossary + all indexed pages (" + kn.length + " vs " + expected.length + ")");
 need(!locs.some((l) => l.includes("hugging-face-transformers")), "redirect stub must not be in the sitemap");
 need(kn.every((l) => readdirSync(new URL("../knowledge/", import.meta.url)).includes(l.split("/").pop())), "every sitemap Knowledge URL must exist as a file");
 need(R("knowledge/sitemap-fragment.xml").split("\n").filter((l) => l.startsWith("<url>")).length === kn.length, "fragment and root sitemap must list the same number of URLs");
-for (const keep of ["https://intellitools.online/", "https://intellitools.online/privacy.html", "https://intellitools.online/terms.html", "https://intellitools.online/contact.html", "https://intellitools.online/tools/ai-prompt-builder.html"]) need(locs.includes(keep), "existing sitemap URL lost: " + keep);
+for (const keep of ["https://govibetool.com/", "https://govibetool.com/privacy.html", "https://govibetool.com/terms.html", "https://govibetool.com/contact.html", "https://govibetool.com/tools/ai-prompt-builder.html"]) need(locs.includes(keep), "existing sitemap URL lost: " + keep);
 
 // 3. Offline limitation is documented and Knowledge is not advertised as offline-capable.
 const readme = R("knowledge/README.md");

@@ -1,5 +1,5 @@
 /**
- * IntelliTools V5 — Logic Crypt: Word & Deduction Puzzle Core Engine
+ * GoVibeTool V5 — Logic Crypt: Word & Deduction Puzzle Core Engine
  * Headless, client-side deductive logic game engine.
  * Fully testable in Node with zero DOM dependencies.
  */

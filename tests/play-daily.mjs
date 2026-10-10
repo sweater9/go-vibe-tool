@@ -80,10 +80,10 @@ console.log('✓ Streak tracking and history calculations verified');
 // 4. Share Card Text Formatting
 {
   const share = generateShareCard('2026-10-10', 4, 5, [true, true, false, true, true]);
-  assert.ok(share.includes('IntelliTools Daily Challenge (2026-10-10)'));
+  assert.ok(share.includes('GoVibeTool Daily Challenge (2026-10-10)'));
   assert.ok(share.includes('Score: 4/5 (80%)'));
   assert.ok(share.includes('🟩🟩🟥🟩🟩'));
-  assert.ok(share.includes('https://intellitools.online/play/daily/'));
+  assert.ok(share.includes('https://govibetool.com/play/daily/'));
 
   // Ensure no user PII in share card
   assert.ok(!share.includes('user'));

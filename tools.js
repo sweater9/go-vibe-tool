@@ -77,7 +77,7 @@ const _result=result;result=function(x){_result(x);const o=$("#out");if(o&&o.que
 function downloadResult(){
  const e=$("#out .result"); if(!e)return;
  const blob=new Blob([e.innerText],{type:"text/plain;charset=utf-8"});
- const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="intellitools-result.txt";a.click();URL.revokeObjectURL(a.href);
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="govibetool-result.txt";a.click();URL.revokeObjectURL(a.href);
 }
 function clearWorkspace(){
  document.querySelectorAll("#workspace input").forEach(x=>{if(x.type==="checkbox")x.checked=false;else x.value=""});
@@ -119,10 +119,10 @@ function promptBuilderTemplate(){
 }
 function promptBuilderData(){const d={};["C","R","I","S","P","E"].forEach(k=>d[k]=$("#prompt"+k)?.value||"");return d}
 function assembledPrompt(d){const l={C:"CAPACITY & ROLE",R:"REQUEST",I:"INSIGHT & CONTEXT",S:"STEPS & PROCESS",P:"PERSONALITY",E:"EXPERIMENT & OUTPUT"};return ["C","R","I","S","P","E"].filter(k=>d[k].trim()).map(k=>l[k]+"\n"+d[k].trim()).join("\n\n")}
-function savePromptDraft(d){try{localStorage.setItem("intellitools.ai-prompt-builder",JSON.stringify(d))}catch{}}
-function loadPromptDraft(){try{return JSON.parse(localStorage.getItem("intellitools.ai-prompt-builder"))||{}}catch{return {}}}
+function savePromptDraft(d){try{localStorage.setItem("govibetool.ai-prompt-builder",JSON.stringify(d))}catch{}}
+function loadPromptDraft(){try{return JSON.parse(localStorage.getItem("govibetool.ai-prompt-builder"))||{}}catch{return {}}}
 function updatePromptBuilder(){const d=promptBuilderData();savePromptDraft(d);const vals=Object.values(d),filled=vals.filter(v=>v.trim()).length,total=vals.join(" ").trim().length;$("#promptPreview").textContent=assembledPrompt(d)||"Your structured prompt will appear here as you type.";$("#promptComplete").textContent=filled+"/6";$("#promptQuality").textContent=filled===6&&total>240?"Strong":filled>=4?"Good":filled>=2?"Building":"Start";const h=[];if(!d.R.trim())h.push("Add a specific request.");if(!d.I.trim())h.push("Add useful context or constraints.");if(!d.E.trim())h.push("Specify the desired output format.");$("#promptHints").textContent=h.length?"Quality check: "+h.join(" "):"Quality check: all six CRISPE components are present."}
 function initPromptBuilder(){const d=loadPromptDraft();["C","R","I","S","P","E"].forEach(k=>{const e=$("#prompt"+k);if(e)e.value=d[k]||""});updatePromptBuilder()}
 async function copyBuiltPrompt(){const t=assembledPrompt(promptBuilderData());if(!t)return;try{await navigator.clipboard.writeText(t);$("#promptHints").textContent="Prompt copied to clipboard."}catch{$("#promptHints").textContent="Copy was blocked by the browser. Select the preview text and copy it manually."}}
-function downloadBuiltPrompt(){const t=assembledPrompt(promptBuilderData());if(!t)return;const a=document.createElement("a"),u=URL.createObjectURL(new Blob([t],{type:"text/plain"}));a.href=u;a.download="intellitools-ai-prompt.txt";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
-function clearPromptBuilder(){if(!confirm("Clear all six prompt sections?"))return;try{localStorage.removeItem("intellitools.ai-prompt-builder")}catch{}["C","R","I","S","P","E"].forEach(k=>{const e=$("#prompt"+k);if(e)e.value=""});updatePromptBuilder()}
+function downloadBuiltPrompt(){const t=assembledPrompt(promptBuilderData());if(!t)return;const a=document.createElement("a"),u=URL.createObjectURL(new Blob([t],{type:"text/plain"}));a.href=u;a.download="govibetool-ai-prompt.txt";a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+function clearPromptBuilder(){if(!confirm("Clear all six prompt sections?"))return;try{localStorage.removeItem("govibetool.ai-prompt-builder")}catch{}["C","R","I","S","P","E"].forEach(k=>{const e=$("#prompt"+k);if(e)e.value=""});updatePromptBuilder()}

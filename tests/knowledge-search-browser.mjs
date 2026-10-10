@@ -66,12 +66,12 @@ for (const name of wanted) {
     // 3. tool-only: a utility is offered even without a confident guide
     const tool = await results(page, "compress a png image");
     const toolText = await tool.innerText();
-    need(name, /Use IntelliTools/i.test(toolText) && /Image Studio/.test(toolText), "Image Studio not recommended for 'compress a png image'");
+    need(name, /Use GoVibeTool/i.test(toolText) && /Image Studio/.test(toolText), "Image Studio not recommended for 'compress a png image'");
     const href = await tool.locator(".kn-toolpick a").first().getAttribute("href");
     need(name, href === "../index.html?tool=image-studio", "tool link should route to the tool, got " + href);
     // 4. a knowledge answer is not replaced by a tool
     const how = await (await results(page, "how do i write better prompts")).innerText();
-    need(name, /Answer \/ guide/i.test(how) && /Use IntelliTools/i.test(how) && !/No confident match/i.test(how), "guide and tool should appear together");
+    need(name, /Answer \/ guide/i.test(how) && /Use GoVibeTool/i.test(how) && !/No confident match/i.test(how), "guide and tool should appear together");
     // 5. ambiguity: options, no confident guess
     const amb = await (await results(page, "graph")).innerText();
     need(name, /No confident match/i.test(amb) && /Which one do you mean/i.test(amb), "'graph' should offer meanings");

@@ -2587,7 +2587,7 @@
    "type": "concept",
    "group": "Integrations",
    "question": "How can an AI agent access Gmail?",
-   "summary": "An agent accesses Gmail through your server: the user completes Google OAuth, you store a refresh token, and a tool lists or drafts mail via the Gmail API. IntelliTools has no Gmail connector; treat message text as untrusted.",
+   "summary": "An agent accesses Gmail through your server: the user completes Google OAuth, you store a refresh token, and a tool lists or drafts mail via the Gmail API. GoVibeTool has no Gmail connector; treat message text as untrusted.",
    "aliases": [
     "How can an AI agent access Gmail?",
     "Gmail for AI agents",

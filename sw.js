@@ -1,5 +1,5 @@
-const CACHE="intellitools-v5-0";
-const LEGACY_CACHE="intellitools-v2-7";
+const CACHE="govibetool-v5-0";
+const LEGACY_CACHE="govibetool-v2-7";
 const ASSETS=[
   "./",
   "./index.html",

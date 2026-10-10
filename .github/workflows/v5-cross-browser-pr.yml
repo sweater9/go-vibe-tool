@@ -26,12 +26,12 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - name: Serve PR checkout
         run: |
-          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/intellitools-server.log 2>&1 &
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/govibetool-server.log 2>&1 &
           for i in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8765/ >/dev/null; then exit 0; fi
             sleep 1
           done
-          cat /tmp/intellitools-server.log
+          cat /tmp/govibetool-server.log
           exit 1
       - name: V5 browser smoke on PR code
         env:

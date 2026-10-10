@@ -306,7 +306,7 @@ class ApiPlaygroundApp {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `intellitools-api-requests-${Date.now()}.json`;
+    a.download = `govibetool-api-requests-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
     this.showToast('Requests exported to JSON');

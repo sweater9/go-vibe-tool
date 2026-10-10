@@ -1,5 +1,5 @@
 /**
- * IntelliTools V5 — Visual Workflow Lab Core Engine
+ * GoVibeTool V5 — Visual Workflow Lab Core Engine
  * Headless, deterministic workflow validation, simulation, and serialization.
  * Free of DOM dependencies to allow comprehensive automated testing.
  */

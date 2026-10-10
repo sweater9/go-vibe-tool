@@ -606,7 +606,7 @@ class WorkflowApp {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `intellitools-workflow-${Date.now()}.json`;
+    a.download = `govibetool-workflow-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
     this.showToast('Workflow JSON exported');
