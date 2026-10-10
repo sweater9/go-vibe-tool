@@ -69,8 +69,8 @@ try {
   async function overflow() { assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+2),`horizontal overflow at ${width}`); }
   await check(`${width}: homepage, catalogue, shortcuts, privacy, navigation`, async()=>{
    await goto('/');
-   assert.equal(await page.locator('#activeCount').innerText(),'54');
-   assert.equal(await page.locator('#toolCatalog .toolcard').count(),54);
+   assert.equal(await page.locator('#activeCount').innerText(),'55');
+   assert.equal(await page.locator('#toolCatalog .toolcard').count(),55);
    assert.equal(await page.locator('.hero .eyebrow').innerText(),privacy.eyebrow);
    assert.equal(await page.locator('.hero h1').textContent(),privacy.headline);
    assert.equal(await page.locator('.hero-grid > div > p').innerText(),privacy.body);
@@ -79,7 +79,7 @@ try {
    await maintenance('D2 search label', async()=>assert.equal(await page.locator('#toolSearch').getAttribute('aria-label'),'Search tools by task or result'));
    await page.locator('#toolSearch').fill('json');
    assert.ok(await page.locator('#toolCatalog .toolcard').count()>0);
-   assert.ok(await page.locator('#toolCatalog .toolcard').count()<54);
+   assert.ok(await page.locator('#toolCatalog .toolcard').count()<55);
    await page.locator('#toolSearch').fill('');
    await page.locator('.favorite-btn').first().click();
    assert.ok((await page.locator('#discoveryShelf').innerText()).toLowerCase().includes('favourites'));
@@ -154,7 +154,7 @@ try {
     serverUnavailable = true;
     try {
      await page.reload({waitUntil:'domcontentloaded'});
-     assert.equal(await page.locator('#activeCount').innerText(),'54');
+     assert.equal(await page.locator('#activeCount').innerText(),'55');
      for (const [route, app] of [['/labs/workflow/','workflowApp'],['/labs/api-playground/','apiPlaygroundApp'],['/play/daily/','dailyChallengeApp'],['/play/word-logic/','wordLogicApp']]) {
       const response = await page.goto(new URL(route,base).href,{waitUntil:'domcontentloaded'});
       assert.ok(response?.ok(),`offline route ${route}`);
@@ -169,7 +169,7 @@ try {
    } else if (engine === 'chromium') {
     phase = 'offline';
     await context.setOffline(true);
-    try { await page.reload({waitUntil:'domcontentloaded'}); assert.equal(await page.locator('#activeCount').innerText(),'54'); await page.waitForTimeout(1500); }
+    try { await page.reload({waitUntil:'domcontentloaded'}); assert.equal(await page.locator('#activeCount').innerText(),'55'); await page.waitForTimeout(1500); }
     finally { await context.setOffline(false); phase = 'online'; }
    } else {
     limitations.push(`${width}: ${engine} live-production offline transport/reload not verified; cache population and active controller verified. Playwright offline transport prevents SW navigation in this engine.`);

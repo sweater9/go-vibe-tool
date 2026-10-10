@@ -19,7 +19,7 @@ const requiredFiles = [
 ];
 
 const growthPages = [
-  "tools/ai-prompt-builder.html","tools/pii-secret-redactor.html","tools/private-pdf-tools.html","tools/invoice-generator.html","tools/image-compressor.html",
+  "tools/ai-prompt-builder.html","tools/prompt-improver.html","tools/pii-secret-redactor.html","tools/private-pdf-tools.html","tools/invoice-generator.html","tools/image-compressor.html",
   "tools/curl-token-stripper.html","tools/fact-anchor-checker.html","tools/qr-code-studio.html","tools/password-generator.html","tools/markdown-text-studio.html"
 ];
 const v21Expected=["agentic-workflow-generator","link-fingerprint","oauth-jwt-decoder","cookie-impact-estimator","sql-mock-builder","env-diff","table-formatter","cron-humanizer","prompt-diff","keyword-balancer","email-preview","hourly-rate","saas-economics","expense-splitter"];
@@ -34,7 +34,7 @@ for (const file of growthPages) {
   if (!sitemap.includes(`https://govibetool.com/${file}`)) failures.push(`Sitemap missing: ${file}`);
 }
 if (!readFileSync("robots.txt","utf8").includes("https://govibetool.com/sitemap.xml")) failures.push("robots.txt sitemap directive missing");
-for (const file of ["tools/ai-prompt-builder.html","tools/pii-secret-redactor.html","tools/private-pdf-tools.html","tools/invoice-generator.html","tools/image-compressor.html","tools/curl-token-stripper.html","tools/fact-anchor-checker.html","tools/qr-code-studio.html","tools/password-generator.html","tools/markdown-text-studio.html"]) {
+for (const file of ["tools/ai-prompt-builder.html","tools/prompt-improver.html","tools/pii-secret-redactor.html","tools/private-pdf-tools.html","tools/invoice-generator.html","tools/image-compressor.html","tools/curl-token-stripper.html","tools/fact-anchor-checker.html","tools/qr-code-studio.html","tools/password-generator.html","tools/markdown-text-studio.html"]) {
   const page = readFileSync(file,"utf8");
   for (const marker of ["WHAT IT DOES","HOW TO USE IT","GOOD TO KNOW","RELATED TOOLS"]) if (!page.includes(marker)) failures.push(`Growth V2 content missing: ${file} / ${marker}`);
   if (!page.includes("Use ") || !page.includes("Continue the workflow.")) failures.push(`Growth V2 CTA missing: ${file}`);
@@ -49,10 +49,10 @@ for (const id of expectedTools) {
   const source = id === "ai-prompt-builder" ? tools : v2;
   if (!source.includes(`["${id}"`)) failures.push(`Missing tool: ${id}`);
 }
-for (const script of ["vendor/pdf-lib.min.js", "vendor/qrcode.min.js", "vendor/jsqr.min.js", "tools.js", "v2-tools.js", "v21-tools.js"]) {
+for (const script of ["vendor/pdf-lib.min.js", "vendor/qrcode.min.js", "vendor/jsqr.min.js", "tools.js", "v2-tools.js", "v21-tools.js", "prompt-improver-core.js", "v6-tools.js"]) {
   if (!html.includes(`src="${script}"`)) failures.push(`index.html does not load ${script}`);
 }
-for (const asset of ["index.html", "v2.css", "tools.js", "v2-tools.js", "v21-tools.js", "discovery.js", "learn/index.html", "manifest.webmanifest"]) {
+for (const asset of ["index.html", "v2.css", "tools.js", "v2-tools.js", "v21-tools.js", "prompt-improver-core.js", "v6-tools.js", "discovery.js", "learn/index.html", "manifest.webmanifest"]) {
   if (!sw.includes(`./${asset}`)) failures.push(`Offline cache is missing ${asset}`);
 }
 if (!html.includes("GoVibeTool") || html.includes("GoVibeTool.com") || !html.includes("Private tools.") || !html.includes("Version 5 release candidate")) failures.push("current GoVibeTool product identity is missing or stale");
