@@ -40,6 +40,7 @@ jobs:
           node tests/v5-browser-smoke.mjs ${{ matrix.browser }}
           node tests/v5-maintenance-browser.mjs ${{ matrix.browser }}
           node tests/prompt-improver-browser.mjs ${{ matrix.browser }}
+          node tests/tool-fixes-browser.mjs ${{ matrix.browser }}
       - if: always()
         uses: actions/upload-artifact@v4
         with:
