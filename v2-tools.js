@@ -41,20 +41,29 @@ function relatedToolMarkup(id){const items=(relatedTools[id]||[]).map(x=>tools.f
 function shareToolMarkup(id){const slug=growthPages[id];if(!slug)return "";const url='https://govibetool.com/tools/'+slug+'.html';return '<a class="tool-share-link no-print" href="'+url+'" title="Open the shareable page for this tool">Shareable tool page ↗</a>'}
 
 
+/* Catalogue curation: retired tools redirect to their replacement; featured tools lead; quick utilities sort last. */
+const retiredTools={"password":"password-studio","url-inspector":"link-fingerprint","tracking-check":"link-fingerprint","qr-payload":"qr-studio"};
+const featuredIds=["prompt-improver","ai-prompt-builder","prompt-diff","pii-secret-redactor","agentic-workflow-generator","curl-code-sanitizer","env-diff","fact-anchor-checker","link-fingerprint","saas-economics","hourly-rate","habit-journal"];
+const utilityIds=new Set(["base64","json-formatter","case-converter","slug","timestamp","word-stats","line-tools","text-cleaner","text-compare","percentage-change","converter-studio","qr-studio","color-studio","utm-builder","signature-studio","table-formatter","writing-studio","keyword-balancer","url-cleaner"]);
+const isListed=t=>t[1]!=="Compliance & AML"&&!retiredTools[t[0]];
+const toolTier=id=>featuredIds.includes(id)?0:utilityIds.has(id)?2:1;
+function renderFeatured(){const box=$("#featuredTools");if(!box)return;box.innerHTML=featuredIds.map(id=>tools.find(t=>t[0]===id)).filter(Boolean).map(t=>'<button class="featured-chip" type="button" onclick="openTool(\''+t[0]+'\')"><strong>'+esc(t[2])+'</strong><small>'+esc(t[3])+'</small></button>').join("")}
+
 renderCatalog=function(){
   const box=$("#toolCatalog");if(!box)return;
   const q=($("#toolSearch")?.value||"").toLowerCase().trim(),selected=$("#categoryFilter")?.value||"All categories";
   const allowed=categoryAliases[selected]||[selected];
-  const visible=tools.filter(t=>t[1]!=="Compliance & AML"&&(selected==="All categories"||allowed.includes(t[1]))&&(!q||t.join(" ").toLowerCase().includes(q)));
+  const visible=tools.filter(t=>isListed(t)&&(selected==="All categories"||allowed.includes(t[1]))&&(!q||t.join(" ").toLowerCase().includes(q))).map((t,i)=>[t,i]).sort((a,b)=>toolTier(a[0][0])-toolTier(b[0][0])||a[1]-b[1]).map(x=>x[0]);
   box.innerHTML=visible.length?visible.map(t=>{const fav=discoveryLoad(DISCOVERY_FAV_KEY).includes(t[0]);return '<article class="toolcard '+(v2Ids.has(t[0])?'featured':'')+'"><button class="favorite-btn" type="button" aria-pressed="'+(fav?'true':'false')+'" aria-label="'+(fav?'Remove from favourites':'Add to favourites')+'" title="'+(fav?'Remove from favourites':'Add to favourites')+'" onclick="toggleFavorite(\''+t[0]+'\',event)">'+(fav?'★':'☆')+'</button><div><span class="tag">'+esc(t[1])+'</span>'+(v2Ids.has(t[0])?'<span class="tag new-tag">v2</span>':'')+'</div><h3>'+esc(t[2])+'</h3><p>'+esc(t[3])+'</p><button class="btn alt" type="button" onclick="openTool(\''+t[0]+'\')">Open tool →</button></article>'}).join(""):'<div class="empty"><strong>No matching tools.</strong><br>Try a broader task or another category.</div>';
   const count=$("#visibleCount");if(count)count.textContent=visible.length;
-  const active=$("#activeCount");if(active)active.textContent=tools.filter(t=>t[1]!=="Compliance & AML").length;
+  const active=$("#activeCount");if(active)active.textContent=tools.filter(isListed).length;renderFeatured();
 };
 
 function v2Shell(t,body){
   return '<div class="workspace-head"><div><span class="tag">'+esc(t[1])+'</span><span class="tag new-tag">v2</span><h2>'+esc(t[2])+'</h2><p class="desc">'+esc(t[3])+'</p>'+shareToolMarkup(t[0])+'</div><button class="btn alt no-print" type="button" onclick="closeTool()">Close</button></div>'+body+'<div id="out" aria-live="polite"></div>'+relatedToolMarkup(t[0]);
 }
 openTool=function(id){
+  if(retiredTools[id])id=retiredTools[id];
   if(!v2Ids.has(id)){rememberTool(id);return legacyOpenTool(id)}
   rememberTool(id);const t=v2Tools.find(x=>x[0]===id),w=$("#workspace");
   stopCamera();w.innerHTML=v2Shell(t,v2Template(id));w.classList.add("active");w.focus({preventScroll:true});w.scrollIntoView({behavior:"smooth",block:"start"});

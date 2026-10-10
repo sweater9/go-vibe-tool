@@ -29,7 +29,7 @@ function scoreIntent(query,item){
 }
 function intentResults(query){
  const curated=knowledgeEntries.map(x=>({...x,score:scoreIntent(query,x)})).filter(x=>x.score>0);
- const toolMatches=(typeof tools!=="undefined"?tools:[]).filter(t=>t[1]!=="Compliance & AML").map(t=>({id:t[0],type:"Tool",title:t[2],summary:t[3],href:"?tool="+encodeURIComponent(t[0]),tool:t[0],keywords:[t[1]],score:scoreIntent(query,{title:t[2],summary:t[3],keywords:[t[1]]})})).filter(x=>x.score>0);
+ const toolMatches=(typeof tools!=="undefined"?tools:[]).filter(t=>t[1]!=="Compliance & AML"&&!(typeof retiredTools!=="undefined"&&retiredTools[t[0]])).map(t=>({id:t[0],type:"Tool",title:t[2],summary:t[3],href:"?tool="+encodeURIComponent(t[0]),tool:t[0],keywords:[t[1]],score:scoreIntent(query,{title:t[2],summary:t[3],keywords:[t[1]]})})).filter(x=>x.score>0);
  return [...curated,...toolMatches].sort((a,b)=>b.score-a.score).filter((x,i,a)=>a.findIndex(y=>y.title===x.title)===i).slice(0,6);
 }
 function renderIntentResults(query){

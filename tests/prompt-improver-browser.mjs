@@ -64,8 +64,10 @@ const page = await newPage();
 await check('catalogue counts the new tool', async () => {
   await page.goto(base + '/', { waitUntil: 'domcontentloaded' });
   await page.locator('#toolCatalog .toolcard').first().waitFor();
-  assert.equal(await page.locator('#activeCount').innerText(), '55');
-  assert.equal(await page.locator('#toolCatalog .toolcard').count(), 55);
+  const listed = await page.evaluate(() => tools.filter(isListed).length);
+  assert.ok(listed >= 50);
+  assert.equal(await page.locator('#activeCount').innerText(), String(listed));
+  assert.equal(await page.locator('#toolCatalog .toolcard').count(), listed);
   assert.equal(await page.locator('#toolCatalog .toolcard', { hasText: 'AI Prompt Improver' }).count(), 1);
 });
 
