@@ -55,7 +55,7 @@ for (const script of ["vendor/pdf-lib.min.js", "vendor/qrcode.min.js", "vendor/j
 for (const asset of ["index.html", "v2.css", "tools.js", "v2-tools.js", "v21-tools.js", "prompt-improver-core.js", "v6-tools.js", "discovery.js", "learn/index.html", "manifest.webmanifest"]) {
   if (!sw.includes(`./${asset}`)) failures.push(`Offline cache is missing ${asset}`);
 }
-if (!html.includes("GoVibeTool") || html.includes("GoVibeTool.com") || !html.includes("Private tools.") || !html.includes("Version 5 release candidate")) failures.push("current GoVibeTool product identity is missing or stale");
+if (!html.includes("GoVibeTool") || html.includes("GoVibeTool.com") || !html.includes("Private tools.") || html.includes("release candidate")) failures.push("current GoVibeTool product identity is missing or stale");
 if (!html.includes("Your Data.<br>Your Browser.<br><em>Your Control.</em>") || !html.includes("Our tools also work without an internet connection, and no account is required.")) failures.push("privacy-first homepage hero is missing or changed");
 if (!html.includes("ca-pub-6129942955275199")) failures.push("AdSense publisher script is missing");
 if (!html.includes("privacy.html") || !html.includes("terms.html") || !html.includes("contact.html")) failures.push("legal/footer links are missing");
