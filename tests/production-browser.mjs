@@ -1,6 +1,6 @@
 import { chromium, firefox, webkit } from 'playwright';
 import fs from 'node:fs/promises';
-const base='https://intellitools.online';
+const base='https://govibetool.com';
 const queries=['What is an LLM?','How do AI agents work?','Python programming','Machine learning','How do I build an AI workflow?'];
 const browsers={chromium,firefox,webkit};
 const engine=process.argv[2]||'chromium';

@@ -1,4 +1,4 @@
-// Static generator for IntelliTools Knowledge. Run: node knowledge/src/build.mjs
+// Static generator for GoVibeTool Knowledge. Run: node knowledge/src/build.mjs
 // Reads content modules, validates every cross-link, writes HTML + search-index.json + search-lexicon.json + sitemap fragment.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,7 +17,7 @@ import { paths, tools } from './meta.mjs';
 import { buildEntities } from './entities.mjs';
 
 const OUT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const SITE = 'https://intellitools.online/knowledge/';
+const SITE = 'https://govibetool.com/knowledge/';
 const corePages = [...p1, ...p2, ...p3, ...p4, ...p5, ...p6, ...p7];
 const ent = buildEntities(corePages);
 for (const [slug, patch] of Object.entries(ent.aliasPatches)) {
@@ -76,14 +76,14 @@ function md(src) {
 const plain = s => s.replace(/\[\[([a-z0-9-]+)(?:\|([^\]]+))?\]\]/g, (_, sl, lb) => lb || bySlug.get(sl)?.title || sl).replace(/[`*]/g, '').replace(/```[\s\S]*?```/g, ' ');
 const slugify = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-const header = `<header><div class="wrap"><nav aria-label="Main navigation"><a class="brand" href="../index.html"><span>Intelli</span>Tools</a><div class="navlinks"><a href="../index.html#tools">All tools</a><a href="index.html">Knowledge</a><a href="../index.html#about">About</a></div></nav></div></header>`;
-const footer = `<footer><div class="wrap"><div class="footer-bottom"><span>© IntelliTools. Free, browser-based tools.</span><span><a href="index.html">Knowledge</a> · <a href="glossary.html">AI Glossary</a> · <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a></span></div></div></footer>`;
+const header = `<header><div class="wrap"><nav aria-label="Main navigation"><a class="brand" href="../index.html"><span>GoVibe</span>Tool</a><div class="navlinks"><a href="../index.html#tools">All tools</a><a href="index.html">Knowledge</a><a href="../index.html#about">About</a></div></nav></div></header>`;
+const footer = `<footer><div class="wrap"><div class="footer-bottom"><span>© GoVibeTool. Free, browser-based tools.</span><span><a href="index.html">Knowledge</a> · <a href="glossary.html">AI Glossary</a> · <a href="../privacy.html">Privacy</a> · <a href="../terms.html">Terms</a></span></div></div></footer>`;
 
 function shell({ title, desc, file, body, ld }) {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(title)} | IntelliTools Knowledge</title><meta name="description" content="${esc(desc)}">
-<link rel="canonical" href="${SITE}${file}"><meta property="og:type" content="article"><meta property="og:site_name" content="IntelliTools"><meta property="og:title" content="${esc(title)} | IntelliTools Knowledge"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${SITE}${file}">
+<title>${esc(title)} | GoVibeTool Knowledge</title><meta name="description" content="${esc(desc)}">
+<link rel="canonical" href="${SITE}${file}"><meta property="og:type" content="article"><meta property="og:site_name" content="GoVibeTool"><meta property="og:title" content="${esc(title)} | GoVibeTool Knowledge"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${SITE}${file}">
 <meta name="twitter:card" content="summary"><link rel="icon" href="../assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="../v2.css"><link rel="stylesheet" href="knowledge.css"><link rel="stylesheet" href="learning.css">
 <script type="application/ld+json">${JSON.stringify(ld)}</script></head>
 <body>${header}
@@ -108,15 +108,15 @@ function articlePage(p) {
   let toolBlock = '';
   if (p.tool) {
     const t = tools[p.tool.id]; if (!t) errors.push(p.slug + ': unknown tool ' + p.tool.id);
-    toolBlock = `<section class="kn-tool" id="try-it-with-intellitools"><h2>Try it with IntelliTools</h2>${md(p.tool.note)}<p><a class="btn" href="../tools/${p.tool.id}.html">Open ${esc(t.name)}</a></p><p class="kn-small">${esc(t.privacy)}</p></section>`;
+    toolBlock = `<section class="kn-tool" id="try-it-with-govibetool"><h2>Try it with GoVibeTool</h2>${md(p.tool.note)}<p><a class="btn" href="../tools/${p.tool.id}.html">Open ${esc(t.name)}</a></p><p class="kn-small">${esc(t.privacy)}</p></section>`;
   }
   const body = `<main><section class="kn-head"><div class="wrap kn-wrap"><nav class="kn-crumb" aria-label="Breadcrumb"><a href="index.html">Knowledge</a> › <span>${p.kind === 'comparison' ? 'Comparisons' : esc(p.group)}</span></nav>
 <span class="eyebrow">${p.kind === 'comparison' ? 'COMPARISON' : 'EXPLAINER'}</span><h1>${esc(p.title)}</h1>${p.entity ? `<p class="kn-meta"><span>${esc(p.entity.entity_type)}</span><span>freshness: ${esc(p.entity.freshness)}</span><span>${p.entity.checked_date ? 'key claims checked ' + esc(p.entity.checked_date) : 'sources not yet verified'}</span></p>` : ''}<p class="kn-lede">${inline(p.summary)}</p>
 <p class="kn-quick"><strong>Short answer:</strong> ${inline(p.short)}</p></div></section>
 <div class="wrap kn-wrap kn-layout"><article class="kn-article">${secs.map(s => `<section id="${s.id}"><h2>${esc(s.h)}</h2>${s.html}</section>`).join('\n')}${toolBlock}
 ${rel ? `<section id="related-concepts"><h2>Related concepts</h2><div class="kn-cards">${rel}</div></section>` : ''}${pn}</article>
-<aside class="kn-toc" aria-label="On this page"><strong>On this page</strong>${toc}${p.tool ? '<a href="#try-it-with-intellitools">Try it with IntelliTools</a>' : ''}${rel ? '<a href="#related-concepts">Related concepts</a>' : ''}<a class="kn-glossary-link" href="glossary.html">AI Glossary A–Z</a></aside></div></main>`;
-  const ld = { '@context': 'https://schema.org', '@type': 'Article', headline: p.title, description: p.summary.replace(/\[\[[^\]]+\]\]/g, m => plain(m)), url: SITE + p.slug + '.html', publisher: { '@type': 'Organization', name: 'IntelliTools' }, inLanguage: 'en' };
+<aside class="kn-toc" aria-label="On this page"><strong>On this page</strong>${toc}${p.tool ? '<a href="#try-it-with-govibetool">Try it with GoVibeTool</a>' : ''}${rel ? '<a href="#related-concepts">Related concepts</a>' : ''}<a class="kn-glossary-link" href="glossary.html">AI Glossary A–Z</a></aside></div></main>`;
+  const ld = { '@context': 'https://schema.org', '@type': 'Article', headline: p.title, description: p.summary.replace(/\[\[[^\]]+\]\]/g, m => plain(m)), url: SITE + p.slug + '.html', publisher: { '@type': 'Organization', name: 'GoVibeTool' }, inLanguage: 'en' };
   return shell({ title: p.title, desc: plain(p.summary), file: p.slug + '.html', body, ld });
 }
 
@@ -142,7 +142,7 @@ function indexPage() {
   const groups = [...new Set(pages.filter(p => p.kind !== 'comparison').map(p => p.group))];
   const card = t => `<a class="kn-card" href="${t.slug}.html"><span class="kn-kind">${t.kind === 'comparison' ? 'Comparison' : 'Concept'}</span><strong>${esc(t.title)}</strong><small>${esc(plain(t.summary))}</small></a>`;
   const sec = g => `<section class="kn-group"><h2>${esc(g)}</h2><div class="kn-cards">${pages.filter(p => p.group === g && p.kind !== 'comparison').map(card).join('')}</div></section>`;
-  const body = `<main><section class="kn-head"><div class="wrap kn-wrap"><span class="eyebrow">INTELLITOOLS KNOWLEDGE</span><h1>Explore Artificial Intelligence</h1><p class="kn-lede">Explore modern artificial intelligence through free, clear, and accessible guides that explain complex AI concepts in simple, practical language.</p>
+  const body = `<main><section class="kn-head"><div class="wrap kn-wrap"><span class="eyebrow">GOVIBETOOL KNOWLEDGE</span><h1>Explore Artificial Intelligence</h1><p class="kn-lede">Explore modern artificial intelligence through free, clear, and accessible guides that explain complex AI concepts in simple, practical language.</p>
 <form class="kn-ask" id="kn-search-form" role="search" action="index.html">
 <label for="kn-q">What do you want to know or build?</label>
 <div class="kn-ask-row">
@@ -158,7 +158,7 @@ function indexPage() {
 ${groups.map(sec).join('')}
 <section class="kn-group"><h2>Comparisons</h2><div class="kn-cards">${pages.filter(p => p.kind === 'comparison').map(card).join('')}</div></section>
 <section class="kn-group"><h2>Reference</h2><div class="kn-cards"><a class="kn-card" href="glossary.html"><span class="kn-kind">Glossary</span><strong>AI Glossary A–Z</strong><small>${glossary.length} terms defined in plain English.</small></a></div></section></div></main>`;
-  const ld = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'IntelliTools Knowledge', url: SITE, inLanguage: 'en' };
+  const ld = { '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'GoVibeTool Knowledge', url: SITE, inLanguage: 'en' };
   return shell({ title: 'Knowledge: Artificial Intelligence Guides', desc: 'Explore free, accessible guides to artificial intelligence, AI agents, language models, prompting, and AI security.', file: 'index.html', body, ld }).replace('</body>', '<script type="module" src="search.js"></script></body>');
 }
 
@@ -179,10 +179,10 @@ const REDIRECTS = { 'hugging-face-transformers': 'hugging-face' };
 for (const [from, to] of Object.entries(REDIRECTS)) {
   if (!pages.some(p => p.slug === to)) errors.push('redirect target does not exist: ' + from + ' -> ' + to);
   if (pages.some(p => p.slug === from)) errors.push('redirect source collides with a real page: ' + from);
-  const target = to + '.html', abs = 'https://intellitools.online/knowledge/' + target;
+  const target = to + '.html', abs = 'https://govibetool.com/knowledge/' + target;
   fs.writeFileSync(path.join(OUT, from + '.html'), `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Moved: ${esc(titleOfSlug(to))} | IntelliTools Knowledge</title>
+<title>Moved: ${esc(titleOfSlug(to))} | GoVibeTool Knowledge</title>
 <meta http-equiv="refresh" content="0; url=${target}"><link rel="canonical" href="${abs}">
 <script>location.replace(${JSON.stringify(target)} + location.search + location.hash);</script></head>
 <body><p>This guide moved to <a href="${target}">${esc(titleOfSlug(to))}</a>.</p></body></html>

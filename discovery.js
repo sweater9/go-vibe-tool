@@ -35,7 +35,7 @@ function intentResults(query){
 function renderIntentResults(query){
  const host=document.querySelector("#intentResults");if(!host)return;
  const results=intentResults(query);
- if(!query.trim()){host.className="privacy-note";host.textContent="Describe the outcome you want — IntelliTools will match Tools, Learn and Labs.";return}
+ if(!query.trim()){host.className="privacy-note";host.textContent="Describe the outcome you want — GoVibeTool will match Tools, Learn and Labs.";return}
  if(!results.length){host.className="intent-results";host.innerHTML='<div class="intent-empty"><strong>No exact match yet.</strong><span>Try describing the result instead, such as “convert JSON to CSV” or “hide sensitive data”.</span></div>';return}
  host.className="intent-results";host.innerHTML=results.map(r=>'<a class="intent-hit" href="'+r.href+'"><span class="intent-type">'+r.type+'</span><strong>'+escapeIntent(r.title)+'</strong><small>'+escapeIntent(r.summary)+'</small><b>Open →</b></a>').join("");
 }

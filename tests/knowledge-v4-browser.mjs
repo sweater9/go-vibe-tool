@@ -5,7 +5,7 @@ const { chromium, firefox, webkit } = await import(process.env.PLAYWRIGHT_PACKAG
 const engine = process.argv[2] || 'chromium';
 assert.ok(['chromium', 'firefox', 'webkit'].includes(engine));
 const base = process.env.KNOWLEDGE_BASE_URL || 'http://127.0.0.1:8000';
-const artifacts = process.env.KNOWLEDGE_ARTIFACTS || '/tmp/intellitools-v4-artifacts';
+const artifacts = process.env.KNOWLEDGE_ARTIFACTS || '/tmp/govibetool-v4-artifacts';
 await fs.mkdir(artifacts, { recursive: true });
 const browser = await ({ chromium, firefox, webkit })[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
 const results = [], errors = [];
@@ -144,7 +144,7 @@ try {
   await blocked.close();
  });
  await check('corrupt storage recovers and learning asset failure remains readable', async () => {
-  const c=await browser.newContext(); await c.addInitScript(()=>localStorage.setItem('intellitools.knowledge.learning.v4','invalid JSON'));
+  const c=await browser.newContext(); await c.addInitScript(()=>localStorage.setItem('govibetool.knowledge.learning.v4','invalid JSON'));
   const p=await c.newPage(); await p.goto(base+'/knowledge/');
   await p.locator('#kn-v4-learning').getByRole('status').filter({hasText:/0 of 4/}).waitFor();
   await p.route('**/search-index.json',route=>route.fulfill({status:503,body:'unavailable'}));

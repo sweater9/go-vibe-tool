@@ -21,6 +21,6 @@ for (const [re, why] of [
 ]) need(!re.test(chrome), "banned UI wording present: " + why);
 
 // Every generated page shares the same footer wording.
-for (const f of ["index.html", "glossary.html", "rag.html", "mcp.html"]) need(K(f).includes("© IntelliTools. Free, browser-based tools."), f + ": footer copy");
+for (const f of ["index.html", "glossary.html", "rag.html", "mcp.html"]) need(K(f).includes("© GoVibeTool. Free, browser-based tools."), f + ": footer copy");
 if (failures.length) { console.error("FAILURES:\n" + failures.join("\n")); process.exit(1); }
 console.log("editorial UI copy checks passed");

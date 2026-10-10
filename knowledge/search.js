@@ -53,7 +53,7 @@ function section(kicker, title) {
 
 function appendTools(found) {
   if (!found.tools || !found.tools.length) return;
-  const tools = section("Use IntelliTools", null);
+  const tools = section("Use GoVibeTool", null);
   for (const tool of found.tools) {
     const card = el("div", "kn-toolpick");
     const a = el("a");

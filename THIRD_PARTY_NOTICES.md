@@ -1,6 +1,6 @@
 # Third-party notices
 
-IntelliTools bundles the following browser libraries so PDF and QR files can be processed locally without a third-party CDN:
+GoVibeTool bundles the following browser libraries so PDF and QR files can be processed locally without a third-party CDN:
 
 - pdf-lib 1.17.1 — MIT License — Copyright Andrew Dillon
 - qrcode-generator 2.0.4 — MIT License — Copyright Kazuhiko Arase

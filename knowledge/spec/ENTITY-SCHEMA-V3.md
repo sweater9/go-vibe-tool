@@ -1,4 +1,4 @@
-# IntelliTools Knowledge — entity schema (V3)
+# GoVibeTool Knowledge — entity schema (V3)
 
 Authored from the topic specification in the V3 brief. **This is not a conversion of the V2 ontology document** (`knowledge/spec/ai-knowledge-ontology-v2.json` was never available in the repo).
 
@@ -20,6 +20,6 @@ Source of truth: `knowledge/src/entities-*.mjs`, validated by `knowledge/src/ent
 | verification | generated | `verification_date` is `null` — nothing has been verified against a live source |
 | freshness_class | `fresh` | stable / evolving / volatile; volatile entities must list `tsc` |
 | time_sensitive_claims_to_verify | `tsc` | |
-| intellitools_mappings | `tool`, `tool_note_only` | Only genuinely relevant tools; most entities have none |
+| govibetool_mappings | `tool`, `tool_note_only` | Only genuinely relevant tools; most entities have none |
 
 Modelling rules enforced by the validator: DPO has parent `preference-optimization` and lives under *Safety, Alignment & Governance*, never under RL; no source may be marked verified; reasoning pages must not instruct readers to extract hidden chain-of-thought.

@@ -31,9 +31,9 @@ const sitemap = readFileSync("sitemap.xml","utf8");
 for (const file of growthPages) {
   const page = readFileSync(file,"utf8");
   if (!page.includes('rel="canonical"') || !page.includes('application/ld+json') || !page.includes("ca-pub-6129942955275199")) failures.push(`SEO metadata missing: ${file}`);
-  if (!sitemap.includes(`https://intellitools.online/${file}`)) failures.push(`Sitemap missing: ${file}`);
+  if (!sitemap.includes(`https://govibetool.com/${file}`)) failures.push(`Sitemap missing: ${file}`);
 }
-if (!readFileSync("robots.txt","utf8").includes("https://intellitools.online/sitemap.xml")) failures.push("robots.txt sitemap directive missing");
+if (!readFileSync("robots.txt","utf8").includes("https://govibetool.com/sitemap.xml")) failures.push("robots.txt sitemap directive missing");
 for (const file of ["tools/ai-prompt-builder.html","tools/pii-secret-redactor.html","tools/private-pdf-tools.html","tools/invoice-generator.html","tools/image-compressor.html","tools/curl-token-stripper.html","tools/fact-anchor-checker.html","tools/qr-code-studio.html","tools/password-generator.html","tools/markdown-text-studio.html"]) {
   const page = readFileSync(file,"utf8");
   for (const marker of ["WHAT IT DOES","HOW TO USE IT","GOOD TO KNOW","RELATED TOOLS"]) if (!page.includes(marker)) failures.push(`Growth V2 content missing: ${file} / ${marker}`);
@@ -55,7 +55,7 @@ for (const script of ["vendor/pdf-lib.min.js", "vendor/qrcode.min.js", "vendor/j
 for (const asset of ["index.html", "v2.css", "tools.js", "v2-tools.js", "v21-tools.js", "discovery.js", "learn/index.html", "manifest.webmanifest"]) {
   if (!sw.includes(`./${asset}`)) failures.push(`Offline cache is missing ${asset}`);
 }
-if (!html.includes("IntelliTools") || html.includes("IntelliTools.online") || !html.includes("Less switching.") || !html.includes("Version 5 release candidate")) failures.push("current IntelliTools product identity is missing or stale");
+if (!html.includes("GoVibeTool") || html.includes("GoVibeTool.com") || !html.includes("Private tools.") || !html.includes("Version 5 release candidate")) failures.push("current GoVibeTool product identity is missing or stale");
 if (!html.includes("Your Data.<br>Your Browser.<br><em>Your Control.</em>") || !html.includes("Our tools also work without an internet connection, and no account is required.")) failures.push("privacy-first homepage hero is missing or changed");
 if (!html.includes("ca-pub-6129942955275199")) failures.push("AdSense publisher script is missing");
 if (!html.includes("privacy.html") || !html.includes("terms.html") || !html.includes("contact.html")) failures.push("legal/footer links are missing");
@@ -64,17 +64,17 @@ for (const marker of ["discoveryShelf","DISCOVERY_RECENT_KEY","DISCOVERY_FAV_KEY
   const source = marker === "discoveryShelf" ? html : v2;
   if (!source.includes(marker)) failures.push(`Discovery feature missing: ${marker}`);
 }
-for (const marker of ["Array.isArray(value)","window.addEventListener(\"storage\"","intellitools-v2-7","freshFirst"]) {
-  const source = marker.startsWith("intellitools") || marker === "freshFirst" ? sw : v2;
+for (const marker of ["Array.isArray(value)","window.addEventListener(\"storage\"","govibetool-v2-7","freshFirst"]) {
+  const source = marker.startsWith("govibetool") || marker === "freshFirst" ? sw : v2;
   if (!source.includes(marker)) failures.push(`Favourites persistence hardening missing: ${marker}`);
 }
-if (readFileSync("CNAME", "utf8").trim() !== "intellitools.online") failures.push("CNAME does not match intellitools.online");
+if (readFileSync("CNAME", "utf8").trim() !== "govibetool.com") failures.push("CNAME does not match govibetool.com");
 
 for (const file of ["assets/product-hunt-thumbnail.svg","docs/PRODUCT-HUNT-ASSET-CAPTURE.md","docs/ACQUISITION-LAUNCH-PLAN.md"]) {
   if (!existsSync(file)) failures.push(`Launch asset missing: ${file}`);
 }
 const launchThumb = readFileSync("assets/product-hunt-thumbnail.svg","utf8");
-if (!launchThumb.includes('width="240"') || !launchThumb.includes('height="240"') || !launchThumb.includes("IntelliTools")) failures.push("Product Hunt thumbnail source is invalid");
+if (!launchThumb.includes('width="240"') || !launchThumb.includes('height="240"') || !launchThumb.includes("GoVibeTool")) failures.push("Product Hunt thumbnail source is invalid");
 const launchGuide = readFileSync("docs/PRODUCT-HUNT-ASSET-CAPTURE.md","utf8");
 for (const phrase of ["Homepage discovery","AI Prompt Builder","PII & Secret Redactor","Private PDF Tools","Image Studio","Return workflow","Demo recording"]) if (!launchGuide.includes(phrase)) failures.push(`Launch capture guide missing: ${phrase}`);
 

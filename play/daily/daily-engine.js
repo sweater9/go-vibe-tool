@@ -1,5 +1,5 @@
 /**
- * IntelliTools V5 — Daily Knowledge Challenge Core Engine
+ * GoVibeTool V5 — Daily Knowledge Challenge Core Engine
  * Deterministic question selection, scoring, streak management, and share card formatting.
  * Headless, dependency-free, and fully testable in Node.
  */
@@ -145,7 +145,7 @@ export const QUESTION_BANK = [
     question: 'What is the purpose of the Domain Name System (DNS) in internet infrastructure?',
     options: ['Translating human-readable domain names into IP addresses', 'Encrypting HTTP traffic over TLS', 'Routing physical fiber optic cables', 'Allocating MAC addresses to network cards'],
     correctIndex: 0,
-    explanation: 'DNS serves as the internet’s phonebook, mapping domain names like intellitools.online to machine-readable IP addresses.'
+    explanation: 'DNS serves as the internet’s phonebook, mapping domain names like govibetool.com to machine-readable IP addresses.'
   },
   {
     id: 'tech_07',
@@ -454,7 +454,7 @@ export function hashString(str) {
  * One question from each of the 5 distinct categories!
  */
 export function getDailyQuestions(dateStr = getUtcDateString()) {
-  const seed = hashString(`intellitools-daily-v5-${dateStr}`);
+  const seed = hashString(`govibetool-daily-v5-${dateStr}`);
   const selected = [];
 
   QUESTION_CATEGORIES.forEach((cat, catIdx) => {
@@ -552,5 +552,5 @@ export function generateShareCard(dateStr, score, total = 5, answerResults = [])
   }
 
   const pct = Math.round((score / total) * 100);
-  return `IntelliTools Daily Challenge (${dateStr})\nScore: ${score}/${total} (${pct}%)\n${grid}\nhttps://intellitools.online/play/daily/`;
+  return `GoVibeTool Daily Challenge (${dateStr})\nScore: ${score}/${total} (${pct}%)\n${grid}\nhttps://govibetool.com/play/daily/`;
 }

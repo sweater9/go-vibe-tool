@@ -34,9 +34,9 @@ if (!production) {
 }
 const browser = await pw[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
 const privacy = {
- eyebrow: 'PRIVATE BY DESIGN · INTELLITOOLS',
+ eyebrow: 'PRIVATE BY DESIGN · GOVIBETOOL',
  headline: 'Your Data.Your Browser.Your Control.',
- body: 'IntelliTools is designed with your privacy in mind. Our browser-based tools process your files and information directly on your device, giving you greater control over your data. Our tools also work without an internet connection, and no account is required.',
+ body: 'GoVibeTool is designed with your privacy in mind. Our browser-based tools process your files and information directly on your device, giving you greater control over your data. Our tools also work without an internet connection, and no account is required.',
  indicators: ['✓ On-device processing', '✓ Works offline', '✓ No account required']
 };
 async function check(name, fn) { try { await fn(); results.push(name); console.log("PASS " + name); } catch (e) { issues.push(`${name}: ${e.message}`); console.error("FAIL " + name + ": " + e.message); } }
@@ -148,7 +148,7 @@ try {
   await check(`${width}: service worker cache (offline reload where supported)`,async()=>{
    await goto('/');await page.evaluate(()=>navigator.serviceWorker.ready);
    await page.reload({waitUntil:'networkidle'});assert.ok(await page.evaluate(()=>!!navigator.serviceWorker.controller));
-   const cached=await page.evaluate(async()=>{const c=await caches.open('intellitools-v5-0');return (await c.keys()).map(r=>new URL(r.url).pathname)});
+   const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v5-0');return (await c.keys()).map(r=>new URL(r.url).pathname)});
    for(const path of ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/daily/index.html','/play/word-logic/index.html']) assert.ok(cached.includes(path),`uncached ${path}`);
    if (!production) {
     serverUnavailable = true;

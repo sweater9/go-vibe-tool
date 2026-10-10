@@ -1,5 +1,5 @@
 {
- "audit": "IntelliTools Knowledge V3 independent source verification",
+ "audit": "GoVibeTool Knowledge V3 independent source verification",
  "branch": "audit/knowledge-v3-source-verification",
  "baseline": "origin/feature/knowledge-integration-v3 @ 51ddf44",
  "verification_date": "2026-10-09",

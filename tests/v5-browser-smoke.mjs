@@ -1,5 +1,5 @@
 /**
- * IntelliTools V5 — Browser Smoke & UI QA Test Suite
+ * GoVibeTool V5 — Browser Smoke & UI QA Test Suite
  * Designed for Playwright execution across Chromium, Firefox, and WebKit.
  * Tests desktop (1280px) and mobile (375px) viewports for Labs & Play pages.
  */
@@ -7,7 +7,7 @@
 import fs from 'node:fs/promises';
 import { existsSync, mkdirSync } from 'node:fs';
 
-const base = process.env.BASE_URL || 'https://intellitools.online';
+const base = process.env.BASE_URL || 'https://govibetool.com';
 const pagesToTest = [
   { path: '/labs/', name: 'labs-hub' },
   { path: '/labs/workflow/', name: 'labs-workflow' },

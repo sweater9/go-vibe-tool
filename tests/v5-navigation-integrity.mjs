@@ -33,7 +33,7 @@ for (const relPath of NEW_PAGES) {
   assert.ok(html.includes('>Play<'), `${relPath} must contain Play nav link`);
 
   // Footer & Branding
-  assert.ok(html.includes('Intelli</span>Tools'), `${relPath} must contain IntelliTools brand`);
+  assert.ok(html.includes('GoVibe</span>Tool'), `${relPath} must contain GoVibeTool brand`);
   assert.ok(html.includes('privacy.html'), `${relPath} must reference privacy policy`);
   assert.ok(html.includes('terms.html'), `${relPath} must reference terms`);
 }
@@ -61,12 +61,12 @@ console.log('✓ All internal hyperlinks in V5 pages resolve cleanly to existing
 // 3. Sitemap Verification
 const sitemap = fs.readFileSync('sitemap.xml', 'utf8');
 const EXPECTED_SITEMAP_URLS = [
-  'https://intellitools.online/labs/',
-  'https://intellitools.online/labs/workflow/',
-  'https://intellitools.online/labs/api-playground/',
-  'https://intellitools.online/play/',
-  'https://intellitools.online/play/daily/',
-  'https://intellitools.online/play/word-logic/'
+  'https://govibetool.com/labs/',
+  'https://govibetool.com/labs/workflow/',
+  'https://govibetool.com/labs/api-playground/',
+  'https://govibetool.com/play/',
+  'https://govibetool.com/play/daily/',
+  'https://govibetool.com/play/word-logic/'
 ];
 
 for (const url of EXPECTED_SITEMAP_URLS) {

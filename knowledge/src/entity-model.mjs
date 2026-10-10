@@ -129,7 +129,7 @@ export function toOntologyRecord(e, allSlugs, titles = new Map()) {
       ? { verified: false, verification_date: null, authored_date: AUTHORED, status: 'key-claims-checked', basis: 'key claims compared with the primary sources in source_check on the date given; the entry as a whole is not independently verified', source_check: { date: e.checked.date, claims_checked: e.checked.claims, sources: e.checked.sources.map(([title, url]) => ({ title, url })), not_independently_verified: e.checked.unverified } }
       : { verified: false, verification_date: null, authored_date: AUTHORED, status: 'needs-verification', basis: 'authored from topic specification and general knowledge; no live source check performed' },
     freshness_class: e.fresh, time_sensitive_claims_to_verify: cl(e.tsc),
-    intellitools_mappings: [
+    govibetool_mappings: [
       ...(e.tool ? [{ tool_id: e.tool.id, surface: 'page-block', why: e.tool.note.replace(/\*\*/g, '') }] : []),
       ...(e.tool_note_only ? [{ tool_id: e.tool_note_only.id, surface: 'ontology-only', why: e.tool_note_only.why }] : [])
     ]

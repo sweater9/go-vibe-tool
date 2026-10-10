@@ -66,7 +66,7 @@ for (const [q, id] of keep) {
 {
   const stub = read("hugging-face-transformers.html");
   need(/<meta http-equiv="refresh" content="0; url=hugging-face\.html">/.test(stub), "redirect stub needs a meta refresh to hugging-face.html");
-  need(/<link rel="canonical" href="https:\/\/intellitools\.online\/knowledge\/hugging-face\.html">/.test(stub), "redirect stub needs a canonical link to the target");
+  need(/<link rel="canonical" href="https:\/\/govibetool\.com\/knowledge\/hugging-face\.html">/.test(stub), "redirect stub needs a canonical link to the target");
   need(/location\.replace\("hugging-face\.html" \+ location\.search \+ location\.hash\)/.test(stub), "redirect stub should preserve query and hash");
   need(existsSync(K("hugging-face.html")), "redirect target page missing");
   need(!index.pages.some((p) => p.id === "hugging-face-transformers"), "redirect source must not be a searchable page");

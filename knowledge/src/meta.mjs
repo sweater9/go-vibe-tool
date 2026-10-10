@@ -1,4 +1,4 @@
-// Learning paths and the (small) set of existing IntelliTools tools that genuinely relate to Knowledge topics.
+// Learning paths and the (small) set of existing GoVibeTool tools that genuinely relate to Knowledge topics.
 export const tools = {
   'ai-prompt-builder': { name: 'AI Prompt Builder', privacy: 'Runs in your browser; your draft is not sent to a server.' },
   'fact-anchor-checker': { name: 'Fact Anchor Checker', privacy: 'Runs in your browser; the text you paste is not sent to a server.' },

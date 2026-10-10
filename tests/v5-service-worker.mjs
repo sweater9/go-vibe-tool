@@ -6,7 +6,7 @@ const html = new Response('<!doctype html><title>Offline</title>',{headers:{'Con
 const script = new Response('window.cached=true',{headers:{'Content-Type':'application/javascript'}});
 const sandbox = {
  self:{addEventListener:(name,handler)=>handlers[name]=handler},
- location:{origin:'https://intellitools.online'}, URL, Response,
+ location:{origin:'https://govibetool.com'}, URL, Response,
  fetch:async()=>{throw new Error('offline')},
  caches:{match:async(request)=>request==='./index.html'?html:request.url?.endsWith('cached.js')?script:undefined}
 };
