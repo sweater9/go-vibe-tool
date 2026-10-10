@@ -105,3 +105,4 @@ header{box-shadow:0 8px 30px rgba(26,22,67,.04)}.eyebrow{background:linear-gradi
   .pi-score-num strong { font-size: 38px; }
   .pi-input textarea { height: 170px; min-height: 0; }
 }
+.play-preview .btn{min-height:44px;display:inline-flex;align-items:center}
