@@ -66,9 +66,12 @@ try {
   });
   page.on('console', m => { if(m.type()==='error') issues.push(`${width} console: ${m.text()}`); });
   async function goto(path) { const r = await page.goto(new URL(path,base).href,{waitUntil:'networkidle',timeout:45000}); assert.ok(r?.ok(),`${path}: HTTP ${r?.status()}`); }
+  // WebKit can report networkidle before the classic scripts have all run; wait for the globals the assertions read.
+  async function homeReady() { await page.waitForFunction(()=>typeof tools!=='undefined'&&typeof isListed==='function'&&document.querySelectorAll('#toolCatalog .toolcard').length>0,null,{timeout:30000}); }
   async function overflow() { assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+2),`horizontal overflow at ${width}`); }
   await check(`${width}: homepage, catalogue, shortcuts, privacy, navigation`, async()=>{
    await goto('/');
+   await homeReady();
    const listed=await page.evaluate(()=>tools.filter(isListed).length);
    assert.ok(listed>=50);
    assert.equal(await page.locator('#activeCount').innerText(),String(listed));
@@ -148,14 +151,16 @@ try {
    assert.ok(await page.evaluate(()=>window.wordLogicApp?.isCompleted));await overflow();
   });
   await check(`${width}: service worker cache (offline reload where supported)`,async()=>{
-   await goto('/');await page.evaluate(()=>navigator.serviceWorker.ready);
-   await page.reload({waitUntil:'networkidle'});assert.ok(await page.evaluate(()=>!!navigator.serviceWorker.controller));
+   await goto('/');await homeReady();await page.evaluate(()=>navigator.serviceWorker.ready);
+   await page.reload({waitUntil:'networkidle',timeout:45000});await homeReady();assert.ok(await page.evaluate(()=>!!navigator.serviceWorker.controller));
+   // The precache is filled asynchronously by the install event; poll for it (assertions below are unchanged).
+   await page.waitForFunction(async()=>{const c=await caches.open('govibetool-v8-0');const k=(await c.keys()).map(r=>new URL(r.url).pathname);return ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/daily/index.html','/play/word-logic/index.html'].every(x=>k.includes(x))},null,{timeout:30000}).catch(()=>{});
    const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v8-0');return (await c.keys()).map(r=>new URL(r.url).pathname)});
    for(const path of ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/daily/index.html','/play/word-logic/index.html']) assert.ok(cached.includes(path),`uncached ${path}`);
    if (!production) {
     serverUnavailable = true;
     try {
-     await page.reload({waitUntil:'domcontentloaded'});
+     await page.reload({waitUntil:'domcontentloaded',timeout:30000});await homeReady();
      assert.equal(await page.locator('#activeCount').innerText(),String(await page.evaluate(()=>tools.filter(isListed).length)));
      for (const [route, app] of [['/labs/workflow/','workflowApp'],['/labs/api-playground/','apiPlaygroundApp'],['/play/daily/','dailyChallengeApp'],['/play/word-logic/','wordLogicApp']]) {
       const response = await page.goto(new URL(route,base).href,{waitUntil:'domcontentloaded'});
