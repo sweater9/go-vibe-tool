@@ -19,7 +19,15 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save playwright
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Install browsers (retry; the download occasionally hangs)
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            timeout 240 npx playwright install --with-deps ${{ matrix.browser }} && exit 0
+            echo "browser install attempt $attempt failed or timed out"
+            sleep 5
+          done
+          exit 1
       - run: mkdir -p artifacts
       - run: node tests/production-browser.mjs ${{ matrix.browser }}
       - run: node tests/v5-browser-smoke.mjs ${{ matrix.browser }}

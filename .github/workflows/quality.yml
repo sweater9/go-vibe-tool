@@ -23,12 +23,20 @@ jobs:
 
   search-browser:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm install --no-save playwright@1.56.0
-      - run: npx playwright install --with-deps chromium firefox webkit
+      - name: Install browsers (retry; the download occasionally hangs)
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            timeout 240 npx playwright install --with-deps chromium firefox webkit && exit 0
+            echo "browser install attempt $attempt failed or timed out"
+            sleep 5
+          done
+          exit 1
       - run: node tests/knowledge-search-browser.mjs
