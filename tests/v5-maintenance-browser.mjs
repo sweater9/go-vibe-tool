@@ -14,7 +14,11 @@ const results = [], issues = [], defects = [], limitations = [];
 const productionDiagnostics = { exceptions: [], serviceWorkerHtmlForExternalRequests: [], responseReadFailures: [] };
 // A server outage tests SW fallback without Playwright's offline transport blocking SW dispatch.
 // Candidate HTML omits only the external ad script, including in the SW precache.
-let server, serverUnavailable = false;
+let server, serverUnavailable = false, serverPort = 0;
+const sockets = new Set();
+// Simulate an outage with a closed port (instant ECONNREFUSED) rather than reset sockets, which WebKit retries for a long time.
+async function stopServer() { serverUnavailable = true; await new Promise(r=>{ server.close(()=>r()); for (const x of sockets) x.destroy(); }); }
+async function startServer() { await new Promise(r=>server.listen(serverPort,'127.0.0.1',r)); serverUnavailable = false; }
 if (!production) {
  const root = fileURLToPath(new URL('../', import.meta.url));
  server = http.createServer(async (req,res)=>{
@@ -30,7 +34,9 @@ if (!production) {
   } catch { res.writeHead(404).end('Not found'); }
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
- base = `http://127.0.0.1:${server.address().port}`;
+ server.on('connection',x=>{sockets.add(x);x.on('close',()=>sockets.delete(x))});
+ serverPort = server.address().port;
+ base = `http://127.0.0.1:${serverPort}`;
 }
 const browser = await pw[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
 const privacy = {
@@ -158,7 +164,7 @@ try {
    const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v8-0');return (await c.keys()).map(r=>new URL(r.url).pathname)});
    for(const path of ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/daily/index.html','/play/word-logic/index.html']) assert.ok(cached.includes(path),`uncached ${path}`);
    if (!production) {
-    serverUnavailable = true;
+    await stopServer();
     try {
      await page.reload({waitUntil:'domcontentloaded',timeout:30000});await homeReady();
      assert.equal(await page.locator('#activeCount').innerText(),String(await page.evaluate(()=>tools.filter(isListed).length)));
@@ -172,7 +178,7 @@ try {
      await page.keyboard.type('CODE');await page.keyboard.press('Enter');
      assert.ok(await page.evaluate(()=>window.wordLogicApp.isCompleted),'offline word puzzle must execute');
     }
-    finally { serverUnavailable = false; }
+    finally { if (!server.listening) await startServer(); serverUnavailable = false; }
    } else if (engine === 'chromium') {
     phase = 'offline';
     await context.setOffline(true);
