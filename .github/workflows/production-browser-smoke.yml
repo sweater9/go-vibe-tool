@@ -19,7 +19,18 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-save playwright
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Install browsers (retry; the download occasionally hangs)
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            DEBUG=pw:install timeout -k 10 240 npx playwright install --with-deps ${{ matrix.browser }} > install.log 2>&1 && exit 0
+            echo "browser install attempt $attempt failed or timed out"
+            tail -n 15 install.log
+            echo "::warning title=browser install attempt $attempt::$(tail -n 8 install.log | tr '\n' ' ' | cut -c1-600)"
+            sudo pkill -f 'apt-get|dpkg' || true
+            sleep 5
+          done
+          exit 1
       - run: mkdir -p artifacts
       - run: node tests/production-browser.mjs ${{ matrix.browser }}
       - run: node tests/v5-browser-smoke.mjs ${{ matrix.browser }}
