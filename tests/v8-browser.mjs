@@ -19,6 +19,7 @@ try{
   const ctx=await browser.newContext({viewport:{width,height:900}});const page=await ctx.newPage();page.setDefaultTimeout(10000);
   const errs=[];page.on('pageerror',e=>errs.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!/favicon|net::ERR|Failed to load resource/.test(m.text()))errs.push('console: '+m.text())});
   await page.goto(base);
+  const home=async()=>{if(!(await page.locator('#homeView').isVisible())){await page.locator('[data-back]').first().click()}await page.waitForSelector('.cat-tile');await page.fill('#toolSearch','')};
   const REAL=await page.evaluate(()=>tools.filter(isListed).length);
   await check(`${width} real catalogue has at least 50 listed tools`,async()=>assert.ok(REAL>=50,'listed '+REAL));
   await check(`${width} no horizontal overflow`,async()=>{const o=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(o<=0,'overflow '+o)});
@@ -41,19 +42,19 @@ try{
    await page.waitForSelector('.cat-tile');assert.ok(!page.url().includes('category='));assert.equal(await page.locator('#homeView').isVisible(),true);
    await page.locator('.cat-tile[data-cat="developer"]').click();await page.waitForSelector('#categoryTools .toolcard');
    await page.goBack();assert.equal(await page.locator('#homeView').isVisible(),true);
-   await page.goForward();assert.equal(await page.locator('#categoryTools .toolcard').count(),n)});
+   await page.goForward();assert.equal(await page.locator('#categoryTools .toolcard').count(),n);await home()});
   await check(`${width} direct category URL and invalid category`,async()=>{
-   await page.goto(base+'?category=writing-text');await page.waitForSelector('#categoryTools .toolcard');assert.ok(await page.locator('#categoryTools .toolcard').count()>=1);
-   await page.goto(base+'?category=nonsense');await page.waitForSelector('.cat-tile');assert.equal(await page.locator('#homeView').isVisible(),true);
-   await page.goto(base)});
+   const c2=await browser.newContext({viewport:{width,height:900}});const p2=await c2.newPage();p2.setDefaultTimeout(15000);
+   try{await p2.goto(base+'?category=writing-text');await p2.waitForSelector('#categoryTools .toolcard');assert.ok(await p2.locator('#categoryTools .toolcard').count()>=1);
+   await p2.goto(base+'?category=nonsense');await p2.waitForSelector('.cat-tile');assert.equal(await p2.locator('#homeView').isVisible(),true)}finally{await c2.close()}});
   await check(`${width} all listed tools reachable through categories with working Open`,async()=>{
-   const union=new Set();let total=0;
-   for(const id of await page.locator('.cat-tile').evaluateAll(e=>e.map(x=>x.dataset.cat))){await page.goto(base+'?category='+id);await page.waitForSelector('#categoryTools .toolcard');const ids=await page.locator('#categoryTools .toolcard').evaluateAll(e=>e.map(x=>x.dataset.tool));assert.ok(ids.length>0,'empty '+id);ids.forEach(i=>union.add(i));
-    const shown=await page.locator('#categoryView .cv-count b').innerText();assert.equal(shown,String(ids.length));total+=ids.length}
+   await home();const union=new Set();let total=0;
+   for(const id of await page.locator('.cat-tile').evaluateAll(e=>e.map(x=>x.dataset.cat))){await page.locator(`.cat-tile[data-cat="${id}"]`).click();await page.waitForSelector('#categoryTools .toolcard');const ids=await page.locator('#categoryTools .toolcard').evaluateAll(e=>e.map(x=>x.dataset.tool));assert.ok(ids.length>0,'empty '+id);ids.forEach(i=>union.add(i));
+    const shown=await page.locator('#categoryView .cv-count b').innerText();assert.equal(shown,String(ids.length));total+=ids.length;
+    await page.locator('[data-back]').first().click();await page.waitForSelector('.cat-tile')}
    assert.equal(union.size,REAL,'categories cover '+union.size+' of '+REAL);
-   await page.goto(base);
    const tileSum=(await page.locator('.cat-tile small').allTextContents()).reduce((a,t)=>a+parseInt(t),0);assert.equal(tileSum,total,'tile counts match views')});
-  await check(`${width} category Open launches tool and close returns`,async()=>{await page.goto(base+'?category=developer');await page.waitForSelector('#categoryTools .tool-open');await page.locator('#categoryTools .tool-open').first().click();await page.waitForSelector('#workspace.active');await page.evaluate(()=>closeTool());assert.ok(!(await page.locator('#workspace.active').count()));await page.goto(base)});
+  await check(`${width} category Open launches tool and close returns`,async()=>{await home();await page.locator('.cat-tile[data-cat="developer"]').click();await page.waitForSelector('#categoryTools .tool-open');await page.locator('#categoryTools .tool-open').first().click();await page.waitForSelector('#workspace.active');await page.evaluate(()=>closeTool());assert.ok(!(await page.locator('#workspace.active').count()));await home()});
   await check(`${width} favourites and recent persist`,async()=>{await page.fill('#toolSearch','json');await page.locator('#toolCatalog .favorite-btn').first().click();await page.fill('#toolSearch','');assert.ok(await page.locator('#discoveryShelf .shelf-label',{hasText:'Favourites'}).count());await page.reload();assert.ok(await page.locator('#discoveryShelf .shelf-label',{hasText:'Favourites'}).count());
    assert.ok(JSON.parse(await page.evaluate(()=>localStorage.getItem('it.discovery.favorites'))).length>=1)});
   await check(`${width} navigation`,async()=>{
@@ -63,7 +64,7 @@ try{
     await page.keyboard.press('Escape');assert.equal(await toggle.getAttribute('aria-expanded'),'false');assert.equal(await page.evaluate(()=>document.activeElement.className),'menu-toggle')}
    else{assert.equal(await toggle.isVisible(),false);assert.ok(await page.locator('#primaryNav').isVisible())}});
   await check(`${width} touch targets >=44px`,async()=>{const bad=await page.evaluate(()=>[...document.querySelectorAll('.cat-tile,.task-chip,.nav-search,.tool-open,.favorite-btn,.pill,.skip,header .brand')].filter(e=>e.offsetParent!==null||getComputedStyle(e).position==='fixed').map(e=>{const r=e.getBoundingClientRect();return[e.className,Math.round(r.width),Math.round(r.height)]}).filter(([,w,h])=>w<44||h<44));assert.deepEqual(bad,[])});
-  await check(`${width} keyboard operates category tile`,async()=>{await page.goto(base);await page.locator('.cat-tile[data-cat="writing-text"]').focus();await page.keyboard.press('Enter');await page.waitForSelector('#categoryTools .toolcard');assert.equal(await page.evaluate(()=>document.activeElement.id),'categoryTitle');await page.goBack();await page.waitForSelector('.cat-tile')});
+  await check(`${width} keyboard operates category tile`,async()=>{await home();await page.locator('.cat-tile[data-cat="writing-text"]').focus();await page.keyboard.press('Enter');await page.waitForSelector('#categoryTools .toolcard');await page.waitForTimeout(150);assert.equal(await page.evaluate(()=>document.activeElement.id),'categoryTitle');await home()});
   await check(`${width} slash shortcut focuses hero search`,async()=>{await page.locator('body').click({position:{x:2,y:300}});await page.keyboard.press('/');assert.equal(await page.evaluate(()=>document.activeElement.id),'toolSearch');assert.ok(!page.url().includes('#tools'))});
   await check(`${width} nav links and Knowledge present`,async()=>{const t=await page.locator('#primaryNav a').allTextContents();assert.deepEqual(t,['Tools','Learn','Knowledge','Labs','Play','About']);assert.equal(await page.locator('#primaryNav a[href="knowledge/"]').count(),1)});
   await check(`${width} category tiles start in first screen`,async()=>{const y=await page.evaluate(()=>Math.round(document.querySelector('.cat-tile').getBoundingClientRect().top+scrollY));console.log('first tile top',width,y);assert.ok(y<=(width>=1024?500:520),'first tile at '+y)});
