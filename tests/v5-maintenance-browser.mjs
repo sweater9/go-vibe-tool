@@ -82,10 +82,10 @@ try {
    assert.ok(listed>=50);
    assert.equal(await page.locator('#activeCount').innerText(),String(listed));
    assert.equal(await page.locator('#toolCatalog .toolcard').count(),listed);
-   assert.equal(await page.locator('.hero .eyebrow').innerText(),privacy.eyebrow);
-   assert.equal(await page.locator('.hero h1').textContent(),privacy.headline);
-   assert.equal(await page.locator('.hero-grid > div > p').innerText(),privacy.body);
-   assert.deepEqual(await page.locator('.hero-privacy-points span').allTextContents(),privacy.indicators);
+   assert.equal(await page.locator('.privacy .eyebrow').innerText(),privacy.eyebrow);
+   assert.equal(await page.locator('.privacy h2').textContent(),privacy.headline);
+   assert.equal(await page.locator('.privacy-copy > p').innerText(),privacy.body);
+   assert.deepEqual(await page.locator('.privacy .hero-privacy-points span').allTextContents(),privacy.indicators);
    await maintenance('D1 literal escape', async()=>assert.ok(!(await page.locator('body').innerText()).includes('\\n')));
    await maintenance('D2 search label', async()=>assert.equal(await page.locator('#toolSearch').getAttribute('aria-label'),'Search tools by task or result'));
    await page.locator('#toolSearch').fill('json');
@@ -102,17 +102,18 @@ try {
     const bad=await page.locator('a[href],button,input,select').evaluateAll(els=>els.filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&(r.height<43.5||r.width<43.5)}).map(e=>({text:e.textContent?.trim(),id:e.id,width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height})));
     assert.deepEqual(bad,[]);
    });
-   await maintenance('D5 Quick Start alignment',async()=>{
-    const rows=await page.locator('.hero-card button').evaluateAll(es=>es.map(e=>{let r=e.getBoundingClientRect(), t=e.children[1].getBoundingClientRect(), a=e.children[2].getBoundingClientRect();return {height:r.height,textX:t.x,arrowX:a.x}}));
+   await maintenance('D5 Featured tools alignment',async()=>{
+    const rows=await page.locator('.featured-card').evaluateAll(es=>es.map(e=>{let r=e.getBoundingClientRect(), t=e.children[1].getBoundingClientRect(), a=e.children[2].getBoundingClientRect();return {height:r.height,left:Math.round(r.x),textOffset:t.x-r.x,arrowOffset:a.width?a.right-r.right:null}}));
+    assert.equal(rows.length,6);
     assert.ok(Math.max(...rows.map(r=>r.height))-Math.min(...rows.map(r=>r.height))<1);
-    assert.ok(rows.every(r=>Math.abs(r.textX-rows[0].textX)<1&&Math.abs(r.arrowX-rows[0].arrowX)<1));
+    assert.ok(rows.every(r=>Math.abs(r.textOffset-rows[0].textOffset)<1&&(r.arrowOffset===null||rows[0].arrowOffset===null||Math.abs(r.arrowOffset-rows[0].arrowOffset)<1)));
    });
    const hrefs=await page.locator('a[href]').evaluateAll(es=>[...new Set(es.map(e=>e.getAttribute('href')).filter(h=>h&&!h.startsWith('#')&&!h.startsWith('mailto:')))]);
    for(const href of hrefs){const url=new URL(href,page.url());if(url.origin===new URL(base).origin){const r=await context.request.get(url.href);assert.ok(r.ok(),`navigation ${url.href}: ${r.status()}`);}}
    await overflow();
    await page.evaluate(()=>scrollTo({top:0,behavior:"instant"}));
    await page.screenshot({path:`${dir}/home-${width}.png`,fullPage:false});
-   await page.locator(".hero-card").screenshot({path:`${dir}/quick-start-${width}.png`});
+   await page.locator("#featuredTools").screenshot({path:`${dir}/featured-${width}.png`});
   });
   await check(`${width}: existing tool workspaces`,async()=>{
    for(const id of ['ai-prompt-builder','json-formatter','password']){
