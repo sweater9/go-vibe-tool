@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const html=fs.readFileSync('index.html','utf8'),sw=fs.readFileSync('sw.js','utf8'),icon=fs.readFileSync('assets/icon.svg','utf8');
+assert.ok(html.includes('rel="stylesheet" href="v8.css"')&&html.includes('src="v8-discovery.js"'),'v8 assets linked');
+for(const l of ['Discover','Tools','AI &amp; Prompts','Learn','Labs &amp; Play'])assert.ok(html.includes('>'+l+'</a>'),'nav '+l);
+assert.ok(html.includes('What do you want to accomplish?')&&html.includes('id="intent"'),'search-first prompt');
+assert.ok(html.includes('aria-controls="primaryNav"')&&html.includes('aria-expanded="false"'),'mobile menu semantics');
+assert.ok(html.includes('GoVibe</span>Tool')&&/class="brand-mark"/.test(html),'logo + wordmark');
+assert.ok(/rx="16"/.test(icon)&&!/stroke-width="44"/.test(icon),'icon is sparkle square, not GV');
+assert.ok(sw.includes('./v8.css')&&sw.includes('./v8-discovery.js'),'service worker precaches v8 assets');
+for(const a of ['AI & Prompts','Productivity','Files & PDF','Images & Design','Privacy & Security','Developer','Business & Finance','Writing & Text'])assert.ok(fs.readFileSync('v8-discovery.js','utf8').includes('label:"'+a+'"'),'category '+a);
+console.log('v8 static checks passed');
