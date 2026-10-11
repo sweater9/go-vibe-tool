@@ -1,14 +1,18 @@
-# V8 hybrid homepage — verification notes
+# V8 category-first homepage — verification notes
 
-Concept B visual identity + Concept A navigation/content. Screenshots in this folder were captured with Chromium (headless) against the branch build.
+Concept B visual identity + Concept A navigation. "Start with these" and its featured cards are removed; the public total is "50+ tools". Screenshots captured with headless Chromium against the branch build.
 
-## First tool card position (top of the first featured tool card, px from page top)
+Homepage order: header + nav → short intro (50+ tools) → 9 category tiles → search → Learn / Knowledge / Labs / Play → About → approved privacy block → footer. The homepage renders no catalogue cards; a category tile opens `?category=<id>` (dedicated view with all of that category's tools, Open/favourite actions, "All categories" back link, browser Back/Forward).
+
+## Positions (px from page top)
 
 | Viewport | 375 | 390 | 768 | 1024 | 1440 |
 |---|---|---|---|---|---|
-| First featured card | 615 | 598 | 653 | 626 | 636 |
-| First catalogue card | 1150 | 1133 | 1012 | 924 | 894 |
+| First category tile | 332 | 335 | 312 | 337 | 347 |
+| Search section | 772 | 775 | 613 | 616 | 626 |
+| Catalogue cards on homepage | 0 | 0 | 0 | 0 | 0 |
+| Page height | 3193 | 3108 | 2300 | 1992 | 1959 |
 
-Targets: ≤ ~700 desktop, ≤ ~850 mobile. Prior measurements for reference: Concept B 652 / 759, Concept A 766 / 1,223 (first catalogue card), V8 rejected 2,303 / 4,399. No page-level horizontal overflow at any width above.
+No horizontal overflow at any width. Real tool/category counts are computed from the catalogue (`tools.filter(isListed)`), never hard-coded. `docs/concepts/v8/*.html` are historical mock-ups and still say "51 tools".
 
-Files: `home-<w>.png` (first screen), `full-<w>.png` (full page), `states/` (search with Learn/Labs/Play matches, category filter with favourites + recents, open mobile menu).
+Files: `home-<w>.png`, `full-<w>.png`, `states/` (category view, search results, open mobile menu).

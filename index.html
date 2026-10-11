@@ -17,6 +17,7 @@
     <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></g></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></g></symbol>
     <symbol id="i-sparkle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5 13.8 11.3 12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></g></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></g></symbol>
     <symbol id="i-code" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></g></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></g></symbol>
     <symbol id="i-image" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 9"/></g></symbol>
@@ -31,37 +32,39 @@
     <symbol id="i-flask" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3M8 14h8"/></g></symbol>
     <symbol id="i-pad" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 10v5M5.5 12.5h5M15.5 11.5h.01M18 14h.01"/></g></symbol>
   </defs></svg>
-  <a class="skip" href="#tools">Skip to tools</a>
+  <a class="skip" href="#top">Skip to main content</a>
   <header class="site-header"><div class="wrap"><nav aria-label="Main navigation">
     <a class="brand" href="#top" aria-label="GoVibeTool home"><svg class="brand-mark" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true" focusable="false"><defs><linearGradient id="gvtMark" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7c6cf7"/><stop offset="1" stop-color="#5136d9"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#gvtMark)"/><path fill="#fff" d="M32 11c1.6 12.2 8.8 19.4 21 21-12.2 1.6-19.4 8.8-21 21-1.6-12.2-8.8-19.4-21-21 12.2-1.6 19.4-8.8 21-21z"/></svg><b class="wordmark"><span>GoVibe</span>Tool</b></a>
     <div class="nav-panel" id="primaryNav"><div class="navlinks"><a href="#tools" aria-current="page">Tools</a><a href="learn/">Learn</a><a href="knowledge/">Knowledge</a><a href="labs/">Labs</a><a href="play/">Play</a><a href="#about">About</a></div></div>
     <button class="nav-search" type="button" aria-label="Search tools"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span class="nav-search-label">Search</span> <kbd>/</kbd></button>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav" aria-label="Menu"><span aria-hidden="true"></span></button>
   </nav></div></header>
-  <main id="top">
+  <main id="top" tabindex="-1">
+    <div class="wrap ws-wrap"><div id="workspace" class="workspace" tabindex="-1"></div></div>
+
+    <div id="homeView">
     <section class="hero" aria-labelledby="heroTitle"><div class="wrap">
       <h1 id="heroTitle">Everyday tools.<br><em>Private by design.</em></h1>
-      <p class="lead"><strong id="activeCount">51</strong> fast, browser-based tools for documents, images, text, money and AI prompts. No account needed.</p>
-      <div class="search-wrap"><form class="sbar" role="search" id="searchForm" action="#tools"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input id="toolSearch" aria-label="Search tools by task or result" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="What do you want to do? Try “compress an image”"><kbd aria-hidden="true">/</kbd></form>
-      <div id="intentResults" class="also" aria-live="polite" hidden></div></div>
-      <div class="try" role="group" aria-label="Search suggestions"><span class="try-label" aria-hidden="true">Try</span><button type="button" class="task-chip" data-q="compress an image">Compress an image</button><button type="button" class="task-chip" data-q="merge pdf">Merge PDFs</button><button type="button" class="task-chip" data-q="format json">Format JSON</button><button type="button" class="task-chip" data-q="build an AI prompt">Build an AI prompt</button><button type="button" class="task-chip" data-q="create an invoice">Create an invoice</button><button type="button" class="task-chip" data-q="hide sensitive data">Hide sensitive data</button></div>
+      <p class="lead">50+ fast, browser-based tools for documents, images, text, money and AI prompts. No account needed.</p>
     </div></section>
 
-    <div class="wrap dock-wrap"><div class="dock" id="categories">
-      <div id="categoryGrid" class="cat-tabs" role="group" aria-label="Browse tools by category"></div>
+    <div class="wrap cats-wrap"><section class="cats-panel" id="tools" aria-labelledby="catsTitle">
+      <div class="sh"><h2 id="catsTitle">Choose a category</h2><span>Open one to see its tools</span></div>
+      <div id="categoryGrid" class="cat-grid"></div>
+      <noscript><p class="noscript-note">GoVibeTool’s tools run in your browser and need JavaScript. You can still read <a href="learn/">Learn</a>, <a href="knowledge/">Knowledge</a>, <a href="labs/">Labs</a> and <a href="play/">Play</a>.</p></noscript>
+    </section></div>
+
+    <section class="sec searchsec" id="search" aria-labelledby="searchTitle"><div class="wrap">
+      <div class="search-card">
+        <h2 id="searchTitle">Know what you need? Search for it.</h2>
+        <p class="search-sub">Describe the task — GoVibeTool matches tools, guides and labs.</p>
+        <form class="sbar" role="search" id="searchForm" action="#search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input id="toolSearch" aria-label="Search tools by task or result" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="What do you want to do? Try “compress an image”"><kbd aria-hidden="true">/</kbd></form>
+        <div class="try" role="group" aria-label="Search suggestions"><span class="try-label" aria-hidden="true">Try</span><button type="button" class="task-chip" data-q="compress an image">Compress an image</button><button type="button" class="task-chip" data-q="merge pdf">Merge PDFs</button><button type="button" class="task-chip" data-q="format json">Format JSON</button><button type="button" class="task-chip" data-q="build an AI prompt">Build an AI prompt</button><button type="button" class="task-chip" data-q="create an invoice">Create an invoice</button><button type="button" class="task-chip" data-q="hide sensitive data">Hide sensitive data</button></div>
+      </div>
       <div id="discoveryShelf" class="shortcuts"></div>
-    </div></div>
-
-    <section class="sec" id="popular" aria-labelledby="featuredTitle"><div class="wrap">
-      <div class="sh"><h2 id="featuredTitle">Start with these</h2><span>Handpicked · opens right here</span></div>
-      <div id="featuredTools" class="feat"></div>
-    </div></section>
-
-    <section class="sec" id="tools" aria-labelledby="catalogTitle"><div class="wrap">
-      <div id="workspace" class="workspace" tabindex="-1"></div>
-      <div class="sh"><h2 id="catalogTitle">All tools</h2><span class="count-badge"><b id="visibleCount">51</b> tools</span></div>
-      <div id="categoryStatus" class="category-status" role="status" aria-live="polite"></div>
-      <div class="list" id="toolCatalog"></div>
+      <div id="searchStatus" class="category-status" role="status" aria-live="polite"></div>
+      <div class="list" id="toolCatalog" hidden></div>
+      <div id="intentResults" class="also" aria-live="polite" hidden></div>
     </div></section>
 
     <section class="sec more" id="more" aria-labelledby="moreTitle"><div class="wrap">
@@ -74,6 +77,12 @@
       </div>
     </div></section>
 
+    <section class="sec about" id="about" aria-labelledby="aboutTitle"><div class="wrap">
+      <span class="eyebrow">ABOUT GOVIBETOOL</span><h2 id="aboutTitle">Small tools. Less friction. Better work.</h2>
+      <p class="sub">GoVibeTool brings focused utilities together in one consistent experience, with an emphasis on speed, clarity, privacy and genuinely useful outcomes.</p>
+      <div class="about-points"><div><b>01</b><span><strong>Start immediately</strong><small>No signup, onboarding or trial gate.</small></span></div><div><b>02</b><span><strong>Keep sensitive work local</strong><small>Where technically possible, processing stays in your browser.</small></span></div><div><b>03</b><span><strong>Take the result with you</strong><small>Copy, print or export in useful formats.</small></span></div></div>
+    </div></section>
+
     <section class="sec privacy" id="privacy" aria-labelledby="privacyTitle"><div class="wrap"><div class="privacy-card">
       <div class="privacy-copy">
     <span class="eyebrow">PRIVATE BY DESIGN · GOVIBETOOL</span>
@@ -83,13 +92,10 @@
       </div>
       <div class="privacy-mark" aria-hidden="true"><svg class="ic"><use href="#i-shield"/></svg></div>
     </div></div></section>
+    </div>
 
-    <section class="sec about" id="about" aria-labelledby="aboutTitle"><div class="wrap">
-      <span class="eyebrow">ABOUT GOVIBETOOL</span><h2 id="aboutTitle">Small tools. Less friction. Better work.</h2>
-      <p class="sub">GoVibeTool brings focused utilities together in one consistent experience, with an emphasis on speed, clarity, privacy and genuinely useful outcomes.</p>
-      <div class="about-points"><div><b>01</b><span><strong>Start immediately</strong><small>No signup, onboarding or trial gate.</small></span></div><div><b>02</b><span><strong>Keep sensitive work local</strong><small>Where technically possible, processing stays in your browser.</small></span></div><div><b>03</b><span><strong>Take the result with you</strong><small>Copy, print or export in useful formats.</small></span></div></div>
-    </div></section>
+    <div id="categoryView" hidden></div>
   </main>
-  <footer><div class="wrap footer-grid"><div><a class="brand" href="#top" aria-label="GoVibeTool home"><svg class="brand-mark" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true" focusable="false"><defs><linearGradient id="gvtMarkF" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7c6cf7"/><stop offset="1" stop-color="#5136d9"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#gvtMarkF)"/><path fill="#fff" d="M32 11c1.6 12.2 8.8 19.4 21 21-12.2 1.6-19.4 8.8-21 21-1.6-12.2-8.8-19.4-21-21 12.2-1.6 19.4-8.8 21-21z"/></svg><b class="wordmark"><span>GoVibe</span>Tool</b></a><p>Private, browser-based tools for everyday digital work. Smart learning. Good vibes.</p></div><div><strong>Product</strong><a href="#tools">All tools</a><a href="#popular">Popular tools</a><a href="learn/">Learn</a><a href="knowledge/">Knowledge</a><a href="labs/">Labs</a><a href="play/">Play</a><a href="#about">About</a></div><div><strong>Company & legal</strong><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact & feedback</a></div></div><div class="wrap footer-bottom"><span>© 2026 GoVibeTool</span><span>Private tools. Smart learning. Good vibes.</span></div></footer>
+  <footer><div class="wrap footer-grid"><div><a class="brand" href="#top" aria-label="GoVibeTool home"><svg class="brand-mark" viewBox="0 0 64 64" width="36" height="36" aria-hidden="true" focusable="false"><defs><linearGradient id="gvtMarkF" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7c6cf7"/><stop offset="1" stop-color="#5136d9"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#gvtMarkF)"/><path fill="#fff" d="M32 11c1.6 12.2 8.8 19.4 21 21-12.2 1.6-19.4 8.8-21 21-1.6-12.2-8.8-19.4-21-21 12.2-1.6 19.4-8.8 21-21z"/></svg><b class="wordmark"><span>GoVibe</span>Tool</b></a><p>Private, browser-based tools for everyday digital work. Smart learning. Good vibes.</p></div><div><strong>Product</strong><a href="#tools">Tool categories</a><a href="learn/">Learn</a><a href="knowledge/">Knowledge</a><a href="labs/">Labs</a><a href="play/">Play</a><a href="#about">About</a></div><div><strong>Company & legal</strong><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact & feedback</a></div></div><div class="wrap footer-bottom"><span>© 2026 GoVibeTool</span><span>Private tools. Smart learning. Good vibes.</span></div></footer>
   <script src="vendor/pdf-lib.min.js"></script><script src="vendor/qrcode.min.js"></script><script src="vendor/jsqr.min.js"></script><script src="tools.js"></script><script src="v2-tools.js"></script><script src="v21-tools.js"></script><script src="prompt-improver-core.js"></script><script src="v6-tools.js"></script><script src="discovery.js"></script><script src="v8-discovery.js"></script>
 <script>addEventListener("DOMContentLoaded",()=>{const id=new URLSearchParams(location.search).get("tool");if(id&&typeof openTool==="function"){setTimeout(()=>openTool(id),0)}});</script></body></html>

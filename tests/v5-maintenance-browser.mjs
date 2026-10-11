@@ -73,15 +73,17 @@ try {
   page.on('console', m => { if(m.type()==='error') issues.push(`${width} console: ${m.text()}`); });
   async function goto(path) { const r = await page.goto(new URL(path,base).href,{waitUntil:'networkidle',timeout:45000}); assert.ok(r?.ok(),`${path}: HTTP ${r?.status()}`); }
   // WebKit can report networkidle before the classic scripts have all run; wait for the globals the assertions read.
-  async function homeReady() { await page.waitForFunction(()=>typeof tools!=='undefined'&&typeof isListed==='function'&&document.querySelectorAll('#toolCatalog .toolcard').length>0,null,{timeout:30000}); }
+  async function homeReady() { await page.waitForFunction(()=>typeof tools!=='undefined'&&typeof isListed==='function'&&document.querySelectorAll('.cat-tile').length>0,null,{timeout:30000}); }
   async function overflow() { assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+2),`horizontal overflow at ${width}`); }
   await check(`${width}: homepage, catalogue, shortcuts, privacy, navigation`, async()=>{
    await goto('/');
    await homeReady();
    const listed=await page.evaluate(()=>tools.filter(isListed).length);
    assert.ok(listed>=50);
-   assert.equal(await page.locator('#activeCount').innerText(),String(listed));
-   assert.equal(await page.locator('#toolCatalog .toolcard').count(),listed);
+   assert.equal(await page.locator('#toolCatalog .toolcard').count(),0,'homepage must not list the full catalogue');
+   assert.ok(!/start with these/i.test(await page.locator('body').innerText()));
+   const tileSum=(await page.locator('.cat-tile small').allTextContents()).reduce((a,t)=>a+parseInt(t),0);
+   assert.ok(tileSum>=listed,'category tiles cover catalogue '+tileSum+'/'+listed);
    assert.equal(await page.locator('.privacy .eyebrow').innerText(),privacy.eyebrow);
    assert.equal(await page.locator('.privacy h2').textContent(),privacy.headline);
    assert.equal(await page.locator('.privacy-copy > p').innerText(),privacy.body);
@@ -92,28 +94,32 @@ try {
    assert.ok(await page.locator('#toolCatalog .toolcard').count()>0);
    assert.ok(await page.locator('#toolCatalog .toolcard').count()<await page.evaluate(()=>tools.filter(isListed).length));
    await page.locator('#toolSearch').fill('');
+   await page.locator('#toolSearch').fill('json');
    await page.locator('.favorite-btn').first().click();
    assert.ok((await page.locator('#discoveryShelf').innerText()).toLowerCase().includes('favourites'));
+   await page.locator('#toolSearch').fill('json');
    await page.locator('#toolCatalog .toolcard .btn').first().click();
    await page.reload({waitUntil:'networkidle'});
    assert.ok((await page.locator('#discoveryShelf').innerText()).toLowerCase().includes('recently used'));
-   assert.equal(await page.locator('.favorite-btn').first().getAttribute('aria-pressed'),'true');
+   await page.locator('#toolSearch').fill('json');
+   assert.ok(await page.locator('.favorite-btn[aria-pressed="true"]').count()>=1);
+   await page.locator('#toolSearch').fill('');
    await maintenance('D4 touch targets',async()=>{
     const bad=await page.locator('a[href],button,input,select').evaluateAll(els=>els.filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0&&(r.height<43.5||r.width<43.5)}).map(e=>({text:e.textContent?.trim(),id:e.id,width:e.getBoundingClientRect().width,height:e.getBoundingClientRect().height})));
     assert.deepEqual(bad,[]);
    });
-   await maintenance('D5 Featured tools alignment',async()=>{
-    const rows=await page.locator('.featured-card').evaluateAll(es=>es.map(e=>{let r=e.getBoundingClientRect(), t=e.children[1].getBoundingClientRect(), a=e.children[2].getBoundingClientRect();return {height:r.height,left:Math.round(r.x),textOffset:t.x-r.x,arrowOffset:a.width?a.right-r.right:null}}));
-    assert.equal(rows.length,6);
-    assert.ok(Math.max(...rows.map(r=>r.height))-Math.min(...rows.map(r=>r.height))<1);
-    assert.ok(rows.every(r=>Math.abs(r.textOffset-rows[0].textOffset)<1&&(r.arrowOffset===null||rows[0].arrowOffset===null||Math.abs(r.arrowOffset-rows[0].arrowOffset)<1)));
+   await maintenance('D5 Category tile alignment',async()=>{
+    const rows=await page.locator('.cat-tile').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect(),t=e.children[1].getBoundingClientRect();return {height:r.height,left:Math.round(r.x),textOffset:Math.round(t.x-r.x)}}));
+    assert.equal(rows.length,9);
+    assert.ok(Math.max(...rows.map(r=>r.height))-Math.min(...rows.map(r=>r.height))<30,'tile heights');
+    assert.ok(rows.every(r=>Math.abs(r.textOffset-rows[0].textOffset)<1),'tile text offsets');
    });
    const hrefs=await page.locator('a[href]').evaluateAll(es=>[...new Set(es.map(e=>e.getAttribute('href')).filter(h=>h&&!h.startsWith('#')&&!h.startsWith('mailto:')))]);
    for(const href of hrefs){const url=new URL(href,page.url());if(url.origin===new URL(base).origin){const r=await context.request.get(url.href);assert.ok(r.ok(),`navigation ${url.href}: ${r.status()}`);}}
    await overflow();
    await page.evaluate(()=>scrollTo({top:0,behavior:"instant"}));
    await page.screenshot({path:`${dir}/home-${width}.png`,fullPage:false});
-   await page.locator("#featuredTools").screenshot({path:`${dir}/featured-${width}.png`});
+   await page.locator("#tools").screenshot({path:`${dir}/categories-${width}.png`});
   });
   await check(`${width}: existing tool workspaces`,async()=>{
    for(const id of ['ai-prompt-builder','json-formatter','password']){
@@ -168,7 +174,7 @@ try {
     await stopServer();
     try {
      await page.reload({waitUntil:'domcontentloaded',timeout:30000});await homeReady();
-     assert.equal(await page.locator('#activeCount').innerText(),String(await page.evaluate(()=>tools.filter(isListed).length)));
+     assert.ok(await page.locator('.cat-tile').count()===9);
      for (const [route, app] of [['/labs/workflow/','workflowApp'],['/labs/api-playground/','apiPlaygroundApp'],['/play/daily/','dailyChallengeApp'],['/play/word-logic/','wordLogicApp']]) {
       const response = await page.goto(new URL(route,base).href,{waitUntil:'domcontentloaded'});
       assert.ok(response?.ok(),`offline route ${route}`);
@@ -183,7 +189,7 @@ try {
    } else if (engine === 'chromium') {
     phase = 'offline';
     await context.setOffline(true);
-    try { await page.reload({waitUntil:'domcontentloaded'}); assert.equal(await page.locator('#activeCount').innerText(),String(await page.evaluate(()=>tools.filter(isListed).length))); await page.waitForTimeout(1500); }
+    try { await page.reload({waitUntil:'domcontentloaded'}); assert.ok(await page.locator('.cat-tile').count()===9); await page.waitForTimeout(1500); }
     finally { await context.setOffline(false); phase = 'online'; }
    } else {
     limitations.push(`${width}: ${engine} live-production offline transport/reload not verified; cache population and active controller verified. Playwright offline transport prevents SW navigation in this engine.`);
