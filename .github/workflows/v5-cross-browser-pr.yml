@@ -27,8 +27,11 @@ jobs:
         timeout-minutes: 14
         run: |
           for attempt in 1 2 3; do
-            timeout 240 npx playwright install --with-deps ${{ matrix.browser }} && exit 0
+            DEBUG=pw:install timeout -k 10 240 npx playwright install --with-deps ${{ matrix.browser }} > install.log 2>&1 && exit 0
             echo "browser install attempt $attempt failed or timed out"
+            tail -n 15 install.log
+            echo "::warning title=browser install attempt $attempt::$(tail -n 8 install.log | tr '\n' ' ' | cut -c1-600)"
+            sudo pkill -f 'apt-get|dpkg' || true
             sleep 5
           done
           exit 1
@@ -45,10 +48,17 @@ jobs:
         env:
           BASE_URL: http://127.0.0.1:8765
         run: |
-          node tests/v5-browser-smoke.mjs ${{ matrix.browser }}
-          node tests/v5-maintenance-browser.mjs ${{ matrix.browser }}
-          node tests/prompt-improver-browser.mjs ${{ matrix.browser }}
-          node tests/tool-fixes-browser.mjs ${{ matrix.browser }}
+          status=0
+          for t in v5-browser-smoke v5-maintenance-browser prompt-improver-browser tool-fixes-browser; do
+            node tests/$t.mjs ${{ matrix.browser }} > "/tmp/$t.log" 2>&1
+            rc=$?
+            cat "/tmp/$t.log"
+            if [ $rc -ne 0 ]; then
+              status=1
+              echo "::error title=$t (${{ matrix.browser }})::$(grep -E 'FAIL|Error|expected|actual|issues' "/tmp/$t.log" | head -12 | tr '\n' ' ' | cut -c1-900)"
+            fi
+          done
+          exit $status
       - if: always()
         uses: actions/upload-artifact@v4
         with:
