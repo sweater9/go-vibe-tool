@@ -2,6 +2,8 @@
 
 Concept B visual identity + Concept A navigation. "Start with these" and its featured cards are removed; the public total is "50+ tools". Screenshots captured with headless Chromium against the branch build.
 
+Category "Files & PDF" is now "PDF & Tables" (same id `files-pdf`, same URL). Every listed tool sits in exactly one category.
+
 Homepage order: header + nav → short intro (50+ tools) → 9 category tiles → search → Learn / Knowledge / Labs / Play → About → approved privacy block → footer. The homepage renders no catalogue cards; a category tile opens `?category=<id>` (dedicated view with all of that category's tools, Open/favourite actions, "All categories" back link, browser Back/Forward).
 
 ## Positions (px from page top)

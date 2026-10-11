@@ -11,7 +11,7 @@ Status: implementation brief; NOT a completed redesign. Target branch: `feature/
 ## Information architecture
 1. Top navigation: Discover, Tools, AI & Prompts, Learn, Labs & Play. Mobile navigation must be keyboard accessible.
 2. Search-first hero: “What do you want to accomplish?” with working catalogue search and task suggestions. No fake search field.
-3. Category discovery: AI & Prompts, Productivity, Files & PDF, Images & Design, Privacy & Security, Developer, Business & Finance, Writing & Text. Category cards must filter/navigate to existing real tools.
+3. Category discovery: AI & Prompts, Productivity, PDF & Tables, Images & Design, Privacy & Security, Developer, Business & Finance, Writing & Text. Category cards must filter/navigate to existing real tools.
 4. Curated “Start with these” and useful/popular task entry points. Do not invent popularity analytics.
 5. Personal workspace: favourites and recently used. Reuse existing localStorage and functions; do not clear/migrate saved user data without compatibility.
 6. Learn, Knowledge, Labs and Play remain discoverable but distinct from utility catalogue.

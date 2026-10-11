@@ -9,7 +9,7 @@ assert.ok(html.includes('aria-controls="primaryNav"')&&html.includes('aria-expan
 assert.ok(html.includes('GoVibe</span>Tool')&&/class="brand-mark"/.test(html),'logo + wordmark');
 assert.ok(/rx="16"/.test(icon)&&!/stroke-width="44"/.test(icon),'icon is sparkle square, not GV');
 assert.ok(sw.includes('./v8.css')&&sw.includes('./v8-discovery.js'),'service worker precaches v8 assets');
-for(const a of ['AI & Prompts','Productivity','Files & PDF','Images & Design','Privacy & Security','Developer','Business & Finance','Writing & Text','Links & Web'])assert.ok(fs.readFileSync('v8-discovery.js','utf8').includes('label:"'+a+'"'),'category '+a);
+for(const a of ['AI & Prompts','Productivity','PDF & Tables','Images & Design','Privacy & Security','Developer','Business & Finance','Writing & Text','Links & Web'])assert.ok(fs.readFileSync('v8-discovery.js','utf8').includes('label:"'+a+'"'),'category '+a);
 assert.ok(!/start with these/i.test(html)&&!html.includes('featuredTools'),'no featured section');
 assert.ok(!/\b51\s+(tools|fast|free|browser)/i.test(html),'no public 51 total');assert.ok(html.includes('50+'),'50+ wording');
 console.log('v8 static checks passed');

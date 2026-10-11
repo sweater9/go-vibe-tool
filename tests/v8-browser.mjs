@@ -13,13 +13,15 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const base=`http://127.0.0.1:${server.address().port}/`;
 const browser=await pw[engine].launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
 const fails=[];let passed=0;
-async function check(n,fn){try{await fn();passed++;console.log('PASS',n)}catch(e){fails.push(n+': '+e.message);console.error('FAIL',n,e.message)}}
+let curPage=null,widthFails=0;
+async function check(n,fn){try{await fn();passed++;console.log('PASS',n)}catch(e){widthFails++;const where=(e.stack||'').split('\n').filter(l=>/v8-browser\.mjs/.test(l)).slice(0,2).map(l=>l.trim()).join(' <- ');fails.push(n+': '+e.message.split('\n')[0]+(where?' @ '+where:''));console.error('FAIL',n,'::',e.message.split('\n').slice(0,6).join(' | '),where?'\n   at '+where:'');try{if(curPage)await curPage.screenshot({path:`${dir}/fail-${n.replace(/[^a-z0-9]+/gi,'_').slice(0,60)}.png`})}catch{}}}
+async function swControlling(p){await p.evaluate(async()=>{if(!('serviceWorker' in navigator))return;await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(r=>{navigator.serviceWorker.addEventListener('controllerchange',r,{once:true});setTimeout(r,8000)})})}
 try{
  for(const width of [375,390,768,1024,1440]){
-  const ctx=await browser.newContext({viewport:{width,height:900}});const page=await ctx.newPage();page.setDefaultTimeout(10000);
+  const ctx=await browser.newContext({viewport:{width,height:900}});await ctx.tracing.start({screenshots:true,snapshots:true});widthFails=0;const page=await ctx.newPage();curPage=page;page.setDefaultTimeout(10000);
   const errs=[];page.on('pageerror',e=>errs.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!/favicon|net::ERR|Failed to load resource/.test(m.text()))errs.push('console: '+m.text())});
-  await page.goto(base);
-  const cctx=await browser.newContext({viewport:{width,height:900}});const cp=await cctx.newPage();cp.setDefaultTimeout(10000);await cp.goto(base);
+  await page.goto(base);await swControlling(page);
+  const cctx=await browser.newContext({viewport:{width,height:900}});const cp=await cctx.newPage();cp.setDefaultTimeout(10000);await cp.goto(base);await swControlling(cp);
   const home=async()=>{if(!(await cp.locator('#homeView').isVisible())){await cp.locator('[data-back]').first().click()}await cp.waitForSelector('.cat-tile');await cp.fill('#toolSearch','')};
   const REAL=await page.evaluate(()=>tools.filter(isListed).length);
   await check(`${width} real catalogue has at least 50 listed tools`,async()=>assert.ok(REAL>=50,'listed '+REAL));
@@ -48,13 +50,38 @@ try{
    const c2=await browser.newContext({viewport:{width,height:900}});const p2=await c2.newPage();p2.setDefaultTimeout(15000);
    try{await p2.goto(base+'?category=writing-text');await p2.waitForSelector('#categoryTools .toolcard');assert.ok(await p2.locator('#categoryTools .toolcard').count()>=1);
    await p2.goto(base+'?category=nonsense');await p2.waitForSelector('.cat-tile');assert.equal(await p2.locator('#homeView').isVisible(),true)}finally{await c2.close()}});
-  await check(`${width} all listed tools reachable through categories with working Open`,async()=>{
-   await home();const union=new Set();let total=0;
-   for(const id of await cp.locator('.cat-tile').evaluateAll(e=>e.map(x=>x.dataset.cat))){await cp.locator(`.cat-tile[data-cat="${id}"]`).click();await cp.waitForSelector('#categoryTools .toolcard');const ids=await cp.locator('#categoryTools .toolcard').evaluateAll(e=>e.map(x=>x.dataset.tool));assert.ok(ids.length>0,'empty '+id);ids.forEach(i=>union.add(i));
-    const shown=await cp.locator('#categoryView .cv-count b').innerText();assert.equal(shown,String(ids.length));total+=ids.length;
+  await check(`${width} all listed tools reachable; each belongs to exactly one category; counts consistent`,async()=>{
+   await home();const seen=new Map();let total=0;
+   const tiles=await cp.locator('.cat-tile').evaluateAll(e=>e.map(x=>({id:x.dataset.cat,href:x.getAttribute('href'),n:parseInt(x.querySelector('small').textContent)})));
+   assert.equal(tiles.length,9);
+   for(const t of tiles){assert.equal(t.href,'?category='+t.id,'tile link '+t.id);
+    const r=await cctx.request.get(base+t.href);assert.ok(r.ok(),'category URL status '+t.id+' '+r.status());
+    await cp.locator(`.cat-tile[data-cat="${t.id}"]`).click();await cp.waitForSelector('#categoryTools .toolcard');
+    const ids=await cp.locator('#categoryTools .toolcard').evaluateAll(e=>e.map(x=>x.dataset.tool));
+    assert.ok(ids.length>0,'empty '+t.id);assert.equal(new Set(ids).size,ids.length,'duplicate within '+t.id);
+    assert.equal(String(ids.length),await cp.locator('#categoryView .cv-count b').innerText(),'view count '+t.id);
+    assert.equal(ids.length,t.n,'tile count equals view count '+t.id);
+    ids.forEach(i=>seen.set(i,[...(seen.get(i)||[]),t.id]));total+=ids.length;
     await cp.locator('[data-back]').first().click();await cp.waitForSelector('.cat-tile')}
-   assert.equal(union.size,REAL,'categories cover '+union.size+' of '+REAL);
-   const tileSum=(await cp.locator('.cat-tile small').allTextContents()).reduce((a,t)=>a+parseInt(t),0);assert.equal(tileSum,total,'tile counts match views')});
+   const multi=[...seen].filter(([,v])=>v.length!==1);assert.deepEqual(multi,[],'tools not in exactly one category');
+   const listedIds=await cp.evaluate(()=>tools.filter(isListed).map(t=>t[0]));
+   assert.deepEqual([...seen.keys()].sort(),listedIds.sort(),'categories cover exactly the listed catalogue');
+   assert.equal(total,REAL,'category counts sum to catalogue total');
+   assert.equal(tiles.reduce((a,t)=>a+t.n,0),REAL,'tile counts sum to catalogue total')});
+  await check(`${width} PDF & Tables category label, description and stable URL`,async()=>{await home();
+   assert.equal(await cp.locator('.cat-tile[data-cat="files-pdf"] strong').innerText(),'PDF & Tables');
+   assert.equal(await cp.locator('.cat-tile[data-cat="files-pdf"]').getAttribute('href'),'?category=files-pdf');
+   await cp.locator('.cat-tile[data-cat="files-pdf"]').click();await cp.waitForSelector('#categoryTools .toolcard');
+   assert.equal(await cp.locator('#categoryView h1').innerText(),'PDF & Tables');
+   assert.match(await cp.locator('#categoryView .cv-title p').innerText(),/Work with PDFs and spreadsheet-style tables locally\./);
+   assert.deepEqual((await cp.locator('#categoryTools .toolcard').evaluateAll(e=>e.map(x=>x.dataset.tool))).sort(),['pdf-studio','table-formatter']);
+   assert.ok(!/Files & PDF/.test(await cp.locator('body').innerText()));
+   assert.equal(await cp.locator('#categoryTools .toolcard').filter({hasText:'Private PDF Tools'}).count(),1);
+   assert.equal(await cp.locator('#categoryTools .toolcard').filter({hasText:'Markdown Table ↔ Spreadsheet Formatter'}).count(),1);
+   await home()});
+  await check(`${width} Prompt Improver only under AI & Prompts`,async()=>{await home();
+   await cp.locator('.cat-tile[data-cat="productivity"]').click();await cp.waitForSelector('#categoryTools .toolcard');assert.equal(await cp.locator('#categoryTools .toolcard[data-tool="prompt-improver"]').count(),0);await cp.locator('[data-back]').first().click();await cp.waitForSelector('.cat-tile');
+   await cp.locator('.cat-tile[data-cat="ai-prompts"]').click();await cp.waitForSelector('#categoryTools .toolcard');assert.equal(await cp.locator('#categoryTools .toolcard[data-tool="prompt-improver"]').count(),1);await home()});
   await check(`${width} category Open launches tool and close returns`,async()=>{await home();await cp.locator('.cat-tile[data-cat="developer"]').click();await cp.waitForSelector('#categoryTools .tool-open');await cp.locator('#categoryTools .tool-open').first().click();await cp.waitForSelector('#workspace.active');await cp.evaluate(()=>closeTool());assert.ok(!(await cp.locator('#workspace.active').count()));await home()});
   await check(`${width} favourites and recent persist`,async()=>{await page.fill('#toolSearch','json');await page.locator('#toolCatalog .favorite-btn').first().click();await page.fill('#toolSearch','');assert.ok(await page.locator('#discoveryShelf .shelf-label',{hasText:'Favourites'}).count());await page.reload();assert.ok(await page.locator('#discoveryShelf .shelf-label',{hasText:'Favourites'}).count());
    assert.ok(JSON.parse(await page.evaluate(()=>localStorage.getItem('it.discovery.favorites'))).length>=1)});
@@ -74,7 +101,7 @@ try{
   await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await page.waitForTimeout(300);await page.screenshot({path:`${dir}/home-${width}.png`,fullPage:false});
   if(width===375){await page.locator('.menu-toggle').click();await page.screenshot({path:`${dir}/menu-open-375.png`});}
   if(width===1440||width===390){await page.locator('.cat-tile[data-cat="ai-prompts"]').click();await page.waitForTimeout(400);await page.screenshot({path:`${dir}/category-ai-prompts-${width}.png`});}
-  await cctx.close();await ctx.close();
+  await cctx.close();await ctx.tracing.stop(widthFails?{path:`${dir}/trace-${width}.zip`}:undefined);await ctx.close();
  }
  const ctx=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});const page=await ctx.newPage();await page.goto(base);
  await check('reduced motion disables transitions',async()=>assert.equal(await page.locator('.cat-tile').first().evaluate(e=>getComputedStyle(e).transitionDuration),'0s'));

@@ -11,7 +11,7 @@ const v2Tools=[
   ["focus-timer","Productivity","Focus Timer","Run custom Pomodoro sessions and review private daily and weekly focus stats."],
   ["writing-studio","Writing & Text","Markdown & Text Studio","Write and preview Markdown, clean text, change case, count words and compare drafts."],
   ["password-studio","Privacy & Safety","Password & Passphrase Studio","Generate customizable passwords or memorable passphrases and check strength locally."],
-  ["pdf-studio","Files & PDF","Private PDF Tools","Merge, split, rotate or optimize PDFs without uploading sensitive documents."],
+  ["pdf-studio","PDF & Tables","Private PDF Tools","Merge, split, rotate or optimize PDFs without uploading sensitive documents."],
   ["signature-studio","Business","Email Signature Builder","Design a polished signature with live preview and copy production-ready HTML."],
   ["qr-studio","Links & Web","QR Studio","Generate QR codes for URLs, text, Wi-Fi and contacts, or read one from an image or camera."],
   ["budget-studio","Money & Calculators","Envelope Budget","Plan a zero-based monthly budget, monitor categories and export your data."]
@@ -27,7 +27,7 @@ function rememberTool(id){const next=[id,...discoveryLoad(DISCOVERY_RECENT_KEY).
 function toggleFavorite(id,event){if(event){event.stopPropagation();event.preventDefault()}const fav=discoveryLoad(DISCOVERY_FAV_KEY),next=fav.includes(id)?fav.filter(x=>x!==id):[id,...fav].slice(0,12);discoverySave(DISCOVERY_FAV_KEY,next);renderCatalog();renderDiscoveryShelf()}
 function discoveryCard(t){const fav=discoveryLoad(DISCOVERY_FAV_KEY).includes(t[0]);return '<button class="discovery-card" type="button" onclick="openTool(\''+t[0]+'\')"><span class="tag">'+esc(t[1])+'</span><strong>'+esc(t[2])+'</strong><small>'+esc(t[3])+'</small><span class="discovery-arrow">Open →</span></button>'}
 function renderDiscoveryShelf(){const box=$("#discoveryShelf");if(!box)return;const fav=discoveryLoad(DISCOVERY_FAV_KEY).map(id=>tools.find(t=>t[0]===id)).filter(Boolean),recent=discoveryLoad(DISCOVERY_RECENT_KEY).map(id=>tools.find(t=>t[0]===id)).filter(Boolean);if(!fav.length&&!recent.length){box.innerHTML='<div class="discovery-empty"><strong>Your shortcuts will appear here.</strong><span>Open tools or tap ☆ on a tool card to build a private, on-device shortlist.</span></div>';return}box.innerHTML=(fav.length?'<div class="discovery-group"><div class="shelf-label">★ Favourites</div><div class="discovery-row">'+fav.map(discoveryCard).join("")+'</div></div>':'')+(recent.length?'<div class="discovery-group"><div class="shelf-label">Recently used</div><div class="discovery-row">'+recent.map(discoveryCard).join("")+'</div></div>':'')}
-const categoryAliases={"Writing & Text":["Writing & Text","Text"],"Money & Calculators":["Money & Calculators"],"Files & PDF":["Files & PDF"],"Images & Design":["Images & Design"],"Business":["Business"]};
+const categoryAliases={"Writing & Text":["Writing & Text","Text"],"Money & Calculators":["Money & Calculators"],"PDF & Tables":["PDF & Tables"],"Images & Design":["Images & Design"],"Business":["Business"]};
 const growthPages={
 "ai-prompt-builder":"ai-prompt-builder","pii-secret-redactor":"pii-secret-redactor","curl-code-sanitizer":"curl-token-stripper","fact-anchor-checker":"fact-anchor-checker",
 "invoice-studio":"invoice-generator","image-studio":"image-compressor","pdf-studio":"private-pdf-tools","qr-studio":"qr-code-studio","password-studio":"password-generator","writing-studio":"markdown-text-studio","prompt-improver":"prompt-improver"

@@ -74,6 +74,8 @@ try {
   async function goto(path) { const r = await page.goto(new URL(path,base).href,{waitUntil:'networkidle',timeout:45000}); assert.ok(r?.ok(),`${path}: HTTP ${r?.status()}`); }
   // WebKit can report networkidle before the classic scripts have all run; wait for the globals the assertions read.
   async function homeReady() { await page.waitForFunction(()=>typeof tools!=='undefined'&&typeof isListed==='function'&&document.querySelectorAll('.cat-tile').length>0,null,{timeout:30000}); }
+  // The service worker registers on load and claims clients on activation; reloading before that completes races the takeover.
+  async function swControlling() { await page.evaluate(async()=>{if(!('serviceWorker' in navigator))return;await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(r=>{navigator.serviceWorker.addEventListener('controllerchange',r,{once:true});setTimeout(r,8000)})}); }
   async function overflow() { assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+2),`horizontal overflow at ${width}`); }
   await check(`${width}: homepage, catalogue, shortcuts, privacy, navigation`, async()=>{
    await goto('/');
@@ -99,6 +101,7 @@ try {
    assert.ok((await page.locator('#discoveryShelf').innerText()).toLowerCase().includes('favourites'));
    await page.locator('#toolSearch').fill('json');
    await page.locator('#toolCatalog .toolcard .btn').first().click();
+   await swControlling();
    await page.reload({waitUntil:'networkidle'});
    assert.ok((await page.locator('#discoveryShelf').innerText()).toLowerCase().includes('recently used'));
    await page.locator('#toolSearch').fill('json');
