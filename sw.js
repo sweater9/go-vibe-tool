@@ -1,4 +1,4 @@
-const CACHE="govibetool-v5-0";
+const CACHE="govibetool-v8-0";
 const LEGACY_CACHE="govibetool-v2-7";
 const ASSETS=[
   "./",

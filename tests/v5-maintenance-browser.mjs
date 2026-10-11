@@ -150,7 +150,7 @@ try {
   await check(`${width}: service worker cache (offline reload where supported)`,async()=>{
    await goto('/');await page.evaluate(()=>navigator.serviceWorker.ready);
    await page.reload({waitUntil:'networkidle'});assert.ok(await page.evaluate(()=>!!navigator.serviceWorker.controller));
-   const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v5-0');return (await c.keys()).map(r=>new URL(r.url).pathname)});
+   const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v8-0');return (await c.keys()).map(r=>new URL(r.url).pathname)});
    for(const path of ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/daily/index.html','/play/word-logic/index.html']) assert.ok(cached.includes(path),`uncached ${path}`);
    if (!production) {
     serverUnavailable = true;

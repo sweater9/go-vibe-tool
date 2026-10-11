@@ -17,7 +17,7 @@ async function check(n,fn){try{await fn();passed++;console.log('PASS',n)}catch(e
 try{
  for(const width of [375,390,768,1024,1440]){
   const ctx=await browser.newContext({viewport:{width,height:900}});const page=await ctx.newPage();page.setDefaultTimeout(10000);
-  const errs=[];page.on('pageerror',e=>errs.push(e.message));
+  const errs=[];page.on('pageerror',e=>errs.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!/favicon|net::ERR|Failed to load resource/.test(m.text()))errs.push('console: '+m.text())});
   await page.goto(base);
   await check(`${width} no horizontal overflow`,async()=>{const o=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);assert.ok(o<=0,'overflow '+o)});
   await check(`${width} search finds tool`,async()=>{await page.fill('#intent','compress an image');await page.waitForSelector('#intentResults .intent-hit');assert.match(await page.locator('#intentResults').innerText(),/image/i)});
@@ -38,6 +38,8 @@ try{
     const boxes=await page.locator('#primaryNav a').evaluateAll(e=>e.map(x=>x.getBoundingClientRect().height));assert.ok(boxes.every(h=>h>=44),'tap targets '+boxes);
     await page.keyboard.press('Escape');assert.equal(await toggle.getAttribute('aria-expanded'),'false');assert.equal(await page.evaluate(()=>document.activeElement.className),'menu-toggle')}
    else{assert.equal(await toggle.isVisible(),false);assert.ok(await page.locator('#primaryNav').isVisible())}});
+  await check(`${width} touch targets >=44px`,async()=>{const bad=await page.evaluate(()=>[...document.querySelectorAll('.category-card,.task-chip,.nav-search,.discover-search .btn,.featured-chip,.skip,header .brand')].filter(e=>e.offsetParent!==null||getComputedStyle(e).position==='fixed').map(e=>{const r=e.getBoundingClientRect();return[e.className,Math.round(r.width),Math.round(r.height)]}).filter(([,w,h])=>w<44||h<44));assert.deepEqual(bad,[])});
+  await check(`${width} keyboard operates category card`,async()=>{await page.locator('.category-card[data-cat="writing-text"]').focus();await page.keyboard.press('Enter');assert.equal(await page.locator('.category-card[data-cat="writing-text"]').getAttribute('aria-pressed'),'true');await page.locator('#clearCategory').focus();await page.keyboard.press('Enter');assert.equal(await page.locator('#categoryStatus').innerText(),'')});
   await check(`${width} privacy copy intact`,async()=>{assert.equal(await page.locator('.hero h1').textContent(),'Your Data.Your Browser.Your Control.')});
   await check(`${width} no page errors`,async()=>assert.deepEqual(errs,[]));
   await page.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await page.waitForTimeout(300);await page.screenshot({path:`${dir}/home-${width}.png`,fullPage:false});
