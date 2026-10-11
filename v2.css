@@ -105,4 +105,10 @@ header{box-shadow:0 8px 30px rgba(26,22,67,.04)}.eyebrow{background:linear-gradi
   .pi-score-num strong { font-size: 38px; }
   .pi-input textarea { height: 170px; min-height: 0; }
 }
+
+.featured-tools{margin:18px 0 6px}.featured-tools h3{margin:0 0 10px;font-size:15px}
+#featuredTools{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.featured-chip{text-align:left;background:var(--soft);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;min-height:64px;cursor:pointer;color:inherit;font:inherit;display:flex;flex-direction:column;gap:3px}
+.featured-chip:hover,.featured-chip:focus-visible{border-color:var(--brand)}
+.featured-chip small{color:#4a5068;font-size:12px;line-height:1.35}
 .play-preview .btn{min-height:44px;display:inline-flex;align-items:center}
