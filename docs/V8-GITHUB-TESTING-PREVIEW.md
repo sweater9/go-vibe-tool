@@ -59,4 +59,37 @@ This localhost URL is a way to inspect the artifact, **not an accessible GitHub 
 
 No production deployment, Pages publishing-source change, CNAME/custom-domain change, DNS change, visibility change, AdSense modification, IntelliTools change or Render deletion. Render remains available; its former read-only diagnostics are retained as the optional manual `.github/workflows/v8-render-preview-qa.yml`, outside the primary snapshot pipeline. There is no Render API dependency in the primary workflow and no Pages write/id-token deployment permission.
 
-Final execution links, results and Pages inspection are recorded below after the workflow completes. Until then, the artifact is not declared verified. No GitHub-hosted website is declared ready without a real URL and proof that its served bytes match the target.
+The execution evidence below verifies the downloadable snapshot. No GitHub-hosted website is declared ready without a real URL and proof that its served bytes match the target.
+
+## Verified execution — 13 October 2026 (Dubai)
+
+Workflow/harness commit: `0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f`.
+Tested/exported **site** commit: `f6685bff58ae91f835b41963239cda2355c8554c`.
+Git tree: `57754c128de33e3fe0e3a6c8e145bd4afccc3650`.
+Workflow: [V8 GitHub snapshot QA — run 38310449904](https://github.com/sweater9/go-vibe-tool/actions/runs/38310449904), **success**, first attempt, with no test retries.
+
+`npm test` passed on the target checkout. All three real browser jobs passed:
+
+| Engine | V8 root checks | Play root checks | Play under preview path | Additional path/identity/offline checks |
+| --- | --- | --- | --- | --- |
+| Chromium | 126 pass / 0 fail | 28 pass / 0 fail | 27 pass / 0 fail | 6 pass / 0 fail |
+| Firefox | 126 pass / 0 fail | 28 pass / 0 fail | 27 pass / 0 fail | 6 pass / 0 fail |
+| WebKit | 126 pass / 0 fail | 28 pass / 0 fail | 27 pass / 0 fail | 6 pass / 0 fail |
+
+The 27 online Play checks under the nested path are supplemented by separate 1280px and 375px offline checks with the origin server stopped. Those checks loaded and played 2048 and Daily Word, loaded the Play hub and homepage, verified worker scope and cache isolation, and found no page JavaScript errors, unexpected same-origin failed requests or horizontal overflow. Every engine verified all 47 precache/critical asset routes against Git-derived content hashes.
+
+Artifacts, requiring authorized access to this private repository:
+
+- [Verified downloadable preview](https://github.com/sweater9/go-vibe-tool/actions/runs/38310449904/artifacts/11774362739)
+- [Pages configuration inspection](https://github.com/sweater9/go-vibe-tool/actions/runs/38310449904/artifacts/11774147955)
+- [Chromium screenshots and results](https://github.com/sweater9/go-vibe-tool/actions/runs/38310449904/artifacts/11774761046)
+- [Firefox screenshots and results](https://github.com/sweater9/go-vibe-tool/actions/runs/38310449904/artifacts/11774518074)
+- [WebKit screenshots and results](https://github.com/sweater9/go-vibe-tool/actions/runs/38310449904/artifacts/11774990740)
+
+Each engine artifact contains root V8/Play screenshots and full Play acceptance results, plus nested-path screenshots for the homepage, Play hub, 2048 and Daily Word at 1280/375 widths, including offline states. Selected Chromium Play hub, 2048 and Daily Word images were visually reviewed. Machine-readable aggregate evidence is committed at [docs/qa/v8-github/results.json](qa/v8-github/results.json).
+
+The preview ZIP was independently downloaded and verified: all **365** exported static files matched its provenance hashes. Local serving proved the target homepage's served hash, root-path isolation and CNAME omission. A deliberately altered copy was rejected before serving. This verifies an artifact payload, not an internet deployment.
+
+Read-only Pages inspection returned HTTP **404**, repository `private: true`, `has_pages: false`, and no configured source, Pages URL or Pages CNAME. The committed source `CNAME` remains `govibetool.com`, untouched. Private Pages account-plan entitlement remains unconfirmed; no attempt was made to enable Pages as a capability test.
+
+**Public GitHub preview URL: none. Deployed website commit: none.** The downloadable artifact is verified to contain the requested site commit. Native isolated PR previews are unavailable publicly; safely creating an internet preview would require a separately authorized preview repository/site and eligible plan, or another approved isolated host. No GitHub-hosted website is declared ready. Production publishing settings, custom domain/DNS, visibility, AdSense, IntelliTools and the Render service were not changed by this work. PR #11 remains draft and unmerged.
