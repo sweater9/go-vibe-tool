@@ -6,9 +6,10 @@ import {createService} from '../multiplayer/server.mjs';
 const pw=await import(process.env.PLAYWRIGHT_PACKAGE||'playwright');
 const engines=process.argv[2]?[process.argv[2]]:['chromium','firefox','webkit'];
 const root=resolve('.'),dir='artifacts/mahjong';mkdirSync(dir,{recursive:true});
-const svc=createService({origins:['http://localhost:8080']});
-await new Promise(r=>svc.server.listen(8787,r));
-const staticServer=http.createServer((req,res)=>{const p=decodeURIComponent(new URL(req.url,'http://localhost').pathname);const file=resolve(root,'.'+p+(p.endsWith('/')?'index.html':''));if(!file.startsWith(root+'/')||!existsSync(file)){res.writeHead(404);res.end();return;}const types={'.html':'text/html','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.json':'application/json'};res.setHeader('Content-Type',types[extname(file)]||'application/octet-stream');res.end(readFileSync(file));});await new Promise(r=>staticServer.listen(8080,r));
+const cloudflare=process.env.MAHJONG_CLOUDFLARE==='1';
+const svc=cloudflare?await (await import('./mahjong-cloudflare-runtime.mjs')).runtime(8787):createService({origins:['http://localhost:8080']});
+if(!cloudflare)await new Promise(r=>svc.server.listen(8787,r));
+const staticServer=http.createServer((req,res)=>{if(cloudflare&&req.url==='/play/mahjong/config.js'){res.setHeader('Content-Type','text/javascript');res.end("window.MAHJONG_API='http://localhost:8787';window.MAHJONG_TRANSPORT='websocket';");return;}const p=decodeURIComponent(new URL(req.url,'http://localhost').pathname);const file=resolve(root,'.'+p+(p.endsWith('/')?'index.html':''));if(!file.startsWith(root+'/')||!existsSync(file)){res.writeHead(404);res.end();return;}const types={'.html':'text/html','.mjs':'text/javascript','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.json':'application/json'};res.setHeader('Content-Type',types[extname(file)]||'application/octet-stream');res.end(readFileSync(file));});await new Promise(r=>staticServer.listen(8080,r));
 const results=[];
 try{for(const engine of engines){let browser;try{browser=await pw[engine].launch();for(const width of [1280,375]){
  const contexts=[],pages=[],errors=[],failures=[];
@@ -31,7 +32,7 @@ try{for(const engine of engines){let browser;try{browser=await pw[engine].launch
  for(let i=1;i<4;i++){const pass=pages[i].getByRole('button',{name:'Pass',exact:true});if(await pass.count())await pass.click();}
  await pages[1].waitForFunction(()=>document.getElementById('turn').textContent.includes('Your turn'));
  const before=await pages[2].locator('#hand').textContent();await pages[2].reload();await pages[2].waitForFunction(()=>document.getElementById('status').textContent.startsWith('Connected'));assert.equal(await pages[2].locator('#hand').textContent(),before);
- const stale=await pages[0].evaluate(async()=>{const seat=JSON.parse(sessionStorage.getItem('govibe-mahjong-seat'));const r=await fetch(window.MAHJONG_API+'/rooms/'+seat.code+'/actions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+seat.token},body:JSON.stringify({revision:-1,action:{type:'discard',tile:999}})});return r.status;});assert.equal(stale,409);
+ const stale=await pages[0].evaluate(async cloudflare=>{const seat=JSON.parse(sessionStorage.getItem('govibe-mahjong-seat'));if(cloudflare)return new Promise(resolve=>{const ws=new WebSocket(window.MAHJONG_API.replace('http:','ws:')+'/rooms/'+seat.code+'/events',['govibe',seat.token]);ws.onopen=()=>ws.send(JSON.stringify({id:999,revision:-1,action:{type:'discard',tile:999}}));ws.onmessage=e=>{const b=JSON.parse(e.data);if(b.id===999){ws.close();resolve(b.status);}};});const r=await fetch(window.MAHJONG_API+'/rooms/'+seat.code+'/actions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+seat.token},body:JSON.stringify({revision:-1,action:{type:'discard',tile:999}})});return r.status;},cloudflare);assert.equal(stale,409);
  for(const p of pages){assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Horizontal overflow');for(const tile of await p.locator('#hand button').all()){const box=await tile.boundingBox();assert.ok(box.width>=44&&box.height>=44,'Tile touch target');}}
  if(width===375){await pages[0].locator('.mobile-nav summary').click();assert.ok(await pages[0].locator('.mobile-nav a').first().isVisible());await pages[0].locator('.mobile-nav summary').click();}
  await pages[0].evaluate(()=>{document.activeElement?.blur();document.documentElement.style.scrollBehavior='auto';window.scrollTo({top:0,left:0,behavior:'instant'});});await pages[0].waitForFunction(()=>scrollY===0&&document.querySelector('header').getBoundingClientRect().top===0);await pages[0].screenshot({path:`${dir}/${engine}-${width}-table.png`,fullPage:true});
@@ -41,4 +42,5 @@ try{for(const engine of engines){let browser;try{browser=await pw[engine].launch
  results.push({engine,width,status:'pass',checks:'four guests, invitations, keyboard discard, turn sync, private hands, XSS text rendering, stale action, reload, network reconnect, no overflow/errors',screenshots:[`${engine}-${width}-lobby.png`,`${engine}-${width}-table.png`]});
  }finally{await Promise.all(contexts.map(c=>c.close()));}
  }}catch(e){results.push({engine,status:'fail',error:e.stack});process.exitCode=1;}finally{await browser?.close();}}
-}finally{svc.close();staticServer.close();writeFileSync(dir+'/results.json',JSON.stringify(results,null,2));console.log(JSON.stringify(results,null,2));}
+}finally{await svc.close();staticServer.close();writeFileSync(dir+'/results.json',JSON.stringify(results,null,2));console.log(JSON.stringify(results,null,2));}
+

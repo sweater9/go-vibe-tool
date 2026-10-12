@@ -21,6 +21,8 @@
     "build": "node scripts/build-static.mjs",
     "verify:dist": "node scripts/verify-dist.mjs dist",
     "preview": "node scripts/serve-dist.mjs",
-    "test:dist:browser": "node tests/dist-browser.mjs"
+    "test:dist:browser": "node tests/dist-browser.mjs",
+    "build:static": "node scripts/build-static.mjs",
+    "test:mahjong:cloudflare": "node --test tests/mahjong-cloudflare.mjs"
   }
 }

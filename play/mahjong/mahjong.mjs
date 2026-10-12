@@ -1,3 +1,4 @@
+let socket=null,requestId=0;const pending=new Map();
 const $=id=>document.getElementById(id), API=window.MAHJONG_API;
 let state=null,token='',selected=null,busy=false,controller=null,generation=0,connected=false;
 const winds=['East','South','West','North'];
@@ -7,6 +8,7 @@ const storageKey='govibe-mahjong-seat';
 function remember(){try{sessionStorage.setItem(storageKey,JSON.stringify({code:state.code,token}));}catch{status('Room joined. Tab storage is unavailable; closing this page loses your seat.');}}
 function forget(){try{sessionStorage.removeItem(storageKey);}catch{}}
 async function request(path,body,auth=true){
+ if(window.MAHJONG_TRANSPORT==='websocket'&&path.endsWith('/actions')){if(socket?.readyState!==WebSocket.OPEN)throw Error('Reconnect before moving.');const id=++requestId;return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(id);reject(Error('Action confirmation timed out. Reconnect before retrying.'));socket?.close();},12000);pending.set(id,{resolve,reject,timer});socket.send(JSON.stringify({id,...body}));});}
  const res=await fetch(API+path,{method:body?'POST':'GET',headers:{...(body?{'Content-Type':'application/json'}:{}),...(auth?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(12000)});
  const data=await res.json();if(!res.ok){if(data.state)render(data.state);throw new Error(data.error||'Room service unavailable.');}return data;
 }
@@ -43,6 +45,7 @@ async function act(action){
  try{const next=await request('/rooms/'+state.code+'/actions',{revision:state.revision,action});if(next.revision>=state.revision)render(next);if(action.type==='discard')selected=null;status('Table synchronized.');}catch(e){status(e.message);}finally{busy=false;if(state)render(state);}
 }
 async function stream(){
+ if(window.MAHJONG_TRANSPORT==='websocket')return websocketStream();
  const run=++generation;controller?.abort();controller=new AbortController();let retry=1000;
  while(run===generation&&state){
  try{
@@ -54,12 +57,12 @@ async function stream(){
  if(run!==generation)return;connected=false;if(state)render(state);status('Connection lost. Reconnecting to your reserved seat…');await new Promise(r=>setTimeout(r,retry));retry=Math.min(retry*2,10000);
  }
 }
-function end(message){generation++;controller?.abort();connected=false;state=null;token='';selected=null;forget();$('room').hidden=true;$('lobby').hidden=false;status(message);}
+function end(message){generation++;socket?.close();controller?.abort();connected=false;state=null;token='';selected=null;forget();$('room').hidden=true;$('lobby').hidden=false;status(message);}
 async function enter(create){
  if(busy)return;busy=true;$('create').disabled=true;$('join-form').querySelector('button').disabled=true;
  try{const code=$('code').value.trim().toLowerCase();if(!create&&!/^[a-f0-9]{24}$/.test(code))throw Error('Enter the full 24-character room code.');const s=await request(create?'/rooms':'/rooms/'+code+'/join',{name:$('name').value},false);token=s.token;delete s.token;selected=null;render(s);remember();history.replaceState(null,'',location.pathname+'#'+s.code);stream();}catch(e){status(e.message);}finally{busy=false;$('create').disabled=!API;$('join-form').querySelector('button').disabled=!API;if(state)render(state);}
 }
-window.addEventListener('offline',()=>{generation++;controller?.abort();connected=false;if(state){render(state);status('You are offline. Your seat is reserved; reconnect when your network returns.');}});
+window.addEventListener('offline',()=>{generation++;socket?.close();controller?.abort();connected=false;if(state){render(state);status('You are offline. Your seat is reserved; reconnect when your network returns.');}});
 window.addEventListener('online',()=>{if(state)stream();});
 $('create').onclick=()=>enter(true);$('join-form').onsubmit=e=>{e.preventDefault();enter(false);};$('ready').onclick=()=>act({type:'ready'});$('discard').onclick=()=>act({type:'discard',tile:selected});$('win').onclick=()=>act({type:'win'});
 $('leave').onclick=()=>{end('You left this device. Your seat stays reserved until expiry.');history.replaceState(null,'',location.pathname);};
@@ -73,4 +76,16 @@ else{
  let saved;try{saved=JSON.parse(sessionStorage.getItem(storageKey));}catch{}
  if(saved&&/^[a-f0-9]{24}$/.test(saved.code)&&(!location.hash||location.hash.slice(1)===saved.code)){token=saved.token;try{render(await request('/rooms/'+saved.code));stream();}catch(e){forget();status(e.message);}}
  else status('Create a private room or join a friend with their code.');
+}
+
+
+async function websocketStream(){
+ const run=++generation;socket?.close();let retry=1000;
+ while(run===generation&&state){
+ await new Promise(done=>{const url=new URL(API+'/rooms/'+state.code+'/events');url.protocol=url.protocol==='https:'?'wss:':'ws:';const ws=new WebSocket(url,['govibe',token]);socket=ws;
+ ws.onmessage=e=>{if(run!==generation)return;const data=JSON.parse(e.data);if(data.expired){end('This room has expired. Create a new room.');return;}if(data.state){connected=true;retry=1000;if(data.state.revision>=state.revision)render(data.state);status('Connected — your hand is private.');}if(data.id!==undefined){const p=pending.get(data.id);if(p){clearTimeout(p.timer);pending.delete(data.id);data.error?p.reject(Error(data.error)):p.resolve(data.state);}}};
+ ws.onerror=()=>ws.close();ws.onclose=()=>{for(const p of pending.values()){clearTimeout(p.timer);p.reject(Error('Connection lost. Reconnect before retrying.'));}pending.clear();done();};
+ });
+ if(run!==generation)return;connected=false;if(state)render(state);status('Connection lost. Reconnecting to your reserved seat…');await new Promise(r=>setTimeout(r,retry));retry=Math.min(retry*2,10000);
+ }
 }
