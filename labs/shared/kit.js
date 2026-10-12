@@ -74,6 +74,7 @@ export function bars(parent, { label }) { const d = el('div', { class: 'lk-bars'
  * Experiment shell. experiments: [{id,title,summary,explain,real,build(panel, ctx)->{reset(),state()}, steps:[{text,check(state)}]}]
  * ctx.report(state) must be called by an experiment whenever its parameters/results change; the kit then evaluates guided steps.
  */
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('../../sw.js').catch(() => {}));
 export function mountLab({ lab, root, experiments }) {
   const KEY = `it_labs_${lab}_progress`;
   let progress = store.get(KEY, {});

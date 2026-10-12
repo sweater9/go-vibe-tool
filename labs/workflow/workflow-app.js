@@ -867,3 +867,5 @@ class WorkflowApp {
 document.addEventListener('DOMContentLoaded', () => {
   window.workflowApp = new WorkflowApp();
 });
+
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('../../sw.js').catch(() => {}));
