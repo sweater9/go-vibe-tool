@@ -115,6 +115,17 @@ jobs:
           { echo "### Live play games (${{ matrix.browser }}) — $([ $rc -eq 0 ] && echo PASS || echo FAIL)"; grep -E '^FAIL|passed,' /tmp/play.log | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
           [ $rc -eq 0 ] || echo "::error title=PLAY GAMES FAILED (${{ matrix.browser }})::$(grep -m6 '^FAIL' /tmp/play.log | tr '\n' ' ' | cut -c1-900)"
           exit $rc
+      - name: Live Labs QA (six labs; offline check is local-only)
+        env:
+          LABS_BASE_URL: ${{ inputs.url || 'https://govibetool-v8-review.onrender.com' }}
+          LABS_ARTIFACTS: artifacts/live-qa/labs
+        run: |
+          set +e
+          node tests/labs-browser.mjs ${{ matrix.browser }} 2>&1 | tee /tmp/labs.log
+          rc=${PIPESTATUS[0]}
+          { echo "### Live Labs (${{ matrix.browser }}) — $([ $rc -eq 0 ] && echo PASS || echo FAIL)"; grep -E '^FAIL|passed,' /tmp/labs.log | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
+          [ $rc -eq 0 ] || echo "::error title=LABS FAILED (${{ matrix.browser }})::$(grep -m6 '^FAIL' /tmp/labs.log | tr '\n' ' ' | cut -c1-900)"
+          exit $rc
       - if: always()
         uses: actions/upload-artifact@v4
         with:
