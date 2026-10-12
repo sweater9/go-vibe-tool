@@ -1,0 +1,82 @@
+/* GoVibeTool Play — shared styles for 2048 Challenge and Daily Word Challenge */
+.gv-game{max-width:560px;margin:24px auto 56px}
+.gv-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.gv-head h1{font-size:30px;margin:4px 0;letter-spacing:-.04em}
+.gv-head .sub{margin:0;color:var(--muted)}
+.gv-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.gv-btn{min-height:44px;min-width:44px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,border-color .15s,transform .1s}
+.gv-btn:hover:not(:disabled){background:#f1eeff;border-color:#c9c1ff}
+.gv-btn:active:not(:disabled){transform:translateY(1px)}
+.gv-btn.primary{background:linear-gradient(110deg,#5548DE,#7c6cf7);color:#fff;border-color:transparent}
+.gv-btn.primary:hover:not(:disabled){background:linear-gradient(110deg,#4a3dd0,#6f5ff0)}
+.gv-btn:disabled{opacity:.45;cursor:not-allowed}
+.gv-btn[aria-pressed="true"]{background:#ece8ff;border-color:#9d90f5;color:#3a2aa8}
+:where(.gv-game button,.gv-game [tabindex],.gv-dialog button):focus-visible{outline:3px solid #5548DE;outline-offset:2px}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.gv-toast{min-height:28px;text-align:center;font-weight:700;color:#3a2aa8;margin:6px 0}
+/* ---------- 2048 ---------- */
+.g2048-scores{display:flex;gap:8px}
+.g2048-score{background:#ece8ff;border-radius:12px;padding:6px 14px;text-align:center;min-width:84px}
+.g2048-score small{display:block;font-size:11px;font-weight:800;letter-spacing:.1em;color:#5b4fc4}
+.g2048-score strong{font-size:22px;letter-spacing:-.02em;color:#1f1650}
+.g2048-wrap{position:relative;width:min(100%,460px);margin:12px auto}
+.g2048-board{position:relative;aspect-ratio:1;background:#d9d3f7;border-radius:18px;padding:0;touch-action:none;user-select:none;-webkit-user-select:none;outline-offset:4px;--gap:10px}
+.g2048-cells,.g2048-tiles{position:absolute;inset:0}
+.g2048-cell{position:absolute;width:25%;height:25%;padding:calc(var(--gap)/2)}
+.g2048-cell::before{content:"";display:block;width:100%;height:100%;background:#c9c1ee;border-radius:12px}
+.g2048-tile{position:absolute;left:0;top:0;width:25%;height:25%;padding:calc(var(--gap)/2);transform:translate(calc(var(--c)*100%),calc(var(--r)*100%));transition:transform .12s ease-out;will-change:transform}
+.g2048-tile>b{display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:12px;font-weight:900;font-size:clamp(22px,7.4vw,40px);letter-spacing:-.04em;background:var(--tb,#ece8ff);color:var(--tf,#2a1f6b);box-shadow:0 2px 0 rgba(40,25,120,.12)}
+.g2048-tile.pop>b{animation:g2048pop .16s ease-out}
+.g2048-tile.new>b{animation:g2048new .18s ease-out}
+@keyframes g2048pop{0%{transform:scale(.8)}60%{transform:scale(1.14)}100%{transform:scale(1)}}
+@keyframes g2048new{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+.g2048-tile.t2{--tb:#ece8ff;--tf:#2a1f6b}.g2048-tile.t4{--tb:#ddd6ff;--tf:#2a1f6b}.g2048-tile.t8{--tb:#bfb3ff;--tf:#1d1352}
+.g2048-tile.t16{--tb:#9d8dfa;--tf:#fff}.g2048-tile.t32{--tb:#8473f2;--tf:#fff}.g2048-tile.t64{--tb:#6c58e6;--tf:#fff}
+.g2048-tile.t128{--tb:#5548DE;--tf:#fff}.g2048-tile.t256{--tb:#4637c4;--tf:#fff}.g2048-tile.t512{--tb:#3a2da6;--tf:#fff}
+.g2048-tile.t1024{--tb:#2e2388;--tf:#fff}.g2048-tile.t2048{--tb:#e35ca9;--tf:#fff}.g2048-tile.tbig{--tb:#14102f;--tf:#ffd86b}
+.g2048-tile.t128>b,.g2048-tile.t256>b,.g2048-tile.t512>b{font-size:clamp(20px,6.4vw,34px)}
+.g2048-tile.t1024>b,.g2048-tile.t2048>b,.g2048-tile.tbig>b{font-size:clamp(17px,5.4vw,29px)}
+.g2048-overlay{position:absolute;inset:0;border-radius:18px;background:rgba(250,248,255,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px;backdrop-filter:blur(3px)}
+.g2048-overlay[hidden]{display:none}
+.g2048-overlay h2{margin:0;font-size:28px;letter-spacing:-.04em}
+.g2048-overlay p{margin:0;color:var(--muted)}
+.g2048-pad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,52px);gap:6px;justify-content:center;margin:14px auto 4px}
+.g2048-pad .gv-btn{padding:0;font-size:20px}
+.g2048-pad [data-dir="up"]{grid-column:2;grid-row:1}.g2048-pad [data-dir="left"]{grid-column:1;grid-row:2}.g2048-pad [data-dir="down"]{grid-column:2;grid-row:2}.g2048-pad [data-dir="right"]{grid-column:3;grid-row:2}
+.gv-help{margin-top:18px;color:var(--muted);font-size:14px}
+.gv-help summary{cursor:pointer;font-weight:700;color:var(--ink);min-height:44px;display:flex;align-items:center}
+/* ---------- Daily Word ---------- */
+.gw-grid{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;width:min(100%,340px);margin:10px auto}
+.gw-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.gw-tile{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border:2px solid #cfc9ee;border-radius:10px;background:#fff;font-weight:900;font-size:clamp(24px,8vw,32px);text-transform:uppercase;color:var(--ink);transition:transform .08s}
+.gw-tile.filled{border-color:#8f84e8;animation:gwpop .1s ease-out}
+.gw-tile.correct{background:#2f9e6b;border-color:#2f9e6b;color:#fff}
+.gw-tile.present{background:#d99a1b;border-color:#d99a1b;color:#fff}
+.gw-tile.absent{background:#5c6178;border-color:#5c6178;color:#fff}
+.gw-tile.flip{animation:gwflip .5s ease both;animation-delay:calc(var(--i)*.22s)}
+.gw-row.shake{animation:gwshake .4s}
+.hc .gw-tile.correct{background:#e86a1a;border-color:#e86a1a}.hc .gw-tile.present{background:#2a7fe8;border-color:#2a7fe8}
+.hc .gw-key.correct{background:#e86a1a;border-color:#e86a1a;color:#fff}.hc .gw-key.present{background:#2a7fe8;border-color:#2a7fe8;color:#fff}
+@keyframes gwpop{50%{transform:scale(1.08)}}
+@keyframes gwflip{0%{transform:rotateX(0)}49%{transform:rotateX(90deg)}50%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
+@keyframes gwshake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.gw-kbd{display:grid;gap:6px;margin:14px auto 0;width:min(100%,500px)}
+.gw-krow{display:flex;gap:5px;justify-content:center}
+.gw-key{flex:1 1 0;min-width:0;height:54px;border-radius:9px;border:1px solid #d3cdf0;background:#efecff;color:var(--ink);font:inherit;font-weight:800;font-size:15px;text-transform:uppercase;cursor:pointer;padding:0}
+.gw-key.wide{flex:1.6 1 0;font-size:12px}
+.gw-key:hover{background:#e4dfff}
+.gw-key.correct{background:#2f9e6b;border-color:#2f9e6b;color:#fff}.gw-key.present{background:#d99a1b;border-color:#d99a1b;color:#fff}.gw-key.absent{background:#5c6178;border-color:#5c6178;color:#fff}
+.gw-modes{display:flex;gap:8px;justify-content:center;margin:8px 0}
+.gv-dialog{border:0;border-radius:20px;padding:22px;max-width:min(92vw,420px);width:100%;box-shadow:0 30px 80px rgba(20,10,80,.35);color:var(--ink);background:#fff}
+.gv-dialog::backdrop{background:rgba(20,16,47,.55)}
+.gv-dialog h2{margin:0 0 10px;font-size:22px;letter-spacing:-.03em}
+.gv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;margin:10px 0 16px}
+.gv-stats strong{display:block;font-size:26px;letter-spacing:-.03em}.gv-stats small{font-size:11px;color:var(--muted);font-weight:700}
+.gv-dist{display:grid;gap:5px;margin-bottom:16px}.gv-dist div{display:grid;grid-template-columns:14px 1fr;gap:8px;align-items:center;font-size:13px;font-weight:700}
+.gv-dist span{display:block;background:#8f84e8;color:#fff;border-radius:4px;padding:2px 6px;min-width:22px;text-align:right}.gv-dist .win span{background:#2f9e6b}
+.gv-dialog .row{display:flex;gap:8px;flex-wrap:wrap}
+.gw-share{white-space:pre-wrap;background:#f6f4ff;border-radius:12px;padding:10px 12px;font:600 14px/1.4 ui-monospace,monospace;margin:8px 0}
+@media(max-width:480px){.gw-key{height:50px;font-size:14px}.g2048-pad{margin-top:10px}}
+@media(prefers-reduced-motion:reduce){.g2048-tile,.gw-tile,.gv-btn{transition:none!important}.g2048-tile>b,.gw-tile,.gw-row{animation:none!important}}
+.gw-grid:focus{outline:none}
+.gv-game [hidden],.gv-dialog [hidden]{display:none!important}

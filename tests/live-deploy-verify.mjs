@@ -43,7 +43,7 @@ if (process.env.RENDER_API_KEY && process.env.RENDER_SERVICE_ID) {
   } catch (e) { report.metadata = { status: 'error', detail: classify(e) }; }
 }
 // 2. Content comparison against the expected commit
-const files = ['index.html', 'v8-discovery.js', 'v8.css', 'v2-tools.js', 'tools.js', 'sw.js', 'assets/icon.svg'];
+const files = ['index.html', 'v8-discovery.js', 'v8.css', 'v2-tools.js', 'tools.js', 'sw.js', 'assets/icon.svg', 'play/index.html', 'play/games.css', 'play/2048/app.js', 'play/2048/engine.js', 'play/daily-word/app.js', 'play/daily-word/words.js'];
 for (const f of files) {
   let want; try { want = execFileSync('git', ['show', `${expected}:${f}`], { maxBuffer: 1 << 26 }); } catch { report.content.push({ file: f, status: 'not-in-expected-commit' }); continue; }
   try {

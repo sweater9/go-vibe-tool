@@ -14,7 +14,9 @@ const pagesToTest = [
   { path: '/labs/api-playground/', name: 'labs-api' },
   { path: '/play/', name: 'play-hub' },
   { path: '/play/daily/', name: 'play-daily' },
-  { path: '/play/word-logic/', name: 'play-wordlogic' }
+  { path: '/play/word-logic/', name: 'play-wordlogic' },
+  { path: '/play/2048/', name: 'play-2048' },
+  { path: '/play/daily-word/', name: 'play-dailyword' }
 ];
 
 async function run() {
@@ -93,6 +95,10 @@ async function run() {
             await page.waitForSelector('#quizContainer', { timeout: 5000 });
           } else if (item.name === 'play-wordlogic') {
             await page.waitForSelector('#slotsContainer', { timeout: 5000 });
+          } else if (item.name === 'play-2048') {
+            await page.waitForSelector('.g2048-tile', { timeout: 5000 });
+          } else if (item.name === 'play-dailyword') {
+            await page.waitForSelector('.gw-tile', { timeout: 5000 });
           }
 
           await page.screenshot({ path: `artifacts/v5-${engine}-${viewport.width}-${item.name}.png`, fullPage: false });

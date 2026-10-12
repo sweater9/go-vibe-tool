@@ -10,7 +10,9 @@ const NEW_PAGES = [
   'labs/api-playground/index.html',
   'play/index.html',
   'play/daily/index.html',
-  'play/word-logic/index.html'
+  'play/word-logic/index.html',
+  'play/2048/index.html',
+  'play/daily-word/index.html'
 ];
 
 // 1. Verify existence and content structure of all V5 pages
@@ -66,7 +68,9 @@ const EXPECTED_SITEMAP_URLS = [
   'https://govibetool.com/labs/api-playground/',
   'https://govibetool.com/play/',
   'https://govibetool.com/play/daily/',
-  'https://govibetool.com/play/word-logic/'
+  'https://govibetool.com/play/word-logic/',
+  'https://govibetool.com/play/2048/',
+  'https://govibetool.com/play/daily-word/'
 ];
 
 for (const url of EXPECTED_SITEMAP_URLS) {

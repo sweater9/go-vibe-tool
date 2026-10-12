@@ -104,6 +104,17 @@ jobs:
             *) echo "::error title=QA SCRIPT ERROR (${{ matrix.browser }})::exit $rc" ;;
           esac
           exit $rc
+      - name: Live play games QA (2048 + Daily Word)
+        env:
+          PLAY_BASE_URL: ${{ inputs.url || 'https://govibetool-v8-review.onrender.com' }}
+          PLAY_ARTIFACTS: artifacts/live-qa/play-games
+        run: |
+          set +e
+          node tests/play-games-browser.mjs ${{ matrix.browser }} 2>&1 | tee /tmp/play.log
+          rc=${PIPESTATUS[0]}
+          { echo "### Live play games (${{ matrix.browser }}) — $([ $rc -eq 0 ] && echo PASS || echo FAIL)"; grep -E '^FAIL|passed,' /tmp/play.log | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
+          [ $rc -eq 0 ] || echo "::error title=PLAY GAMES FAILED (${{ matrix.browser }})::$(grep -m6 '^FAIL' /tmp/play.log | tr '\n' ' ' | cut -c1-900)"
+          exit $rc
       - if: always()
         uses: actions/upload-artifact@v4
         with:

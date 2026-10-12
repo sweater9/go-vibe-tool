@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#ec4899">
+  <meta name="description" content="2048 Challenge — slide and merge numbered tiles to reach 2048. Keyboard, swipe and touch controls, undo, and a locally saved best score. Private and offline.">
+  <link rel="canonical" href="https://govibetool.com/play/2048/">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../v2.css">
+  <link rel="stylesheet" href="../../v5.css">
+  <link rel="stylesheet" href="../games.css">
+  <title>2048 Challenge — Number Merge Puzzle — GoVibeTool Play</title>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header>
+    <div class="wrap">
+      <nav aria-label="Main navigation">
+        <a class="brand" href="../../" aria-label="GoVibeTool home"><img class="brand-mark" src="../../assets/logo-mark.svg" width="28" height="28" alt=""><span>GoVibe</span>Tool</a>
+        <div class="navlinks">
+          <a href="../../">Tools</a>
+          <a href="../../learn/">Learn</a>
+          <a href="../../knowledge/">Knowledge</a>
+          <a href="../../labs/">Labs</a>
+          <a href="../" class="active" aria-current="page">Play <span class="nav-pillar-badge play">New</span></a>
+          <a href="../../#about">About</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" style="padding: 20px 0 40px;">
+    <nav class="breadcrumb-trail" aria-label="Breadcrumb">
+      <a href="../../">Home</a><span>/</span><a href="../">Play</a><span>/</span><strong>2048 Challenge</strong>
+    </nav>
+    <div class="gv-game">
+      <div class="gv-head">
+        <div>
+          <span class="eyebrow" style="color:#5548DE;">NUMBER PUZZLE</span>
+          <h1>2048 Challenge</h1>
+          <p class="sub">Slide and merge tiles to reach 2048.</p>
+        </div>
+        <div class="g2048-scores" aria-label="Scores">
+          <div class="g2048-score"><small>SCORE</small><strong id="score">0</strong></div>
+          <div class="g2048-score"><small>BEST</small><strong id="best">0</strong></div>
+        </div>
+      </div>
+      <div class="gv-bar">
+        <button id="btnNew" type="button" class="gv-btn primary">New game</button>
+        <button id="btnUndo" type="button" class="gv-btn" disabled>↶ Undo</button>
+      </div>
+      <div class="g2048-wrap">
+        <div id="board" class="g2048-board" tabindex="0" role="group" aria-label="2048 board. Press an arrow key, W A S D, or swipe to slide the tiles.">
+          <div class="g2048-cells" aria-hidden="true"></div>
+          <div id="tiles" class="g2048-tiles" aria-hidden="true"></div>
+        </div>
+        <div id="overlay" class="g2048-overlay" hidden>
+          <h2 id="overlayTitle"></h2><p id="overlayText"></p>
+          <div class="gv-bar" style="justify-content:center"><button id="btnKeep" type="button" class="gv-btn" hidden>Keep going</button><button id="btnAgain" type="button" class="gv-btn primary">New game</button></div>
+        </div>
+      </div>
+      <div class="g2048-pad" role="group" aria-label="Move tiles">
+        <button type="button" class="gv-btn" data-dir="up" aria-label="Move up">↑</button>
+        <button type="button" class="gv-btn" data-dir="left" aria-label="Move left">←</button>
+        <button type="button" class="gv-btn" data-dir="down" aria-label="Move down">↓</button>
+        <button type="button" class="gv-btn" data-dir="right" aria-label="Move right">→</button>
+      </div>
+      <div id="status" class="gv-toast" role="status" aria-live="polite"></div>
+      <p id="boardText" class="sr-only"></p>
+      <details class="gv-help"><summary>How to play</summary>
+        <p>Use the arrow keys (or W A S D), swipe on the board, or tap the arrow buttons. Tiles with the same number merge into one when they collide. Each merge adds the new tile's value to your score. Reach the 2048 tile to win, then keep going for a higher score. The game ends when the board is full and no tiles can merge. Your best score and current game are saved only on this device.</p>
+      </details>
+      <div class="related-tools" style="margin-top: 30px;">
+        <span class="eyebrow">MORE PLAY</span>
+        <div class="actions"><a href="../daily-word/" class="btn alt small" style="text-decoration:none;">Daily Word Challenge</a><a href="../daily/" class="btn alt small" style="text-decoration:none;">Daily Knowledge Challenge</a><a href="../" class="btn alt small" style="text-decoration:none;">All games</a></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="../../"><img class="brand-mark" src="../../assets/logo-mark.svg" width="28" height="28" alt=""><span>GoVibe</span>Tool</a>
+        <p>Private, browser-based tools, guided learning, interactive labs, and cognitive play. Good vibes.</p>
+      </div>
+      <div>
+        <strong>Pillars</strong>
+        <a href="../../#tools">Tools</a>
+        <a href="../../learn/">Learn</a>
+        <a href="../../labs/">Labs</a>
+        <a href="../">Play</a>
+      </div>
+      <div>
+        <strong>Legal & Privacy</strong>
+        <a href="../../privacy.html">Privacy</a>
+        <a href="../../terms.html">Terms</a>
+        <a href="../../contact.html">Contact</a>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <span>© 2026 GoVibeTool</span>
+      <span>Version 5.0 Release Candidate</span>
+    </div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

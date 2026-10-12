@@ -1,4 +1,4 @@
-const CACHE="govibetool-v8-1";
+const CACHE="govibetool-v8-2";
 const LEGACY_CACHE="govibetool-v2-7";
 const ASSETS=[
   "./",
@@ -28,6 +28,14 @@ const ASSETS=[
   "./play/word-logic/index.html",
   "./play/word-logic/logic-engine.js",
   "./play/word-logic/logic-app.js",
+  "./play/games.css",
+  "./play/2048/index.html",
+  "./play/2048/engine.js",
+  "./play/2048/app.js",
+  "./play/daily-word/index.html",
+  "./play/daily-word/engine.js",
+  "./play/daily-word/words.js",
+  "./play/daily-word/app.js",
   "./manifest.webmanifest",
   "./assets/icon.svg",
   "./assets/logo-mark.svg",
@@ -40,4 +48,4 @@ const ASSETS=[
 ];
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
-self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);if(url.origin!==location.origin)return;const freshFirst=url.origin===location.origin&&(event.request.mode==="navigate"||/\.(?:html|js|mjs|css|json)$/.test(url.pathname));if(freshFirst){event.respondWith(fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response}).catch(()=>caches.match(event.request).then(cached=>cached||(event.request.mode==="navigate"?caches.match("./index.html"):Response.error()))));return}event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok&&url.origin===location.origin){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response}).catch(()=>event.request.mode==="navigate"?caches.match("./index.html"):Response.error())))});
+self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);if(url.origin!==location.origin)return;const freshFirst=url.origin===location.origin&&(event.request.mode==="navigate"||/\.(?:html|js|mjs|css|json)$/.test(url.pathname));if(freshFirst){event.respondWith(fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response}).catch(()=>caches.match(event.request).then(cached=>cached||(url.pathname.endsWith("/")?caches.match(url.pathname+"index.html"):undefined)).then(cached=>cached||(event.request.mode==="navigate"?caches.match("./index.html"):Response.error()))));return}event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok&&url.origin===location.origin){const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy))}return response}).catch(()=>event.request.mode==="navigate"?caches.match("./index.html"):Response.error())))});

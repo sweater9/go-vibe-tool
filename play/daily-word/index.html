@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#ec4899">
+  <meta name="description" content="Daily Word Challenge — guess the five-letter word in six tries. Daily puzzle, unlimited practice, streaks and privacy-safe shareable results. Works offline.">
+  <link rel="canonical" href="https://govibetool.com/play/daily-word/">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../v2.css">
+  <link rel="stylesheet" href="../../v5.css">
+  <link rel="stylesheet" href="../games.css">
+  <title>Daily Word Challenge — Five-Letter Word Puzzle — GoVibeTool Play</title>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to main content</a>
+  <header>
+    <div class="wrap">
+      <nav aria-label="Main navigation">
+        <a class="brand" href="../../" aria-label="GoVibeTool home"><img class="brand-mark" src="../../assets/logo-mark.svg" width="28" height="28" alt=""><span>GoVibe</span>Tool</a>
+        <div class="navlinks">
+          <a href="../../">Tools</a>
+          <a href="../../learn/">Learn</a>
+          <a href="../../knowledge/">Knowledge</a>
+          <a href="../../labs/">Labs</a>
+          <a href="../" class="active" aria-current="page">Play <span class="nav-pillar-badge play">New</span></a>
+          <a href="../../#about">About</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap" style="padding: 20px 0 40px;">
+    <nav class="breadcrumb-trail" aria-label="Breadcrumb">
+      <a href="../../">Home</a><span>/</span><a href="../">Play</a><span>/</span><strong>Daily Word Challenge</strong>
+    </nav>
+    <div class="gv-game">
+      <div class="gv-head">
+        <div>
+          <span class="eyebrow" style="color:#5548DE;">WORD GAME</span>
+          <h1>Daily Word Challenge</h1>
+          <p class="sub" id="subtitle">Guess the five-letter word in six tries.</p>
+        </div>
+        <div class="gv-bar">
+          <button id="btnStats" type="button" class="gv-btn" aria-label="Statistics">📊 Stats</button>
+          <button id="btnHelp" type="button" class="gv-btn" aria-label="How to play">? Help</button>
+          <button id="btnContrast" type="button" class="gv-btn" aria-pressed="false" title="Use orange and blue instead of green and yellow">High contrast</button>
+        </div>
+      </div>
+      <div class="gw-modes" role="group" aria-label="Game mode">
+        <button id="modeDaily" type="button" class="gv-btn" aria-pressed="true">Daily puzzle</button>
+        <button id="modePractice" type="button" class="gv-btn" aria-pressed="false">Practice</button>
+        <button id="btnNewPractice" type="button" class="gv-btn" hidden>New word</button>
+      </div>
+      <div id="toast" class="gv-toast" role="status" aria-live="polite"></div>
+      <div id="grid" class="gw-grid" tabindex="-1" role="grid" aria-label="Guess grid, six rows of five letters"></div>
+      <p id="announce" class="sr-only" role="status" aria-live="polite"></p>
+      <div id="kbd" class="gw-kbd" role="group" aria-label="On-screen keyboard"><div class="gw-krow"><button type="button" class="gw-key" data-key="q" aria-label="q">q</button><button type="button" class="gw-key" data-key="w" aria-label="w">w</button><button type="button" class="gw-key" data-key="e" aria-label="e">e</button><button type="button" class="gw-key" data-key="r" aria-label="r">r</button><button type="button" class="gw-key" data-key="t" aria-label="t">t</button><button type="button" class="gw-key" data-key="y" aria-label="y">y</button><button type="button" class="gw-key" data-key="u" aria-label="u">u</button><button type="button" class="gw-key" data-key="i" aria-label="i">i</button><button type="button" class="gw-key" data-key="o" aria-label="o">o</button><button type="button" class="gw-key" data-key="p" aria-label="p">p</button></div><div class="gw-krow"><button type="button" class="gw-key" data-key="a" aria-label="a">a</button><button type="button" class="gw-key" data-key="s" aria-label="s">s</button><button type="button" class="gw-key" data-key="d" aria-label="d">d</button><button type="button" class="gw-key" data-key="f" aria-label="f">f</button><button type="button" class="gw-key" data-key="g" aria-label="g">g</button><button type="button" class="gw-key" data-key="h" aria-label="h">h</button><button type="button" class="gw-key" data-key="j" aria-label="j">j</button><button type="button" class="gw-key" data-key="k" aria-label="k">k</button><button type="button" class="gw-key" data-key="l" aria-label="l">l</button></div><div class="gw-krow"><button type="button" class="gw-key wide" data-key="Enter" aria-label="Enter">Enter</button><button type="button" class="gw-key" data-key="z" aria-label="z">z</button><button type="button" class="gw-key" data-key="x" aria-label="x">x</button><button type="button" class="gw-key" data-key="c" aria-label="c">c</button><button type="button" class="gw-key" data-key="v" aria-label="v">v</button><button type="button" class="gw-key" data-key="b" aria-label="b">b</button><button type="button" class="gw-key" data-key="n" aria-label="n">n</button><button type="button" class="gw-key" data-key="m" aria-label="m">m</button><button type="button" class="gw-key wide" data-key="Backspace" aria-label="Delete last letter">⌫</button></div></div>
+      <div class="related-tools" style="margin-top: 30px;">
+        <span class="eyebrow">MORE PLAY</span>
+        <div class="actions"><a href="../2048/" class="btn alt small" style="text-decoration:none;">2048 Challenge</a><a href="../daily/" class="btn alt small" style="text-decoration:none;">Daily Knowledge Challenge</a><a href="../" class="btn alt small" style="text-decoration:none;">All games</a></div>
+      </div>
+    </div>
+    <dialog id="dlgHelp" class="gv-dialog" aria-labelledby="helpTitle"><h2 id="helpTitle">How to play</h2>
+      <p>Guess the hidden five-letter word in six tries. Each guess must be a real word. After each guess the tiles show how close you are:</p>
+      <p><b>Green</b> — right letter, right spot. <b>Yellow</b> — letter is in the word, wrong spot. <b>Grey</b> — letter is not in the word (or you already used all of its copies). Repeated letters are counted carefully.</p>
+      <p>A new <b>daily puzzle</b> appears each day at local midnight and is the same for everyone. <b>Practice</b> gives unlimited extra words and does not affect your streak. Everything runs locally; progress and statistics stay on this device.</p>
+      <div class="row"><button type="button" class="gv-btn primary" data-close>Got it</button></div></dialog>
+    <dialog id="dlgStats" class="gv-dialog" aria-labelledby="statsTitle"><h2 id="statsTitle">Statistics</h2>
+      <div id="statsResult" hidden><p id="resultLine" style="font-weight:800;margin:0 0 6px"></p><div id="shareBox" class="gw-share"></div></div>
+      <div class="gv-stats"><div><strong id="stPlayed">0</strong><small>Played</small></div><div><strong id="stWin">0</strong><small>Win %</small></div><div><strong id="stCur">0</strong><small>Current streak</small></div><div><strong id="stMax">0</strong><small>Max streak</small></div></div>
+      <div id="stDist" class="gv-dist" aria-label="Guess distribution"></div>
+      <p id="nextWord" class="sub" style="margin:0 0 12px"></p>
+      <div class="row"><button id="btnShare" type="button" class="gv-btn primary" hidden>Share result</button><button type="button" class="gv-btn" data-close>Close</button></div></dialog>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="../../"><img class="brand-mark" src="../../assets/logo-mark.svg" width="28" height="28" alt=""><span>GoVibe</span>Tool</a>
+        <p>Private, browser-based tools, guided learning, interactive labs, and cognitive play. Good vibes.</p>
+      </div>
+      <div>
+        <strong>Pillars</strong>
+        <a href="../../#tools">Tools</a>
+        <a href="../../learn/">Learn</a>
+        <a href="../../labs/">Labs</a>
+        <a href="../">Play</a>
+      </div>
+      <div>
+        <strong>Legal & Privacy</strong>
+        <a href="../../privacy.html">Privacy</a>
+        <a href="../../terms.html">Terms</a>
+        <a href="../../contact.html">Contact</a>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <span>© 2026 GoVibeTool</span>
+      <span>Version 5.0 Release Candidate</span>
+    </div>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
