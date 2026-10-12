@@ -12,7 +12,7 @@ async function request(path,body,auth=true){
 }
 function button(text,action){const b=document.createElement('button');b.type='button';b.textContent=text;b.disabled=busy||!connected;b.onclick=()=>act(action);return b;}
 function render(s){
- state=s;$('lobby').hidden=true;$('room').hidden=false;$('room-code').textContent='Room code: '+s.code;
+ const hadGame=!!state?.game;state=s;$('lobby').hidden=true;$('room').hidden=false;$('room-code').textContent='Room code: '+s.code;
  $('expiry').textContent='Room expires by '+new Date(s.expiresAt).toLocaleTimeString()+'. Gameplay extends the idle limit.';
  $('seats').replaceChildren();for(let i=0;i<4;i++){
  const p=s.players[i],seat=document.createElement('section');seat.className='seat'+(s.game?.turn===i?' current':'');
@@ -21,7 +21,7 @@ function render(s){
  if(s.game){const d=document.createElement('p');d.textContent=s.game.players[i].count+' concealed tiles';seat.append(d);for(const m of s.game.players[i].melds){const x=document.createElement('p');x.className='meld';x.textContent=m.type+': '+m.tiles.map(label).join(' · ');seat.append(x);}}
  $('seats').append(seat);
  }
- const g=s.game;$('ready').hidden=!!g;$('ready').disabled=busy||!connected||s.players[s.seat].ready;
+ const g=s.game;if(g&&!hadGame){$('invite').open=false;$('instructions').open=false;}$('ready').hidden=!!g;$('ready').disabled=busy||!connected||s.players[s.seat].ready;
  $('ready').textContent=s.players[s.seat].ready?'Ready — waiting for friends':"I'm ready";
  $('claims').replaceChildren();$('kongs').replaceChildren();$('hand').replaceChildren();$('revealed').replaceChildren();$('win').hidden=true;$('result').textContent='';$('claim-clock').textContent='';
  if(!g){$('turn').textContent=s.players.length+'/4 friends at the table';$('wall').textContent='The hand starts when four guests are ready.';$('discard').disabled=true;return;}
@@ -30,7 +30,7 @@ function render(s){
  $('wall').textContent=g.wallCount+' tiles in the wall';
  $('hand-help').textContent=ownTurn?'Select a tile, then confirm your discard.':g.phase==='finished'?'Create a new room for the next hand.':'Watch the table. Your legal actions appear when available.';
  if(!g.hand.includes(selected))selected=null;
- g.hand.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.className='tile';b.dataset.tile=t;b.disabled=!ownTurn||busy||!connected;b.setAttribute('aria-label',label(t)+', tile '+(i+1));b.setAttribute('aria-pressed',String(t===selected));const strong=document.createElement('strong');strong.textContent=t<27?t%9+1:['東','南','西','北','中','發','白'][t-27];const small=document.createElement('small');small.textContent=t<27?['Characters','Bamboo','Dots'][Math.floor(t/9)]:label(t);b.append(strong,small);b.onclick=()=>{selected=t;for(const tile of $('hand').children)tile.setAttribute('aria-pressed',String(Number(tile.dataset.tile)===t));$('discard').disabled=!connected||busy;};$('hand').append(b);});
+ g.hand.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.className='tile';b.dataset.tile=t;b.disabled=!ownTurn||busy||!connected;b.setAttribute('aria-label',label(t)+', tile '+(i+1));b.setAttribute('aria-pressed',String(t===selected));const strong=document.createElement('strong');strong.textContent=t<27?t%9+1:['東','南','西','北','中','發','白'][t-27];const small=document.createElement('small');small.textContent=t<27?['Chars','Bamboo','Dots'][Math.floor(t/9)]:label(t);b.append(strong,small);b.onclick=()=>{selected=t;for(const tile of $('hand').children)tile.setAttribute('aria-pressed',String(Number(tile.dataset.tile)===t));$('discard').disabled=!connected||busy;};$('hand').append(b);});
  $('discard').disabled=!ownTurn||selected===null||busy||!connected;
  $('win').hidden=!g.canWin;$('win').disabled=busy||!connected;
  for(const a of g.kongs)$('kongs').append(button('Kong: '+label(a.tile),a));
