@@ -642,3 +642,4 @@
 .wf-guide-list li span[aria-hidden] { display: inline-block; width: 20px; font-weight: 800; }
 @media (max-width: 900px) { .workflow-app { grid-template-columns: 1fr !important; height: auto !important; } .canvas-container { min-height: 460px; } }
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width: 700px) { .wf-heading { flex-direction: column; align-items: stretch; } .wf-heading .actions { justify-content: flex-start; } }

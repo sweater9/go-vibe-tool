@@ -41,7 +41,6 @@ function scenarioExp(id) {
     const sc = SCENARIOS[id]; let server, history, speed = 1;
     const fresh = () => { server = createServer(id, { seed: 7, speed }); history = []; };
     fresh();
-    stage.append(el('p', { class: 'lk-hint' }, sc.intro));
     const ep = el('div', { class: 'lk-row', role: 'group', 'aria-label': 'Example requests' }); stage.append(el('h3', {}, 'Example requests'), ep);
     const ctl = el('div', { class: 'lk-controls' }); stage.append(ctl);
     const m = select(ctl, { id: `sc-${id}-m`, label: 'Method', options: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map(v => ({ value: v, label: v })), value: 'GET' });
