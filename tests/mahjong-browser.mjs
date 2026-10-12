@@ -14,7 +14,7 @@ try{for(const engine of engines){let browser;try{browser=await pw[engine].launch
  const contexts=[],pages=[],errors=[],failures=[];
  try{
  for(let i=0;i<4;i++){const c=await browser.newContext({viewport:{width,height:900}});contexts.push(c);const p=await c.newPage();pages.push(p);p.on('pageerror',e=>errors.push(e.message));p.on('requestfailed',r=>{if(!r.url().includes('/events')&&!r.failure()?.errorText?.includes('ABORT'))failures.push(r.url()+': '+r.failure()?.errorText);});await p.goto('http://localhost:8080/play/mahjong/');}
- await pages[0].evaluate(()=>{document.activeElement?.blur();window.scrollTo(0,0);});await pages[0].screenshot({path:`${dir}/${engine}-${width}-lobby.png`,fullPage:true});
+ await pages[0].evaluate(()=>{document.activeElement?.blur();document.documentElement.style.scrollBehavior='auto';window.scrollTo({top:0,left:0,behavior:'instant'});});await pages[0].waitForFunction(()=>scrollY===0&&document.querySelector('header').getBoundingClientRect().top===0);await pages[0].screenshot({path:`${dir}/${engine}-${width}-lobby.png`,fullPage:true});
  await pages[0].locator('#name').fill('East guest');await pages[0].locator('#create').click();await pages[0].locator('#room').waitFor({state:'visible'});
  await pages[0].waitForFunction(()=>document.getElementById('status').textContent.startsWith('Connected'));
  const code=(await pages[0].locator('#room-code').textContent()).split(': ')[1];
@@ -34,7 +34,7 @@ try{for(const engine of engines){let browser;try{browser=await pw[engine].launch
  const stale=await pages[0].evaluate(async()=>{const seat=JSON.parse(sessionStorage.getItem('govibe-mahjong-seat'));const r=await fetch(window.MAHJONG_API+'/rooms/'+seat.code+'/actions',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+seat.token},body:JSON.stringify({revision:-1,action:{type:'discard',tile:999}})});return r.status;});assert.equal(stale,409);
  for(const p of pages){assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Horizontal overflow');for(const tile of await p.locator('#hand button').all()){const box=await tile.boundingBox();assert.ok(box.width>=44&&box.height>=44,'Tile touch target');}}
  if(width===375){await pages[0].locator('.mobile-nav summary').click();assert.ok(await pages[0].locator('.mobile-nav a').first().isVisible());await pages[0].locator('.mobile-nav summary').click();}
- await pages[0].evaluate(()=>{document.activeElement?.blur();window.scrollTo(0,0);});await pages[0].screenshot({path:`${dir}/${engine}-${width}-table.png`,fullPage:true});
+ await pages[0].evaluate(()=>{document.activeElement?.blur();document.documentElement.style.scrollBehavior='auto';window.scrollTo({top:0,left:0,behavior:'instant'});});await pages[0].waitForFunction(()=>scrollY===0&&document.querySelector('header').getBoundingClientRect().top===0);await pages[0].screenshot({path:`${dir}/${engine}-${width}-table.png`,fullPage:true});
  // Reconnection from a temporary network outage retains the same seat and hand.
  const south=await pages[1].locator('#hand').textContent();await contexts[1].setOffline(true);await pages[0].waitForFunction(()=>document.querySelector('#seats').textContent.includes('Reconnecting / offline'));await contexts[1].setOffline(false);await pages[1].waitForFunction(()=>document.getElementById('status').textContent.startsWith('Connected'),null,{timeout:20000});assert.equal(await pages[1].locator('#hand').textContent(),south);
  assert.deepEqual(errors,[]);assert.deepEqual(failures,[]);
