@@ -1,1 +1,6 @@
 artifacts/
+
+node_modules/
+artifacts/
+multiplayer/state/
+*.tmp

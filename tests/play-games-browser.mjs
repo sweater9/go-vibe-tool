@@ -61,13 +61,13 @@ const expectBoard = (start, dirs, r) => { let s = fromValues(start); for (const 
 try {
   for (const [label, w, h, touch] of [['desktop', 1280, 900, false], ['mobile', 390, 844, true]]) {
     // ---------------- Play hub ----------------
-    await check(`${label}: Play hub lists 4 active games and keeps the original two`, async () => {
+    await check(`${label}: Play hub lists 3 active solo games plus the Mahjong preview`, async () => {
       const c = await ctxFor({ w, h, touch }); const p = c.page;
       await p.goto(base + 'play/', { waitUntil: 'networkidle' });
-      assert.equal(await p.locator('.hero-stats strong').first().innerText(), '4');
-      assert.match(await p.locator('.hero-stats span').first().innerText(), /4\s*Active Games/i);
+      assert.equal(await p.locator('.hero-stats strong').first().innerText(), '3');
+      assert.match(await p.locator('.hero-stats span').first().innerText(), /3\s*Active Games/i);
       const hrefs = await p.locator('.v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href')));
-      assert.deepEqual(hrefs, ['daily/', 'word-logic/', '2048/', 'daily-word/']);
+      assert.deepEqual(hrefs, ['mahjong/', 'word-logic/', '2048/', 'daily-word/']);
       assert.equal(await p.locator('.v5-card').count(), 4); assert.ok((await overflow(p)) <= 0, 'overflow');
       assert.deepEqual(c.errs, []); await p.screenshot({ path: `${dir}/hub-${label}.png`, fullPage: true }); await closeCtx(c);
     });

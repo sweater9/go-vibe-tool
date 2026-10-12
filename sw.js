@@ -1,4 +1,4 @@
-const CACHE="govibetool-v8-3";
+const CACHE="govibetool-v8-4";
 const LEGACY_CACHE="govibetool-v2-7";
 const ASSETS=[
   "./",
@@ -39,9 +39,10 @@ const ASSETS=[
   "./labs/finance/finance-engine.js",
   "./labs/finance/finance-app.js",
   "./play/index.html",
-  "./play/daily/index.html",
-  "./play/daily/daily-engine.js",
-  "./play/daily/daily-app.js",
+  "./play/mahjong/index.html",
+  "./play/mahjong/mahjong.css",
+  "./play/mahjong/config.js",
+  "./play/mahjong/mahjong.mjs",
   "./play/word-logic/index.html",
   "./play/word-logic/logic-engine.js",
   "./play/word-logic/logic-app.js",
