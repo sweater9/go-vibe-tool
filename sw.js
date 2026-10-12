@@ -1,4 +1,4 @@
-const CACHE="govibetool-v8-0";
+const CACHE="govibetool-v8-1";
 const LEGACY_CACHE="govibetool-v2-7";
 const ASSETS=[
   "./",
@@ -30,6 +30,10 @@ const ASSETS=[
   "./play/word-logic/logic-app.js",
   "./manifest.webmanifest",
   "./assets/icon.svg",
+  "./assets/logo-mark.svg",
+  "./assets/icon-192.png",
+  "./assets/icon-512.png",
+  "./assets/apple-touch-icon.png",
   "./vendor/pdf-lib.min.js",
   "./vendor/qrcode.min.js",
   "./vendor/jsqr.min.js"

@@ -7,7 +7,13 @@ assert.ok(html.includes('id="toolSearch"')&&html.includes('role="search"'),'inte
 assert.equal((html.match(/<h1[ >]/g)||[]).length,1,'single h1');
 assert.ok(html.includes('aria-controls="primaryNav"')&&html.includes('aria-expanded="false"'),'mobile menu semantics');
 assert.ok(html.includes('GoVibe</span>Tool')&&/class="brand-mark"/.test(html),'logo + wordmark');
-assert.ok(/rx="16"/.test(icon)&&!/stroke-width="44"/.test(icon),'icon is sparkle square, not GV');
+const mark=fs.readFileSync('assets/logo-mark.svg','utf8');
+assert.equal(icon,mark,'favicon is the same artwork as the logo mark');
+assert.ok(/fill="#5548DE"/.test(mark)&&/stroke="#fff"/.test(mark)&&/<circle/.test(mark)&&!/stroke-width="44"/.test(mark),'supplied sparkle artwork (violet squircle, white outline sparkle + ring), not the old GV icon');
+assert.ok(html.includes('src="assets/logo-mark.svg"'),'homepage uses the supplied mark');
+for(const f of ['icon-192.png','icon-512.png','icon-maskable-512.png','apple-touch-icon.png','og-image.png'])assert.ok(fs.statSync('assets/'+f).size>1000,'asset '+f);
+const man=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));assert.ok(man.icons.some(i=>i.purpose==='maskable')&&man.icons.some(i=>i.sizes==='192x192'),'manifest icons');
+assert.ok(sw.includes('govibetool-v8-1')&&sw.includes('./assets/logo-mark.svg'),'service worker cache bumped and precaches the mark');
 assert.ok(sw.includes('./v8.css')&&sw.includes('./v8-discovery.js'),'service worker precaches v8 assets');
 for(const a of ['AI & Prompts','Productivity','PDF & Tables','Images & Design','Privacy & Security','Developer','Business & Finance','Writing & Text','Links & Web'])assert.ok(fs.readFileSync('v8-discovery.js','utf8').includes('label:"'+a+'"'),'category '+a);
 assert.ok(!/start with these/i.test(html)&&!html.includes('featuredTools'),'no featured section');

@@ -18,7 +18,7 @@
 
 /* ---------- Brand ---------- */
 .homepage .brand{display:inline-flex;align-items:center;gap:10px;color:#fff;text-decoration:none}
-.homepage .brand-mark{flex:none;border-radius:11px;box-shadow:0 4px 14px rgba(91,63,224,.45)}
+.homepage .brand-mark{flex:none;width:36px;height:36px;display:block}
 .homepage .brand .wordmark{font-size:21px;font-weight:900;letter-spacing:-.045em;color:inherit}
 .homepage .brand .wordmark span{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:inherit}
 
