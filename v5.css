@@ -142,7 +142,7 @@
 /* Visual Workflow Lab Styles */
 .workflow-app {
   display: grid;
-  grid-template-columns: 320px 1fr 340px;
+  grid-template-columns: 270px 1fr 300px;
   gap: 16px;
   height: calc(100vh - 120px);
   min-height: 650px;
@@ -628,3 +628,17 @@
     overscroll-behavior-x: contain;
   }
 }
+
+/* Workflow Lab v2 */
+:root { --v5-node-loop: #0ea5e9; }
+.wf-node-header.loop { background: var(--v5-node-loop); }
+.wf-node { touch-action: none; }
+.wf-node:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }
+.wf-node.bp { box-shadow: 0 0 0 3px #ef4444, 0 6px 18px rgba(239,68,68,.2); }
+.wf-node.bp::after { content: '●'; position: absolute; left: -8px; top: -10px; color: #ef4444; font-size: 16px; }
+.wf-node.visited:not(.executing) { border-color: #a7f3d0; }
+.wf-guide-list { margin: 8px 0 12px; padding-left: 0; list-style: none; display: grid; gap: 6px; font-size: 14px; }
+.wf-guide-list li.done { color: #065f46; }
+.wf-guide-list li span[aria-hidden] { display: inline-block; width: 20px; font-weight: 800; }
+@media (max-width: 900px) { .workflow-app { grid-template-columns: 1fr !important; height: auto !important; } .canvas-container { min-height: 460px; } }
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}

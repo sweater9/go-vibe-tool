@@ -50,6 +50,11 @@
           <option value="customerSupport">Sample: Customer Support Triage</option>
           <option value="leadQualification">Sample: Lead Qualification & Routing</option>
           <option value="documentPrivacy">Sample: Document Privacy & Redaction</option>
+          <optgroup label="Reusable templates">
+            <option value="loopCounter">Template: Count with a loop</option>
+            <option value="retry">Template: Retry with a limit</option>
+            <option value="approval">Template: Expense approval</option>
+          </optgroup>
         </select>
         <button id="btnSaveWorkflow" type="button" class="btn alt small" title="Save workflow to browser storage">Save</button>
         <button id="btnExportJson" type="button" class="btn alt small" title="Download workflow as JSON file">Export JSON</button>
@@ -81,8 +86,14 @@
             <button id="btnStartSim" type="button" class="btn small" style="flex:1;">▶ Start</button>
             <button id="btnStepSim" type="button" class="btn alt small" style="flex:1;" title="Step forward one node">Step ⏭</button>
             <button id="btnRunAllSim" type="button" class="btn alt small" style="flex:1;">Run All</button>
-            <button id="btnResetSim" type="button" class="btn alt small">↺</button>
+            <button id="btnResetSim" type="button" class="btn alt small" aria-label="Reset simulation">↺</button>
           </div>
+          <div class="actions" style="margin: 0 0 12px;">
+            <button id="btnBackSim" type="button" class="btn alt small" style="flex:1;" title="Undo the last executed step">⏮ Back</button>
+            <button id="btnRunBreakSim" type="button" class="btn alt small" style="flex:1;" title="Run until a step with a breakpoint">Run to breakpoint</button>
+          </div>
+          <p id="simStatus" class="field-help" role="status" aria-live="polite"></p>
+          <p class="field-help">Safe by design: runs stop after 100 steps, loops are capped at 25 iterations, and math is evaluated by a small built-in parser — never <code>eval</code>. Nothing leaves your browser.</p>
 
           <div style="margin-top: 18px;">
             <label style="font-weight: 750; font-size: 13px; display: block; margin-bottom: 6px;">Execution Trace</label>
@@ -106,10 +117,13 @@
             <button id="btnAddAction" type="button" class="btn small" style="background:var(--v5-node-action);">+ Action</button>
             <button id="btnAddCondition" type="button" class="btn small" style="background:var(--v5-node-condition);">+ Condition</button>
             <button id="btnAddEnd" type="button" class="btn small" style="background:var(--v5-node-end);">+ End</button>
+            <button id="btnAddLoop" type="button" class="btn small" style="background:var(--v5-node-loop);">+ Loop</button>
+            <button id="btnUndo" type="button" class="btn alt small" disabled aria-label="Undo (Ctrl+Z)">↶ Undo</button>
+            <button id="btnRedo" type="button" class="btn alt small" disabled aria-label="Redo (Ctrl+Y)">↷ Redo</button>
           </div>
           <div style="display:flex; gap:8px; align-items:center;">
             <button id="btnValidate" type="button" class="btn alt small">Verify Graph</button>
-            <span style="font-size:11px; color:var(--muted); display:inline-block;">Drag nodes • Connect ports</span>
+            <span style="font-size:11px; color:var(--muted); display:inline-block;">Drag or use arrow keys • Connect ports or use the inspector</span>
           </div>
         </div>
 
@@ -154,6 +168,13 @@
         <a href="../api-playground/" class="btn alt small" style="text-decoration:none;">Explore API & JSON Playground →</a>
       </div>
     </div>
+  <section class="wf-guide" aria-labelledby="wfGuideTitle" style="margin-top:18px;">
+      <div class="panel-container"><div class="panel-header"><h2 id="wfGuideTitle">Guided experiment</h2><span class="v5-badge live" id="wfGuideCount"></span></div>
+        <div class="panel-body"><p class="field-help">Follow the steps or just explore — they tick off automatically. Progress is saved only on this device.</p>
+          <ol id="wfGuideList" class="wf-guide-list"></ol>
+          <p class="field-help"><b>Simulation notice:</b> this lab runs a simplified, deterministic model of workflows. It does not connect to or control any real service.</p>
+          <button id="btnGuideReset" type="button" class="btn alt small">Clear my guided progress</button></div></div>
+    </section>
   </main>
 
   <footer>

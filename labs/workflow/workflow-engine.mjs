@@ -8,7 +8,8 @@ export const NODE_TYPES = {
   START: 'start',
   ACTION: 'action',
   CONDITION: 'condition',
-  END: 'end'
+  END: 'end',
+  LOOP: 'loop'
 };
 
 export const ACTION_OPERATIONS = {
@@ -16,7 +17,8 @@ export const ACTION_OPERATIONS = {
   TRANSFORM_TEXT: 'transform_text',
   NOTIFY_LOG: 'notify_log',
   CALCULATE_SCORE: 'calculate_score',
-  SANITIZE_DATA: 'sanitize_data'
+  SANITIZE_DATA: 'sanitize_data',
+  COMPUTE: 'compute'
 };
 
 export const CONDITION_OPERATORS = {
@@ -128,6 +130,10 @@ export function validateWorkflow(workflow) {
       if (!falseBranch) {
         errors.push(`Condition node "${node.label || node.id}" is missing a "False" branch connection.`);
       }
+    } else if (node.type === NODE_TYPES.LOOP) {
+      if (ins.length === 0) errors.push(`Loop node "${node.label || node.id}" has no incoming connection.`);
+      if (!outs.find(e => e.branch === 'body')) errors.push(`Loop node "${node.label || node.id}" is missing a "Body" connection.`);
+      if (!outs.find(e => e.branch === 'done')) errors.push(`Loop node "${node.label || node.id}" is missing a "Done" connection.`);
     } else if (node.type === NODE_TYPES.ACTION) {
       if (ins.length === 0) {
         errors.push(`Action node "${node.label || node.id}" is disconnected (no incoming connection).`);
@@ -175,7 +181,7 @@ export function evaluateCondition(config, context) {
   if (!config) return false;
   const field = String(config.field || '').trim();
   const operator = config.operator || CONDITION_OPERATORS.EQUALS;
-  const targetVal = config.value !== undefined ? String(config.value) : '';
+  const targetVal = config.value !== undefined ? interpolate(String(config.value), context) : '';
 
   const actualRaw = context[field];
   const actualStr = actualRaw !== undefined && actualRaw !== null ? String(actualRaw) : '';
@@ -203,6 +209,30 @@ export function evaluateCondition(config, context) {
 /**
  * Executes a single action step deterministically
  */
+export const MAX_LOOP_ITERATIONS = 25;
+
+/** Replaces {{name}} with context values (unknown names become empty text). */
+export function interpolate(text, context) {
+  return String(text ?? '').replace(/\{\{\s*([\w.-]+)\s*\}\}/g, (_, k) => (context[k] === undefined || context[k] === null ? '' : String(context[k])));
+}
+
+/** Safe arithmetic: numbers, variable names, + - * / % and parentheses. No eval. Returns {ok, value|error}. */
+export function evaluateExpression(expr, context) {
+  const src = String(expr ?? ''), toks = [];
+  const re = /\s*(?:(\d+(?:\.\d+)?)|([A-Za-z_][\w.-]*)|([-+*/%()]))/y; let pos = 0;
+  while (pos < src.length) {
+    if (src.slice(pos).trim() === '') break;
+    re.lastIndex = pos; const m = re.exec(src); if (!m) { return { ok: false, error: `Unexpected character near “${src.slice(pos).trim().slice(0, 8)}”` }; }
+    toks.push(m[1] !== undefined ? { n: Number(m[1]) } : m[2] !== undefined ? { v: m[2] } : { o: m[3] }); pos = re.lastIndex;
+  }
+  if (!toks.length) return { ok: false, error: 'Empty expression' };
+  let i = 0; const fail = msg => { throw new Error(msg); };
+  const primary = () => { const t = toks[i++]; if (!t) fail('Unexpected end'); if (t.n !== undefined) return t.n; if (t.v !== undefined) { const x = Number(context[t.v]); if (context[t.v] === undefined || context[t.v] === '' || Number.isNaN(x)) fail(`Variable “${t.v}” is not a number`); return x; } if (t.o === '(') { const v = add(); if (!toks[i] || toks[i].o !== ')') fail('Missing )'); i++; return v; } if (t.o === '-') return -primary(); if (t.o === '+') return primary(); return fail(`Unexpected “${t.o}”`); };
+  const mul = () => { let v = primary(); while (toks[i] && '*/%'.includes(toks[i].o || '#')) { const o = toks[i++].o, r = primary(); if ((o === '/' || o === '%') && r === 0) fail('Division by zero'); v = o === '*' ? v * r : o === '/' ? v / r : v % r; } return v; };
+  const add = () => { let v = mul(); while (toks[i] && '+-'.includes(toks[i].o || '#')) { const o = toks[i++].o, r = mul(); v = o === '+' ? v + r : v - r; } return v; };
+  try { const v = add(); if (i < toks.length) fail('Unexpected extra input'); return { ok: true, value: Math.round(v * 1e9) / 1e9 }; } catch (e) { return { ok: false, error: e.message }; }
+}
+
 export function executeAction(node, context) {
   const newContext = { ...context };
   const config = node.config || {};
@@ -212,9 +242,16 @@ export function executeAction(node, context) {
   switch (op) {
     case ACTION_OPERATIONS.SET_VARIABLE: {
       const key = String(config.paramKey || 'var').trim();
-      const val = config.paramValue !== undefined ? config.paramValue : '';
+      const val = typeof config.paramValue === 'string' ? interpolate(config.paramValue, newContext) : (config.paramValue !== undefined ? config.paramValue : '');
       newContext[key] = val;
       logDetail = `Set variable "${key}" = ${JSON.stringify(val)}`;
+      break;
+    }
+    case ACTION_OPERATIONS.COMPUTE: {
+      const key = String(config.paramKey || 'result').trim();
+      const r = evaluateExpression(config.paramValue, newContext);
+      if (r.ok) { newContext[key] = r.value; logDetail = `Computed "${key}" = ${config.paramValue} → ${r.value}`; }
+      else { logDetail = `Could not compute "${key}": ${r.error} (value unchanged)`; }
       break;
     }
     case ACTION_OPERATIONS.TRANSFORM_TEXT: {
@@ -247,7 +284,7 @@ export function executeAction(node, context) {
     }
     case ACTION_OPERATIONS.NOTIFY_LOG:
     default: {
-      const msg = config.paramValue || `Action ${node.label} triggered`;
+      const msg = interpolate(config.paramValue || `Action ${node.label} triggered`, newContext);
       logDetail = `Message: "${msg}"`;
       break;
     }
@@ -269,6 +306,9 @@ export class WorkflowSimulator {
     this.logs = [];
     this.visitedNodes = new Set();
     this.maxSteps = 100; // Cycle guard
+    this.loopCounts = {};
+    this.breakpoints = new Set();
+    this.history = [];
 
     const startNode = (workflow.nodes || []).find(n => n.type === NODE_TYPES.START);
     if (startNode) {
@@ -301,6 +341,7 @@ export class WorkflowSimulator {
       return { done: true, logs: this.logs, context: this.context };
     }
 
+    this.history.push({ currentNodeId: this.currentNodeId, context: { ...this.context }, stepIndex: this.stepIndex, isDone: this.isDone, logLen: this.logs.length, loopCounts: { ...this.loopCounts } });
     this.stepIndex++;
     this.visitedNodes.add(node.id);
 
@@ -355,6 +396,14 @@ export class WorkflowSimulator {
           message: `No connection found for branch "${branchTaken}". Workflow terminated at Condition.`
         });
       }
+    } else if (node.type === NODE_TYPES.LOOP) {
+      const cfg = node.config || {}, limit = Math.max(0, Math.min(MAX_LOOP_ITERATIONS, Math.floor(Number(cfg.count) || 0))), requested = Math.floor(Number(cfg.count) || 0);
+      const done = this.loopCounts[node.id] || 0, counterKey = String(cfg.counterKey || '').trim();
+      const goBody = done < limit; if (goBody) { this.loopCounts[node.id] = done + 1; if (counterKey) this.context[counterKey] = done + 1; }
+      this.logs.push({ step: this.stepIndex, nodeId: node.id, nodeLabel: node.label || 'Loop', type: 'loop',
+        message: goBody ? `Loop iteration ${done + 1} of ${limit}${requested > limit ? ` (requested ${requested}, capped at ${MAX_LOOP_ITERATIONS} for safety)` : ''}.` : `Loop finished after ${done} iteration${done === 1 ? '' : 's'}.` });
+      const next = edges.find(e => e.branch === (goBody ? 'body' : 'done'));
+      if (next) this.currentNodeId = next.to; else { this.isDone = true; this.logs.push({ step: this.stepIndex, type: 'warning', message: `No connection found for loop branch "${goBody ? 'body' : 'done'}".` }); }
     } else if (node.type === NODE_TYPES.END) {
       this.isDone = true;
       this.logs.push({
@@ -375,10 +424,28 @@ export class WorkflowSimulator {
     };
   }
 
+  /** Undo the last step (time-travel debugging). Returns false when there is nothing to undo. */
+  stepBack() {
+    const h = this.history.pop(); if (!h) return false;
+    this.currentNodeId = h.currentNodeId; this.context = h.context; this.stepIndex = h.stepIndex; this.isDone = h.isDone; this.logs.length = h.logLen; this.loopCounts = h.loopCounts; return true;
+  }
+
+  /** Run until a breakpoint node is about to execute, the workflow ends, or the step limit is hit. */
+  runToBreakpoint() {
+    let first = true;
+    while (!this.isDone && this.stepIndex < this.maxSteps) {
+      if (!first && this.breakpoints.has(this.currentNodeId)) return { paused: true, nodeId: this.currentNodeId, context: { ...this.context } };
+      first = false; this.step();
+    }
+    if (!this.isDone) this.step(); // triggers the step-limit message
+    return { paused: false, done: true, context: { ...this.context } };
+  }
+
   runAll() {
     while (!this.isDone && this.stepIndex < this.maxSteps) {
       this.step();
     }
+    if (!this.isDone) this.step(); // records the step-limit halt message
     return {
       done: true,
       stepCount: this.stepIndex,
@@ -499,6 +566,64 @@ export const SAMPLE_WORKFLOWS = {
       { id: 'pe3', from: 'p_check', to: 'p_log', branch: 'false' },
       { id: 'pe4', from: 'p_redact', to: 'p_end', branch: 'default' },
       { id: 'pe5', from: 'p_log', to: 'p_end', branch: 'default' }
+    ]
+  }
+};
+
+/* ---- templates, import/export ---- */
+export const WORKFLOW_FORMAT = 'govibetool-workflow';
+export const WORKFLOW_VERSION = 2;
+export function exportWorkflow(wf) {
+  return JSON.stringify({ format: WORKFLOW_FORMAT, version: WORKFLOW_VERSION, id: wf.id, name: wf.name, description: wf.description, initialPayload: wf.initialPayload || {}, nodes: wf.nodes, edges: wf.edges }, null, 2);
+}
+export function cloneWorkflow(wf) { return JSON.parse(JSON.stringify(wf)); }
+
+export const TEMPLATES = {
+  loopCounter: {
+    id: 'wf_tpl_loop', name: 'Template: Count with a loop', description: 'Loops four times, adding the loop counter to a running total — shows loops, variables and compute actions.',
+    initialPayload: { total: 0, i: 0 },
+    nodes: [
+      { id: 't_start', type: NODE_TYPES.START, label: 'Start', x: 80, y: 150 },
+      { id: 't_loop', type: NODE_TYPES.LOOP, label: 'Repeat 4 times', config: { count: 4, counterKey: 'i' }, x: 320, y: 150 },
+      { id: 't_add', type: NODE_TYPES.ACTION, label: 'total = total + i', config: { actionType: ACTION_OPERATIONS.COMPUTE, paramKey: 'total', paramValue: 'total + i' }, x: 580, y: 60 },
+      { id: 't_end', type: NODE_TYPES.END, label: 'Finished', x: 600, y: 250 }
+    ],
+    edges: [
+      { id: 'te1', from: 't_start', to: 't_loop', branch: 'default' }, { id: 'te2', from: 't_loop', to: 't_add', branch: 'body' },
+      { id: 'te3', from: 't_add', to: 't_loop', branch: 'default' }, { id: 'te4', from: 't_loop', to: 't_end', branch: 'done' }
+    ]
+  },
+  retry: {
+    id: 'wf_tpl_retry', name: 'Template: Retry with a limit', description: 'Tries a task up to three times and stops when it succeeds — a pattern for retries with a safe cap.',
+    initialPayload: { attempts: 0, succeedOnAttempt: 2, status: 'pending' },
+    nodes: [
+      { id: 'r_start', type: NODE_TYPES.START, label: 'Start job', x: 60, y: 150 },
+      { id: 'r_loop', type: NODE_TYPES.LOOP, label: 'Up to 3 attempts', config: { count: 3, counterKey: 'attempts' }, x: 280, y: 150 },
+      { id: 'r_check', type: NODE_TYPES.CONDITION, label: 'Succeeded this attempt?', config: { field: 'attempts', operator: CONDITION_OPERATORS.EQUALS, value: '{{succeedOnAttempt}}' }, x: 540, y: 60 },
+      { id: 'r_ok', type: NODE_TYPES.ACTION, label: 'Mark success', config: { actionType: ACTION_OPERATIONS.SET_VARIABLE, paramKey: 'status', paramValue: 'done after {{attempts}} attempt(s)' }, x: 800, y: 20 },
+      { id: 'r_endok', type: NODE_TYPES.END, label: 'Job complete', x: 1040, y: 20 },
+      { id: 'r_fail', type: NODE_TYPES.ACTION, label: 'Give up', config: { actionType: ACTION_OPERATIONS.SET_VARIABLE, paramKey: 'status', paramValue: 'failed after {{attempts}} attempts' }, x: 540, y: 250 },
+      { id: 'r_endfail', type: NODE_TYPES.END, label: 'Job failed', x: 800, y: 250 }
+    ],
+    edges: [
+      { id: 're1', from: 'r_start', to: 'r_loop', branch: 'default' }, { id: 're2', from: 'r_loop', to: 'r_check', branch: 'body' }, { id: 're3', from: 'r_loop', to: 'r_fail', branch: 'done' },
+      { id: 're4', from: 'r_check', to: 'r_ok', branch: 'true' }, { id: 're5', from: 'r_check', to: 'r_loop', branch: 'false' }, { id: 're6', from: 'r_ok', to: 'r_endok', branch: 'default' }, { id: 're7', from: 'r_fail', to: 'r_endfail', branch: 'default' }
+    ]
+  },
+  approval: {
+    id: 'wf_tpl_approval', name: 'Template: Expense approval', description: 'Computes a tax-inclusive total and routes the claim by amount — branching with computed variables.',
+    initialPayload: { amount: 480, taxRate: 0.2, owner: 'Sam' },
+    nodes: [
+      { id: 'a_start', type: NODE_TYPES.START, label: 'Claim submitted', x: 60, y: 150 },
+      { id: 'a_calc', type: NODE_TYPES.ACTION, label: 'Total with tax', config: { actionType: ACTION_OPERATIONS.COMPUTE, paramKey: 'total', paramValue: 'amount * (1 + taxRate)' }, x: 290, y: 150 },
+      { id: 'a_cond', type: NODE_TYPES.CONDITION, label: 'Total > 500?', config: { field: 'total', operator: CONDITION_OPERATORS.GREATER_THAN, value: '500' }, x: 540, y: 150 },
+      { id: 'a_mgr', type: NODE_TYPES.ACTION, label: 'Ask manager', config: { actionType: ACTION_OPERATIONS.NOTIFY_LOG, paramValue: '{{owner}}’s claim of {{total}} needs manager approval' }, x: 800, y: 60 },
+      { id: 'a_auto', type: NODE_TYPES.ACTION, label: 'Auto-approve', config: { actionType: ACTION_OPERATIONS.NOTIFY_LOG, paramValue: '{{owner}}’s claim of {{total}} approved automatically' }, x: 800, y: 250 },
+      { id: 'a_end1', type: NODE_TYPES.END, label: 'Waiting for manager', x: 1050, y: 60 }, { id: 'a_end2', type: NODE_TYPES.END, label: 'Approved', x: 1050, y: 250 }
+    ],
+    edges: [
+      { id: 'ae1', from: 'a_start', to: 'a_calc', branch: 'default' }, { id: 'ae2', from: 'a_calc', to: 'a_cond', branch: 'default' }, { id: 'ae3', from: 'a_cond', to: 'a_mgr', branch: 'true' }, { id: 'ae4', from: 'a_cond', to: 'a_auto', branch: 'false' },
+      { id: 'ae5', from: 'a_mgr', to: 'a_end1', branch: 'default' }, { id: 'ae6', from: 'a_auto', to: 'a_end2', branch: 'default' }
     ]
   }
 };
