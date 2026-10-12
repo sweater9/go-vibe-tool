@@ -10,6 +10,7 @@
   <link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../../v2.css">
   <link rel="stylesheet" href="../../v5.css">
+  <link rel="stylesheet" href="../labs.css">
   <title>API & JSON Playground — GoVibeTool Labs</title>
 </head>
 <body>
@@ -220,7 +221,15 @@
         <a href="../workflow/" class="btn alt small" style="text-decoration:none;">Explore Visual Workflow Lab →</a>
       </div>
     </div>
-  </main>
+  <section class="lk-wrap" aria-labelledby="scTitle" style="margin-top:28px;">
+      <span class="eyebrow">GUIDED SCENARIOS</span>
+      <h2 id="scTitle" style="font-size: clamp(22px, 3vw, 28px); margin: 6px 0; letter-spacing: -.02em;">Mock API scenarios</h2>
+      <p class="sub">Realistic fictional APIs with pagination, authentication, errors, rate limits and latency. Pick a scenario, follow the guided steps or explore freely.</p>
+      <p class="lk-banner" role="note"><b>Simulation only.</b> <span>These scenarios run on a mock server inside your browser. They never contact a real API, and tokens and keys shown are fake.</span></p>
+      <div id="labRoot"></div>
+      <p id="labLive" class="lk-live" role="status" aria-live="polite"></p>
+    </section>
+    </main>
 
   <footer>
     <div class="wrap footer-grid">
@@ -249,5 +258,6 @@
   </footer>
 
   <script type="module" src="api-app.js"></script>
+  <script type="module" src="scenario-app.js"></script>
 </body>
 </html>
