@@ -18,7 +18,7 @@ try{for(const engine of engines){let browser;try{browser=await pw[engine].launch
  await pages[0].locator('#name').fill('East guest');await pages[0].locator('#create').click();await pages[0].locator('#room').waitFor({state:'visible'});
  await pages[0].waitForFunction(()=>document.getElementById('status').textContent.startsWith('Connected'));
  const code=(await pages[0].locator('#room-code').textContent()).split(': ')[1];
- for(let i=1;i<4;i++){await pages[i].goto('http://localhost:8080/play/mahjong/#'+code);assert.equal(await pages[i].locator('#code').inputValue(),code);await pages[i].locator('#name').fill(i===1?'<img src=x onerror=alert(1)>'.slice(0,24):'Friend '+i);await pages[i].locator('#join-form button').click();await pages[i].waitForFunction(()=>document.getElementById('status').textContent.startsWith('Connected'));}
+ for(let i=1;i<4;i++){await pages[i].goto('http://localhost:8080/play/mahjong/#'+code);await pages[i].waitForFunction(code=>document.getElementById('code').value===code,code);assert.equal(await pages[i].locator('#code').inputValue(),code);await pages[i].locator('#name').fill(i===1?'<img src=x onerror=alert(1)>'.slice(0,24):'Friend '+i);await pages[i].locator('#join-form button').click();await pages[i].waitForFunction(()=>document.getElementById('status').textContent.startsWith('Connected'));}
  for(const p of pages)await p.waitForFunction(()=>document.querySelectorAll('.seat h3').length===4&&document.querySelectorAll('.seat p')[0].textContent.includes('Connected')&&!document.querySelector('#seats').textContent.includes('Open seat'));
  // Verify guest display names are rendered as text.
  assert.equal(await pages[0].locator('#seats img').count(),0);

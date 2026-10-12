@@ -64,7 +64,8 @@ $('leave').onclick=()=>{end('You left this device. Your seat stays reserved unti
 async function copy(value){try{await navigator.clipboard.writeText(value);status('Copied. Share privately with your friends.');}catch{status('Clipboard unavailable. Copy the room code shown above.');}}
 $('copy-link').onclick=()=>copy(location.origin+location.pathname+'#'+state.code);$('copy-code').onclick=()=>copy(state.code);
 setInterval(()=>{if(state?.game?.pending)$('claim-clock').textContent='Claims close in '+Math.max(0,Math.ceil((state.game.pending.deadline-Date.now())/1000))+' seconds. No response counts as pass.';},500);
-if(/^[a-f0-9]{24}$/.test(location.hash.slice(1)))$('code').value=location.hash.slice(1);
+function invitation(){const code=location.hash.slice(1);if(/^[a-f0-9]{24}$/.test(code)){if(!state)$('code').value=code;else if(state.code!==code)status('You already have a reserved seat. Leave this device before joining another room.');}}
+window.addEventListener('hashchange',invitation);invitation();
 if(!API){status('Multiplayer preview: the room service is awaiting deployment review. Please return after it is enabled.');$('create').disabled=true;$('join-form').querySelector('button').disabled=true;}
 else{
  let saved;try{saved=JSON.parse(sessionStorage.getItem(storageKey));}catch{}
