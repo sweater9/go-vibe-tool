@@ -1,4 +1,4 @@
-const CACHE="govibetool-v8-2";
+const CACHE="govibetool-v8-3";
 const LEGACY_CACHE="govibetool-v2-7";
 const ASSETS=[
   "./",
@@ -21,6 +21,23 @@ const ASSETS=[
   "./labs/api-playground/index.html",
   "./labs/api-playground/api-mock-engine.js",
   "./labs/api-playground/api-app.js",
+  "./labs/labs.css",
+  "./labs/shared/kit.js",
+  "./labs/shared/rng.js",
+  "./labs/api-playground/api-scenarios.js",
+  "./labs/api-playground/scenario-app.js",
+  "./labs/ai/index.html",
+  "./labs/cyber/index.html",
+  "./labs/science/index.html",
+  "./labs/finance/index.html",
+  "./labs/ai/ai-engine.js",
+  "./labs/ai/ai-app.js",
+  "./labs/cyber/cyber-engine.js",
+  "./labs/cyber/cyber-app.js",
+  "./labs/science/physics-engine.js",
+  "./labs/science/science-app.js",
+  "./labs/finance/finance-engine.js",
+  "./labs/finance/finance-app.js",
   "./play/index.html",
   "./play/daily/index.html",
   "./play/daily/daily-engine.js",
