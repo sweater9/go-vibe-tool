@@ -8,7 +8,12 @@ on:
         default: https://govibetool-v8-review.onrender.com
       expected_sha:
         description: Commit the preview is expected to serve
-        default: ee6c0536b9add3a4c3cf00194f56eaed5550ab34
+        default: 0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f
+  # Bootstrap only: GitHub registers a workflow_dispatch-only file once it has run or reached the default branch.
+  # This path-filtered push (this file only) runs it once with the defaults; afterwards it can be dispatched manually.
+  push:
+    branches: [feature/v8-discovery-navigation]
+    paths: ['.github/workflows/v8-render-preview-qa.yml']
 permissions:
   contents: read
 
@@ -25,14 +30,14 @@ jobs:
         with:
           node-version: '22'
       - name: Fetch expected commit
-        run: git fetch --no-tags origin "${{ inputs.expected_sha || 'ee6c0536b9add3a4c3cf00194f56eaed5550ab34' }}" || true; git cat-file -e "${{ inputs.expected_sha || 'ee6c0536b9add3a4c3cf00194f56eaed5550ab34' }}^{commit}"
+        run: git fetch --no-tags origin "${{ inputs.expected_sha || '0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f' }}" || true; git cat-file -e "${{ inputs.expected_sha || '0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f' }}^{commit}"
       - name: Compare live files and Render metadata with the expected commit
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
         run: |
           set +e
-          node tests/live-deploy-verify.mjs "${{ inputs.url || 'https://govibetool-v8-review.onrender.com' }}" "${{ inputs.expected_sha || 'ee6c0536b9add3a4c3cf00194f56eaed5550ab34' }}" artifacts/live-qa/deploy-verify.json
+          node tests/live-deploy-verify.mjs "${{ inputs.url || 'https://govibetool-v8-review.onrender.com' }}" "${{ inputs.expected_sha || '0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f' }}" artifacts/live-qa/deploy-verify.json
           rc=$?
           {
             echo "### Deployment verification"
@@ -41,7 +46,7 @@ jobs:
           case $rc in
             0) echo "Live static files match the expected commit." ;;
             3) echo "::error title=NETWORK FAILURE::preview unreachable from GitHub Actions: $(python3 -c "import json;print(json.load(open('artifacts/live-qa/deploy-verify.json')).get('network'))")" ;;
-            4) echo "::error title=DEPLOYMENT CONTENT MISMATCH::live files differ from ${{ inputs.expected_sha || 'ee6c0536b9add3a4c3cf00194f56eaed5550ab34' }}" ;;
+            4) echo "::error title=DEPLOYMENT CONTENT MISMATCH::live files differ from ${{ inputs.expected_sha || '0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f' }}" ;;
             5) echo "::error title=RENDER METADATA MISMATCH::Render reports a different live commit" ;;
             *) echo "::error title=VERIFY SCRIPT ERROR::exit $rc" ;;
           esac
