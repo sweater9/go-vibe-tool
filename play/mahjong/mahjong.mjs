@@ -59,6 +59,8 @@ async function enter(create){
  if(busy)return;busy=true;$('create').disabled=true;$('join-form').querySelector('button').disabled=true;
  try{const code=$('code').value.trim().toLowerCase();if(!create&&!/^[a-f0-9]{24}$/.test(code))throw Error('Enter the full 24-character room code.');const s=await request(create?'/rooms':'/rooms/'+code+'/join',{name:$('name').value},false);token=s.token;delete s.token;selected=null;render(s);remember();history.replaceState(null,'',location.pathname+'#'+s.code);stream();}catch(e){status(e.message);}finally{busy=false;$('create').disabled=!API;$('join-form').querySelector('button').disabled=!API;if(state)render(state);}
 }
+window.addEventListener('offline',()=>{generation++;controller?.abort();connected=false;if(state){render(state);status('You are offline. Your seat is reserved; reconnect when your network returns.');}});
+window.addEventListener('online',()=>{if(state)stream();});
 $('create').onclick=()=>enter(true);$('join-form').onsubmit=e=>{e.preventDefault();enter(false);};$('ready').onclick=()=>act({type:'ready'});$('discard').onclick=()=>act({type:'discard',tile:selected});$('win').onclick=()=>act({type:'win'});
 $('leave').onclick=()=>{end('You left this device. Your seat stays reserved until expiry.');history.replaceState(null,'',location.pathname);};
 async function copy(value){try{await navigator.clipboard.writeText(value);status('Copied. Share privately with your friends.');}catch{status('Clipboard unavailable. Copy the room code shown above.');}}
