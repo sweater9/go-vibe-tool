@@ -9,6 +9,12 @@ on:
       expected_sha:
         description: Commit the preview is expected to serve
         default: ee6c0536b9add3a4c3cf00194f56eaed5550ab34
+  # Bootstrap only: GitHub registers a workflow_dispatch-only file just once it exists on the default branch
+  # (or has run once). This path-filtered push (V8 branch, this file only) runs it with the defaults above
+  # when the file itself is edited; afterwards it can be dispatched manually on the branch.
+  push:
+    branches: [feature/v8-discovery-navigation]
+    paths: ['.github/workflows/v8-live-preview-qa.yml']
 
 permissions:
   contents: read
@@ -26,14 +32,14 @@ jobs:
         with:
           node-version: '22'
       - name: Fetch expected commit
-        run: git fetch --no-tags origin "${{ inputs.expected_sha }}" || true; git cat-file -e "${{ inputs.expected_sha }}^{commit}"
+        run: git fetch --no-tags origin "${{ inputs.expected_sha || 'ee6c0536b9add3a4c3cf00194f56eaed5550ab34' }}" || true; git cat-file -e "${{ inputs.expected_sha || 'ee6c0536b9add3a4c3cf00194f56eaed5550ab34' }}^{commit}"
       - name: Compare live files and Render metadata with the expected commit
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
         run: |
           set +e
-          node tests/live-deploy-verify.mjs "${{ inputs.url }}" "${{ inputs.expected_sha }}" artifacts/live-qa/deploy-verify.json
+          node tests/live-deploy-verify.mjs "${{ inputs.url || 'https://govibetool-v8-review.onrender.com' }}" "${{ inputs.expected_sha || 'ee6c0536b9add3a4c3cf00194f56eaed5550ab34' }}" artifacts/live-qa/deploy-verify.json
           rc=$?
           {
             echo "### Deployment verification"
@@ -42,7 +48,7 @@ jobs:
           case $rc in
             0) echo "Live static files match the expected commit." ;;
             3) echo "::error title=NETWORK FAILURE::preview unreachable from GitHub Actions: $(python3 -c "import json;print(json.load(open('artifacts/live-qa/deploy-verify.json')).get('network'))")" ;;
-            4) echo "::error title=DEPLOYMENT CONTENT MISMATCH::live files differ from ${{ inputs.expected_sha }}" ;;
+            4) echo "::error title=DEPLOYMENT CONTENT MISMATCH::live files differ from ${{ inputs.expected_sha || 'ee6c0536b9add3a4c3cf00194f56eaed5550ab34' }}" ;;
             5) echo "::error title=RENDER METADATA MISMATCH::Render reports a different live commit" ;;
             *) echo "::error title=VERIFY SCRIPT ERROR::exit $rc" ;;
           esac
@@ -81,7 +87,7 @@ jobs:
           echo "::error title=BROWSER INSTALL FAILED::${{ matrix.browser }}"; exit 1
       - name: Run live QA
         env:
-          REVIEW_URL: ${{ inputs.url }}
+          REVIEW_URL: ${{ inputs.url || 'https://govibetool-v8-review.onrender.com' }}
           QA_OUT: artifacts/live-qa
         run: |
           set +e
