@@ -10,7 +10,7 @@ const engine = process.argv[2] || 'chromium';
 const live = !!process.env.LABS_BASE_URL;
 const dir = process.env.LABS_ARTIFACTS || `artifacts/labs-${engine}`;
 await fs.mkdir(dir, { recursive: true });
-const root = fileURLToPath(new URL('../', import.meta.url));
+const root = process.env.SITE_ROOT ? path.resolve(process.env.SITE_ROOT) + '/' : fileURLToPath(new URL('../', import.meta.url)); // SITE_ROOT=dist runs the suite against the built output
 let server, base, serverPort = 0; const sockets = new Set();
 if (live) base = process.env.LABS_BASE_URL.replace(/\/?$/, '/');
 else {

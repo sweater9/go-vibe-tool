@@ -1,0 +1,13 @@
+{
+  // GoVibeTool V8 — Cloudflare Workers static assets (no Worker script, no backend).
+  // The Worker name must match the existing Workers project in the dashboard.
+  "$schema": "https://workers.cloudflare.com/wrangler-config-schema.json",
+  "name": "go-vibe-tool",
+  "compatibility_date": "2026-10-12",
+  "assets": {
+    // Only the clean output of `npm run build` is uploaded, never the repository root.
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

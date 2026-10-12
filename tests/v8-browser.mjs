@@ -7,7 +7,7 @@ const pw = await import(process.env.PLAYWRIGHT_PACKAGE || 'playwright');
 const engine = process.argv[2] || 'chromium';
 const dir = process.env.V8_ARTIFACTS || `artifacts/v8-${engine}`;
 await fs.mkdir(dir,{recursive:true});
-const root = fileURLToPath(new URL('../', import.meta.url));
+const root = process.env.SITE_ROOT ? path.resolve(process.env.SITE_ROOT) + '/' : fileURLToPath(new URL('../', import.meta.url)); // SITE_ROOT=dist runs the suite against the built output
 const server = http.createServer(async (req,res)=>{try{let f=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://x').pathname));if((await fs.stat(f)).isDirectory())f=path.join(f,'index.html');let b=await fs.readFile(f);if(f===path.join(root,'index.html'))b=Buffer.from(b.toString().replace(/<script async src="https:\/\/pagead2[^>]*><\/script>/,''));const t={'.html':'text/html','.js':'application/javascript','.css':'text/css','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'};res.writeHead(200,{'Content-Type':t[path.extname(f)]||'application/octet-stream'}).end(b)}catch{res.writeHead(404).end()}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const base=`http://127.0.0.1:${server.address().port}/`;

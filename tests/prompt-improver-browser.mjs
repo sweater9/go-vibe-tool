@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const pw = await import(process.env.PLAYWRIGHT_PACKAGE || 'playwright');
 const engine = process.argv[2] || 'chromium';
-const root = fileURLToPath(new URL('../', import.meta.url));
+const root = process.env.SITE_ROOT ? path.resolve(process.env.SITE_ROOT) + '/' : fileURLToPath(new URL('../', import.meta.url)); // SITE_ROOT=dist runs the suite against the built output
 const types = { '.html': 'text/html', '.js': 'application/javascript', '.mjs': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.xml': 'application/xml', '.txt': 'text/plain' };
 
 // Serve the checkout without the external ad script so the test never leaves localhost.

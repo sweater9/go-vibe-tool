@@ -20,7 +20,7 @@ const sockets = new Set();
 async function stopServer() { serverUnavailable = true; await new Promise(r=>{ server.close(()=>r()); for (const x of sockets) x.destroy(); }); }
 async function startServer() { await new Promise(r=>server.listen(serverPort,'127.0.0.1',r)); serverUnavailable = false; }
 if (!production) {
- const root = fileURLToPath(new URL('../', import.meta.url));
+ const root = process.env.SITE_ROOT ? path.resolve(process.env.SITE_ROOT) + '/' : fileURLToPath(new URL('../', import.meta.url)); // SITE_ROOT=dist runs the suite against the built output
  server = http.createServer(async (req,res)=>{
   if (serverUnavailable) { req.socket.destroy(); return; }
   try {
@@ -157,8 +157,8 @@ try {
    await goto('/');await homeReady();await page.evaluate(()=>navigator.serviceWorker.ready);
    await page.reload({waitUntil:'networkidle',timeout:45000});await homeReady();assert.ok(await page.evaluate(()=>!!navigator.serviceWorker.controller));
    // The precache is filled asynchronously by the install event; poll for it (assertions below are unchanged).
-   await page.waitForFunction(async()=>{const c=await caches.open('govibetool-v8-4');const k=(await c.keys()).map(r=>new URL(r.url).pathname);return ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong/index.html','/play/word-logic/index.html'].every(x=>k.includes(x))},null,{timeout:30000}).catch(()=>{});
-   const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v8-4');return (await c.keys()).map(r=>new URL(r.url).pathname)});
+   await page.waitForFunction(async()=>{const c=await caches.open('govibetool-v8-5');const k=(await c.keys()).map(r=>new URL(r.url).pathname);return ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong/index.html','/play/word-logic/index.html'].every(x=>k.includes(x))},null,{timeout:30000}).catch(()=>{});
+   const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v8-5');return (await c.keys()).map(r=>new URL(r.url).pathname)});
    for(const path of ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong/index.html','/play/word-logic/index.html']) assert.ok(cached.includes(path),`uncached ${path}`);
    if (!production) {
     await stopServer();
