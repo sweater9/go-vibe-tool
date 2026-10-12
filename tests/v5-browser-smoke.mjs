@@ -13,7 +13,7 @@ const pagesToTest = [
   { path: '/labs/workflow/', name: 'labs-workflow' },
   { path: '/labs/api-playground/', name: 'labs-api' },
   { path: '/play/', name: 'play-hub' },
-  { path: '/play/daily/', name: 'play-daily' },
+  { path: '/play/mahjong/', name: 'play-mahjong' },
   { path: '/play/word-logic/', name: 'play-wordlogic' },
   { path: '/play/2048/', name: 'play-2048' },
   { path: '/play/daily-word/', name: 'play-dailyword' }
@@ -91,8 +91,8 @@ async function run() {
             if (imgCount > 0) {
               issues.push(`${engine} ${viewport.width}px Unsanitized <img> element rendered in JSON validation status`);
             }
-          } else if (item.name === 'play-daily') {
-            await page.waitForSelector('#quizContainer', { timeout: 5000 });
+          } else if (item.name === 'play-mahjong') {
+            await page.waitForSelector('#lobby', { timeout: 5000 });
           } else if (item.name === 'play-wordlogic') {
             await page.waitForSelector('#slotsContainer', { timeout: 5000 });
           } else if (item.name === 'play-2048') {

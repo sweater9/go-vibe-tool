@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Four-player Mahjong with friends: private guest rooms, live turns and beginner-friendly Classical house rules.">
+<meta name="referrer" content="no-referrer"><link rel="canonical" href="https://govibetool.com/play/mahjong/">
+<link rel="icon" href="../../assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="../../v2.css"><link rel="stylesheet" href="mahjong.css">
+<title>Mahjong with Friends — GoVibeTool</title>
+</head>
+<body>
+<a class="skip" href="#main">Skip to main content</a>
+<header><div class="wrap"><nav aria-label="Main navigation"><a class="brand" href="../../" aria-label="GoVibeTool home"><img src="../../assets/logo-mark.svg" width="28" height="28" alt=""><span>GoVibe</span>Tool</a><div class="navlinks"><a href="../../">Tools</a><a href="../../learn/">Learn</a><a href="../../knowledge/">Knowledge</a><a href="../../labs/">Labs</a><a href="../">Play</a></div></nav></div></header>
+<main id="main" class="wrap mahjong">
+<a href="../">← All games</a><p class="eyebrow">GOVIBETOOL PLAY · FOUR FRIENDS, ONE TABLE</p>
+<h1>Mahjong <em>with Friends</em></h1><p>Draw, discard and build a winning hand. A traditional four-player tile game using GoVibe Classical house rules.</p>
+<p id="status" role="status" aria-live="polite">Connecting to the room service…</p>
+<section id="lobby" class="panel" aria-labelledby="lobby-title"><h2 id="lobby-title">Bring your friends</h2><p>No account needed. Invite three friends; each plays from their own device.</p>
+<label for="name">Your display name</label><input id="name" maxlength="24" autocomplete="nickname" placeholder="e.g. Alex">
+<div class="row"><button id="create" type="button">Create private room</button></div>
+<form id="join-form"><label for="code">Room code</label><input id="code" maxlength="24" autocomplete="off" spellcheck="false" placeholder="Paste your friend's room code"><button type="submit">Join room</button></form></section>
+<section id="room" hidden aria-labelledby="room-title"><div class="panel"><h2 id="room-title">Your private table</h2><p id="room-code"></p><div class="row"><button id="copy-link">Copy invitation link</button><button id="copy-code">Copy room code</button><button id="leave">Leave this device</button></div><p id="expiry"></p><p>Leaving keeps your seat reserved until the room expires. Reload this tab to reconnect. Share the invitation only with your friends.</p><button id="ready">I'm ready</button></div>
+<div class="table" aria-label="Mahjong table"><div id="seats" class="seats"></div><div class="table-center"><h2 id="turn" aria-live="polite">Waiting for friends</h2><p id="wall"></p><p id="claim-clock"></p><div id="claims" class="row"></div></div></div>
+<section class="panel" aria-labelledby="hand-title"><h2 id="hand-title">Your hand</h2><p id="hand-help">Select a tile, then confirm your discard.</p><div id="hand" class="hand" role="group" aria-label="Tiles in your hand"></div><div class="row"><button id="discard" disabled>Discard selected tile</button><button id="win" hidden>Declare Mahjong</button><div id="kongs" class="row"></div></div><p id="result" role="status"></p><div id="revealed"></div></section>
+<section class="panel" aria-labelledby="discards-title"><h2 id="discards-title">Discard history</h2><ol id="discards" class="discards"></ol></section></section>
+<details class="panel" open><summary>New to Mahjong? Start here</summary><p>There are four copies of each of 34 tile types: Characters, Bamboo and Dots 1–9; East, South, West, North winds; Red, Green and White dragons. No flowers or jokers.</p><ol><li>All four guests press “I'm ready”. East begins with 14 tiles; everyone else has 13.</li><li>On your turn, select one tile and press “Discard selected tile”. The next player draws automatically after claims resolve.</li><li>A chow is three consecutive tiles in one suit; a pung is three identical tiles; a kong is four identical tiles. Claim a discard using the offered legal buttons, or pass. Only the next seat can chow. You have 15 seconds to claim.</li><li>Win with four sets and one pair. A kong counts as one set and gives a replacement draw. Press “Declare Mahjong” on a winning self draw or claim “Win” on a discard.</li></ol><p><strong>Scoring:</strong> self draw earns 6 points (each other player pays 2). Discard win earns 6 from the discarder. An exhausted wall is a draw with no points exchanged. No minimum fan, bonus patterns, special hands, robbing a kong or gambling. One hand per room; create a new room to play again.</p><p><strong>Claims:</strong> win beats pung/kong, which beat chow. Equal claims go to the nearest seat after the discarder in East → South → West → North order. The server waits for eligible responses or the deadline, so network speed never chooses the winner.</p><p><strong>Connection & privacy:</strong> multiplayer needs internet. Hands stay private until the result. Reconnection restores your seat on this tab. Idle rooms expire after 30 minutes; every room ends after 4 hours. A disconnected player's seat stays reserved; play can wait for them. Copying your invitation grants room access, not access to your hand.</p></details>
+</main><footer class="wrap"><p>GoVibeTool · <a href="../../privacy.html">Privacy</a> · <a href="../../terms.html">Terms</a></p></footer>
+<script src="config.js"></script><script type="module" src="mahjong.mjs"></script>
+</body></html>

@@ -144,22 +144,9 @@ try {
    assert.ok((await page.locator('#responseBodyPre').innerText()).includes('id'));
    await page.locator('#bodyTextarea').fill('{"bad": <img src=x onerror="window.__xss=true">}');assert.equal(await page.locator('#jsonValidationStatus img').count(),0);assert.ok(!(await page.evaluate(()=>window.__xss)));await overflow();
   });
-  await check(`${width}: Daily Knowledge Challenge completion and persistence`,async()=>{
-   await goto('/play/daily/');
-   await maintenance('D3 radiogroup keyboard',async()=>{
-    assert.equal(await page.locator('[role=radio][tabindex="0"]').count(),1);
-    const wrong = await page.evaluate(()=>(window.dailyChallengeApp.questions[0].correctIndex+1)%4);
-    await page.locator('[role=radio]').nth((wrong+3)%4).focus();await page.keyboard.press('ArrowRight');
-    assert.equal(await page.locator('[role=radio][aria-checked=true]').count(),1);
-    assert.equal(await page.locator('[role=radio][aria-checked=true]').getAttribute('data-idx'),String(wrong));
-    assert.equal(await page.locator('[role=radio][aria-checked=true]').getAttribute('aria-disabled'),'true');
-    await page.keyboard.press('Tab');assert.equal(await page.locator('#btnNext').evaluate(e=>e===document.activeElement),true);
-    await page.keyboard.press('Enter');assert.equal(await page.locator('#progressLabel').innerText(),'Question 2 of 5');
-   });
-   while(await page.locator('.quiz-option').count()){
-    await page.locator('.quiz-option').first().click();await page.locator('#btnNext').click();
-   }
-   assert.ok((await page.locator('#quizContainer').innerText()).includes("Today's Score:"));await page.reload({waitUntil:'networkidle'});assert.ok((await page.locator('#quizContainer').innerText()).toLowerCase().includes('challenge completed'));await overflow();
+  await check(`${width}: Mahjong preview and retired daily route`,async()=>{
+   await goto('/play/mahjong/');assert.ok((await page.locator('h1').innerText()).includes('Mahjong'));await overflow();
+   await goto('/play/daily/');await page.waitForURL('**/play/');assert.equal(await page.locator('a[href="daily/"]').count(),0);
   });
   await check(`${width}: Word & Logic Challenge solve`,async()=>{
    await goto('/play/word-logic/');await page.keyboard.type('CODE');await page.keyboard.press('Enter');
@@ -170,15 +157,15 @@ try {
    await goto('/');await homeReady();await page.evaluate(()=>navigator.serviceWorker.ready);
    await page.reload({waitUntil:'networkidle',timeout:45000});await homeReady();assert.ok(await page.evaluate(()=>!!navigator.serviceWorker.controller));
    // The precache is filled asynchronously by the install event; poll for it (assertions below are unchanged).
-   await page.waitForFunction(async()=>{const c=await caches.open('govibetool-v8-2');const k=(await c.keys()).map(r=>new URL(r.url).pathname);return ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/daily/index.html','/play/word-logic/index.html'].every(x=>k.includes(x))},null,{timeout:30000}).catch(()=>{});
-   const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v8-2');return (await c.keys()).map(r=>new URL(r.url).pathname)});
-   for(const path of ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/daily/index.html','/play/word-logic/index.html']) assert.ok(cached.includes(path),`uncached ${path}`);
+   await page.waitForFunction(async()=>{const c=await caches.open('govibetool-v8-3');const k=(await c.keys()).map(r=>new URL(r.url).pathname);return ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong/index.html','/play/word-logic/index.html'].every(x=>k.includes(x))},null,{timeout:30000}).catch(()=>{});
+   const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v8-3');return (await c.keys()).map(r=>new URL(r.url).pathname)});
+   for(const path of ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong/index.html','/play/word-logic/index.html']) assert.ok(cached.includes(path),`uncached ${path}`);
    if (!production) {
     await stopServer();
     try {
      await page.reload({waitUntil:'domcontentloaded',timeout:30000});await homeReady();
      assert.ok(await page.locator('.cat-tile').count()===9);
-     for (const [route, app] of [['/labs/workflow/','workflowApp'],['/labs/api-playground/','apiPlaygroundApp'],['/play/daily/','dailyChallengeApp'],['/play/word-logic/','wordLogicApp']]) {
+     for (const [route, app] of [['/labs/workflow/','workflowApp'],['/labs/api-playground/','apiPlaygroundApp'],['/play/word-logic/','wordLogicApp']]) {
       const response = await page.goto(new URL(route,base).href,{waitUntil:'domcontentloaded'});
       assert.ok(response?.ok(),`offline route ${route}`);
       await page.waitForFunction(name=>!!window[name],app);

@@ -9,7 +9,7 @@ const NEW_PAGES = [
   'labs/workflow/index.html',
   'labs/api-playground/index.html',
   'play/index.html',
-  'play/daily/index.html',
+  'play/mahjong/index.html',
   'play/word-logic/index.html',
   'play/2048/index.html',
   'play/daily-word/index.html'
@@ -67,7 +67,7 @@ const EXPECTED_SITEMAP_URLS = [
   'https://govibetool.com/labs/workflow/',
   'https://govibetool.com/labs/api-playground/',
   'https://govibetool.com/play/',
-  'https://govibetool.com/play/daily/',
+  'https://govibetool.com/play/mahjong/',
   'https://govibetool.com/play/word-logic/',
   'https://govibetool.com/play/2048/',
   'https://govibetool.com/play/daily-word/'
