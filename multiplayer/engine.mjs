@@ -82,7 +82,7 @@ export function move(g,s,a,now=Date.now()) {
  }
  if(a.type!=='discard'||!validTile(a.tile))fail('Choose a tile to discard.');
  g.hands[s]=take(g.hands[s],[a.tile]);g.discards.push({seat:s,tile:a.tile,claimed:false});
- g.phase='claim';g.pending={from:s,tile:a.tile,responses:{},deadline:now+15000};
+ g.phase='claim';g.pending={id:g.discards.length,from:s,tile:a.tile,responses:{},deadline:now+15000};
  for(let other=0;other<4;other++)if(other!==s&&!choices(g,other).length)g.pending.responses[other]={type:'pass'};
  if(Object.keys(g.pending.responses).length===3)resolve(g);
 }
@@ -90,7 +90,7 @@ export function view(g,s){
  if(!g)return null;
  return {phase:g.phase,turn:g.turn,wallCount:g.wall.length,hand:[...g.hands[s]].sort((a,b)=>a-b),
  players:g.hands.map((h,i)=>({count:h.length,melds:g.melds[i]})),discards:g.discards,
- pending:g.pending?{from:g.pending.from,tile:g.pending.tile,deadline:g.pending.deadline,responded:!!g.pending.responses[s]}:null,
+ pending:g.pending?{id:g.pending.id,from:g.pending.from,tile:g.pending.tile,deadline:g.pending.deadline,responded:!!g.pending.responses[s]}:null,
  choices:g.phase==='claim'&&!g.pending.responses[s]?choices(g,s):[],result:g.result,
  revealed:g.phase==='finished'?g.hands:null,
  canWin:g.phase==='discard'&&g.turn===s&&winning(g.hands[s],g.melds[s]),

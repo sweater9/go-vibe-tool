@@ -61,10 +61,11 @@ export function createService({origins=['http://localhost:8080'],now=()=>Date.no
  }
  if(!route&&req.method==='GET')return reply(200,snapshot(r,s));
  if(route!=='actions'||req.method!=='POST')return reply(405,{error:'Method not allowed.'});
- if(!Number.isSafeInteger(body.revision)||body.revision!==r.revision)return reply(409,{error:'Table updated. Please try your action again.',state:snapshot(r,s)});
- const a=body.action;if(!a||typeof a!=='object'||Array.isArray(a)||Object.keys(a).some(k=>!['type','tile','tiles'].includes(k))||a.tiles&&(!Array.isArray(a.tiles)||a.tiles.length>3))throw Error('Invalid action.');
+ const currentClaim=r.game?.phase==='claim'&&Number.isSafeInteger(body.action?.claimId)&&body.action.claimId===r.game.pending.id;
+ if(!Number.isSafeInteger(body.revision)||body.revision<0||body.revision>r.revision||(body.revision!==r.revision&&body.action?.type!=='ready'&&!currentClaim))return reply(409,{error:'Table updated. Please try your action again.',state:snapshot(r,s)});
+ const a=body.action;if(!a||typeof a!=='object'||Array.isArray(a)||Object.keys(a).some(k=>!['type','tile','tiles','claimId'].includes(k))||a.tiles&&(!Array.isArray(a.tiles)||a.tiles.length>3))throw Error('Invalid action.');
  if(a.type==='ready'){
- if(r.game)throw Error('Already started.');r.players[s].ready=true;
+ if(r.players[s].ready)return reply(200,snapshot(r,s));if(r.game)throw Error('Already started.');r.players[s].ready=true;
  if(r.players.length===4&&r.players.every(p=>p.ready))r.game=deal();
  }else{
  if(!r.game)throw Error('Wait for four ready players.');move(r.game,s,a,now());

@@ -39,7 +39,7 @@ function render(s){
  if(g.result){$('result').textContent=g.result.winner===null?'Draw — the wall is empty.':winds[g.result.winner]+' wins'+(g.result.selfDraw?' by self draw':' on '+winds[g.result.from]+"'s discard")+'. '+g.result.scores.map((n,i)=>winds[i]+': '+(n>0?'+':'')+n).join(' · ');g.revealed.forEach((h,i)=>{const p=document.createElement('p');p.textContent=winds[i]+' concealed hand: '+h.map(label).join(', ');$('revealed').append(p);});}
 }
 async function act(action){
- if(busy||!state||!connected)return;busy=true;render(state);
+ if(busy||!state||!connected)return;if(state.game?.phase==='claim')action={...action,claimId:state.game.pending.id};busy=true;render(state);
  try{const next=await request('/rooms/'+state.code+'/actions',{revision:state.revision,action});if(next.revision>=state.revision)render(next);if(action.type==='discard')selected=null;status('Table synchronized.');}catch(e){status(e.message);}finally{busy=false;if(state)render(state);}
 }
 async function stream(){
