@@ -71,6 +71,19 @@ Open the failed build in Cloudflare -> Workers & Pages -> `go-vibe-tool` -> Depl
 | Post-deploy proof | `scripts/verify-live-assets.mjs` fetches every file from the preview URL and compares SHA-256 with `dist/`; then live browser checks. The run summary records the exact commit and the preview URL. |
 | Secrets | Read only from the GitHub Environment `cloudflare-v8-preview`; never printed; none stored in the repository. |
 
+### The "Run workflow" button and GitHub environment restrictions
+
+GitHub shows **Run workflow** only for workflows that have a `workflow_dispatch` trigger on the default branch. `main` therefore carries a 29-line dispatch-only stub of this same file (separate PR, no secrets, no checkout, no deploy step). Run the workflow and pick **`feature/v8-discovery-navigation`** in "Use workflow from": GitHub then runs the file on that branch. Any other branch runs only the stub, which fails harmlessly.
+
+Credentials are scoped to the deploy job only: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are referenced only in the `deploy` job, which declares `environment: cloudflare-v8-preview`. The `build` and `browser` (test) jobs have no `secrets.*` and no environment.
+
+Set these on the environment (Settings -> Environments -> `cloudflare-v8-preview`):
+
+1. **Deployment branches and tags** -> "Selected branches and tags" -> add `feature/v8-discovery-navigation` only.
+2. **Required reviewers** -> add yourself (needs GitHub Pro/Team/Enterprise for private repositories; free for public ones). Without it, protection 1 and `deploy` defaulting to off still apply.
+3. Keep the two secrets here (environment secrets), not as repository secrets.
+4. Optional: protect `feature/v8-discovery-navigation` so only trusted people can push to it, because the workflow file on the selected branch is what runs.
+
 ### One-time setup you must do (needs your Cloudflare and GitHub accounts)
 
 1. **Create an API token** (Cloudflare dashboard -> Manage account -> Account API tokens -> Create token -> Custom token):
