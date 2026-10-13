@@ -1,0 +1,40 @@
+name: V8 Consolidated Studios QA
+on:
+  pull_request:
+    branches:
+      - feature/v8-discovery-navigation
+    paths:
+      - 'studios.html'
+      - 'studios.js'
+      - 'studios-routing.js'
+      - 'index.html'
+      - 'sw.js'
+      - 'scripts/site-manifest.mjs'
+      - '.github/workflows/v8-studios-qa.yml'
+  workflow_dispatch:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate studio scripts
+        run: |
+          node --check studios.js
+          node --check studios-routing.js
+          node --check sw.js
+      - name: Build verified static distribution
+        run: |
+          npm run build
+          npm run verify:dist
+      - name: Verify consolidated studios shipped
+        run: |
+          test -s dist/studios.html
+          test -s dist/studios.js
+          test -s dist/studios-routing.js
+          grep -q 'studios-routing.js' dist/index.html
+          grep -q 'studios.js' dist/studios.html
