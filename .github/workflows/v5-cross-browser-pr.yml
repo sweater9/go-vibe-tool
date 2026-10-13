@@ -1,7 +1,7 @@
 name: V5/V8 Cross-Browser PR Gate
 on:
   push:
-    branches: [feature/v5-labs-play, feature/v8-discovery-navigation]
+    branches: [feature/v5-labs-play, feature/v8-discovery-navigation, feature/v8-file-media-tools]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -51,7 +51,7 @@ jobs:
           # No `bash -e` surprises: a failing suite must never skip its own log output.
           set +e
           failed=""
-          for t in v8-browser play-games-browser labs-browser dist-browser v5-browser-smoke v5-maintenance-browser prompt-improver-browser tool-fixes-browser; do
+          for t in v8-browser play-games-browser labs-browser file-media-browser dist-browser v5-browser-smoke v5-maintenance-browser prompt-improver-browser tool-fixes-browser; do
             echo "::group::$t (${{ matrix.browser }})"
             node tests/$t.mjs ${{ matrix.browser }} > "/tmp/$t.log" 2>&1
             rc=$?

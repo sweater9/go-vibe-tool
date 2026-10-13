@@ -13,6 +13,12 @@ The source packages and their complete license texts are available from:
 - https://www.npmjs.com/package/jsqr
 
 
+## File & media tools (tools/file-media, vendor/svgo.browser.js, vendor/avif)
+- SVGO 4.1.0 — MIT License — Copyright Kir Belevich and contributors. Bundled as `vendor/svgo.browser.js` (the project's own browser build, unmodified; its bundled dependencies css-tree and csso are MIT, css-select and css-what are BSD-2-Clause, sax is BlueOak-1.0.0, picocolors is ISC). Licence text: `vendor/svgo.LICENSE.txt`. Source: https://github.com/svg/svgo
+- jSquash AVIF 2.1.1 (`vendor/avif/avif_enc.js`, `avif_enc.wasm`; single-threaded build of the Squoosh/jSquash AVIF encoder) — Apache License 2.0 — Copyright Google Inc. and the jSquash authors. Licence text: `vendor/avif/LICENSE-jsquash-Apache-2.0.txt`. Source: https://github.com/jamsinclair/jSquash
+- libavif 1.0.1 and libaom, compiled into `avif_enc.wasm` — BSD 2-Clause License (libavif: Copyright Joe Drago; libaom: Copyright the Alliance for Open Media, with the AOMedia Patent License 1.0). Sources: https://github.com/AOMediaCodec/libavif and https://aomedia.googlesource.com/aom
+- The ZIP writer, EXIF/IPTC/XMP scanner, CSV/Markdown table converter and SVG sanitiser are original GoVibeTool code and make no network requests.
+
 ## Daily Word Challenge word lists (play/daily-word/words.js)
 - Answer list derived from SCOWL / 12dicts common-word tiers via the `wordlist-english` package (Copyright 2000-2016 Kevin Atkinson; permission to use, copy, modify, distribute and sell granted provided the copyright notice and permission notice appear in supporting documentation; provided "as is"). Alan Beale and the ENABLE contributors are credited by that project.
 - Valid-guess list derived from the ENABLE word list (public domain) via the `word-list` package (MIT).

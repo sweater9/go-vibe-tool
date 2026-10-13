@@ -2,7 +2,7 @@ name: Quality
 
 on:
   push:
-    branches: [main, feature/intellitools-v2, release/v2-full-integration, feature/knowledge-integration-v3, qa/knowledge-v3-ambiguity-gate, feature/knowledge-v4-learning, feature/knowledge-v4-search-intelligence]
+    branches: [main, feature/intellitools-v2, release/v2-full-integration, feature/knowledge-integration-v3, qa/knowledge-v3-ambiguity-gate, feature/knowledge-v4-learning, feature/knowledge-v4-search-intelligence, feature/v8-file-media-tools]
   pull_request:
     branches: [main, feature/knowledge-base-preview, feature/knowledge-v4-learning]
 

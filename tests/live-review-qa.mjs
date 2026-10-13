@@ -53,10 +53,10 @@ async function run(label, w, h) {
   await page.screenshot({ path: `${out}/${engine}-${label}-home.png` });
   await page.screenshot({ path: `${out}/${engine}-${label}-home-full.png`, fullPage: true });
   await check('PDF & Tables label (no "Files & PDF")', async () => { ok(/PDF & Tables/.test(await page.locator('.cat-tile[data-cat="files-pdf"]').innerText()), 'label'); ok(!/Files & PDF/.test(body), 'old label present'); });
-  await check('PDF & Tables opens the two correct tools at ?category=files-pdf', async () => {
+  await check('PDF & Tables opens the correct tools at ?category=files-pdf', async () => {
     await page.locator('.cat-tile[data-cat="files-pdf"]').click(); await page.waitForSelector('#categoryTools .toolcard');
     const ids = await page.locator('#categoryTools .toolcard').evaluateAll(e => e.map(x => x.dataset.tool)).then(a => a.sort());
-    eq(ids.join(','), 'pdf-studio,table-formatter', 'tools'); ok(/\?category=files-pdf$/.test(page.url()), page.url());
+    eq(ids.join(','), 'pdf-studio,table-converter,table-formatter', 'tools'); ok(/\?category=files-pdf$/.test(page.url()), page.url());
     await page.screenshot({ path: `${out}/${engine}-${label}-pdf-tables.png` }); });
   await check('Back returns to homepage; Forward returns to category', async () => {
     await page.goBack(); await page.waitForSelector('.cat-tile'); ok(!/category=/.test(page.url()), 'url ' + page.url()); eq(await page.locator('.cat-tile').count(), 9, 'tiles after back');

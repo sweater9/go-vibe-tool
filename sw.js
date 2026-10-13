@@ -1,4 +1,4 @@
-const CACHE="govibetool-v8-5-developer-1";
+const CACHE="govibetool-v8-7-integration";
 const LEGACY_CACHE="govibetool-v2-7";
 const ASSETS=[
   "./",
@@ -17,6 +17,12 @@ const ASSETS=[
   "./v6-tools.js",
   "./discovery.js",
   "./v8-discovery.js",
+  "./tools/file-media/file-media-tools.js",
+  "./tools/file-media/file-media.css",
+  "./tools/file-media/fm-svg.js",
+  "./tools/file-media/fm-image.js",
+  "./tools/file-media/fm-table.js",
+  "./vendor/svgo.browser.js",
   "./learn/index.html",
   "./labs/index.html",
   "./labs/workflow/index.html",
