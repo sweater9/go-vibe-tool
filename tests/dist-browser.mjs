@@ -27,8 +27,9 @@ async function open({ w = 1280, h = 900, touch = false } = {}) {
   // The site ships its real AdSense tag untouched. Tests never talk to ad networks. Third-party requests are RECORDED from the page's own
   // request events (fired by every engine; WebKit does not reliably expose all cross-origin requests to context routing), and
   // anything that is not an ad host fails the test. Routing is used only to keep ad and third-party traffic off the network.
-  const AD = /(googlesyndication|doubleclick|googleadservices|adtrafficquality|adsbygoogle|(^|\.)google\.com$)/;
-  page.on('request', r => { let u; try { u = new URL(r.url()); } catch { return; } if (/^https?:$/.test(u.protocol) && u.origin !== origin && !AD.test(u.hostname) && !external.includes(u.href)) external.push(u.href); });
+  const AD_HOST = /(googlesyndication|doubleclick|googleadservices|adtrafficquality|adsbygoogle|(^|\.)google\.com$|^csi\.gstatic\.com$)/; // csi.gstatic.com is the AdSense timing beacon
+  const isAd = u => AD_HOST.test(u.hostname) || /pagead/i.test(u.href);
+  page.on('request', r => { let u; try { u = new URL(r.url()); } catch { return; } if (/^https?:$/.test(u.protocol) && u.origin !== origin && !isAd(u) && !external.includes(u.href)) external.push(u.href); });
   await ctx.route('**/*', route => { const u = new URL(route.request().url()); if (u.origin === origin) return route.continue(); return route.abort(); });
   return { ctx, page, errs, bad, external };
 }
