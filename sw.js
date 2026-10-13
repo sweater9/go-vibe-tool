@@ -387,4 +387,23 @@ const lookupCached=async request=>{
  const candidates=u.pathname.endsWith("/")?[u.pathname+"index.html"]:[u.pathname+".html",u.pathname+"/index.html"];
  for(const p of candidates){const hit=await caches.match(u.origin+p);if(hit)return hit;}
 };
-self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);if(url.origin!==location.origin)return;const freshFirst=url.origin===location.origin&&(event.request.mode==="navigate"||/\.(?:html|js|mjs|css|json)$/.test(url.pathname));if(freshFirst){event.respondWith(fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>plain(copy).then(c=>cache.put(event.request,c)))}return response}).catch(()=>lookupCached(event.request).then(cached=>cached||(url.pathname.endsWith("/")?caches.match(url.pathname+"index.html"):undefined)).then(cached=>cached||(event.request.mode==="navigate"?caches.match("./index.html"):Response.error()))));return}event.respondWith(lookupCached(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok&&url.origin===location.origin){const copy=response.clone();caches.open(CACHE).then(cache=>plain(copy).then(c=>cache.put(event.request,c)))}return response}).catch(()=>event.request.mode==="navigate"?caches.match("./index.html"):Response.error())))});
+/* TEMP-DIAG: report handler failures to open pages so Firefox-only errors can be root-caused in CI. */
+const diag=(where,err,request)=>{try{return self.clients.matchAll({includeUncontrolled:true}).then(cs=>cs.forEach(c=>c.postMessage({swDiag:where,error:String(err&&err.stack||err),url:request&&request.url,mode:request&&request.mode,destination:request&&request.destination}))).catch(()=>{})}catch{}};
+const safeLookup=async request=>{try{return await lookupCached(request)}catch(err){diag("lookupCached",err,request);return undefined}};
+const cachePut=(request,response)=>caches.open(CACHE).then(cache=>plain(response).then(c=>cache.put(request,c))).catch(err=>diag("cache.put",err,request));
+async function respond(request){
+ const url=new URL(request.url);
+ const freshFirst=request.mode==="navigate"||/\.(?:html|js|mjs|css|json)$/.test(url.pathname);
+ if(freshFirst){
+  try{const response=await fetch(request);if(response.ok)cachePut(request,response.clone());return response}
+  catch(err){
+   const cached=(await safeLookup(request))||(url.pathname.endsWith("/")?await caches.match(url.pathname+"index.html"):undefined)||(request.mode==="navigate"?await caches.match("./index.html"):undefined);
+   if(cached)return cached;diag("freshFirst-miss",err,request);return Response.error();
+  }
+ }
+ const cached=await safeLookup(request);if(cached)return cached;
+ try{const response=await fetch(request);if(response.ok)cachePut(request,response.clone());return response}
+ catch(err){diag("network",err,request);return request.mode==="navigate"?((await caches.match("./index.html"))||Response.error()):Response.error()}
+}
+self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);if(url.origin!==location.origin)return;
+ event.respondWith(respond(event.request).then(r=>{if(!(r instanceof Response)){diag("non-response",String(r),event.request);return fetch(event.request)}return r},err=>{diag("respond-rejected",err,event.request);return fetch(event.request)}))});

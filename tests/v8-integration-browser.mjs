@@ -37,6 +37,7 @@ const NINE = ['ai-prompts', 'productivity', 'files-pdf', 'images-design', 'priva
 const ready = p => p.waitForFunction(() => typeof openTool === 'function' && typeof tools !== 'undefined' && document.querySelector('.cat-tile'));
 const swReady = p => p.evaluate(async () => { if (!('serviceWorker' in navigator)) return; await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }); setTimeout(r, 8000); }); });
 function watch(page, errs) {
+  page.addInitScript(() => { try { navigator.serviceWorker?.addEventListener('message', e => { if (e.data && e.data.swDiag) console.error('SWDIAG ' + JSON.stringify(e.data)); }); } catch {} });
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon|net::ERR|Failed to load resource|googlesyndication|pagead|adsbygoogle/.test(m.text())) errs.push('console: ' + m.text()); });
 }
