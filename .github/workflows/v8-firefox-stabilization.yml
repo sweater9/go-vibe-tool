@@ -42,3 +42,31 @@ jobs:
         with:
           name: stabilization-${{ matrix.engine }}
           path: artifacts/
+  firefox-repeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps firefox
+      - run: npm run build
+      - name: Repeat the Firefox integration suite to expose intermittent failures
+        env:
+          SITE_ROOT: dist
+          REPEATS: '15'
+        run: |
+          set +e
+          bad=0
+          for i in $(seq 1 $REPEATS); do
+            echo "::group::run $i"
+            node tests/v8-integration-browser.mjs firefox > /tmp/rep.log 2>&1
+            rc=$?
+            grep -E '^(FAIL|firefox:)' /tmp/rep.log
+            echo "::endgroup::"
+            if [ $rc -ne 0 ]; then bad=$((bad+1)); fi
+          done
+          echo "failing runs: $bad of $REPEATS"
+          [ $bad -eq 0 ]
