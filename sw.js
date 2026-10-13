@@ -377,7 +377,7 @@ const ASSETS=[
 /* Cloudflare serves /x/index.html as a 307 to /x/. A redirected Response cannot answer a navigation, so cache a plain copy. */
 const plain=r=>r.redirected?r.blob().then(b=>new Response(b,{status:r.status,statusText:r.statusText,headers:r.headers})):Promise.resolve(r);
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>Promise.all(ASSETS.map(asset=>fetch(asset).then(response=>{if(!response.ok)throw new Error("precache failed: "+asset);return plain(response)}).then(copy=>cache.put(asset,copy))))).then(()=>self.skipWaiting())));
-self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
+self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key))))));
 /* Navigations with new query strings must reuse their own cached document, not the home fallback. */
 const lookupCached=async request=>{
  const direct=await caches.match(request);if(direct)return direct;
@@ -406,5 +406,4 @@ async function respond(request){
  catch(err){diag("network",err,request);return request.mode==="navigate"?((await caches.match("./index.html"))||Response.error()):Response.error()}
 }
 self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);if(url.origin!==location.origin)return;
- if(/\.(?:svg|png|css)$/.test(url.pathname))diag("tl-start",Date.now(),event.request);
- event.respondWith(respond(event.request).then(r=>{if(/\.(?:svg|png|css)$/.test(url.pathname))diag("tl-done "+r.type+" "+r.status,Date.now(),event.request);if(!(r instanceof Response)){diag("non-response",String(r),event.request);return fetch(event.request)}return r},err=>{diag("respond-rejected",err,event.request);return fetch(event.request)}))});
+ event.respondWith(respond(event.request).then(r=>{if(!(r instanceof Response)){diag("non-response",String(r),event.request);return fetch(event.request)}return r},err=>{diag("respond-rejected",err,event.request);return fetch(event.request)}))});

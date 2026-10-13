@@ -56,7 +56,7 @@ jobs:
       - name: Repeat the Firefox integration suite to expose intermittent failures
         env:
           SITE_ROOT: dist
-          REPEATS: '12'
+          REPEATS: '20'
         run: |
           set +e
           bad=0
