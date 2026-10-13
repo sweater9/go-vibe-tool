@@ -18,13 +18,16 @@ const liveUrl = process.env.DIST_BASE_URL ? process.env.DIST_BASE_URL.replace(/\
 const srv = createDistServer(dist); if (!liveUrl) await srv.start(); const base = liveUrl || srv.base;
 const browser = await pw[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
 let passed = 0; const failures = [];
-async function check(name, fn) { try { await fn(); passed++; console.log('PASS', name); } catch (e) { failures.push(`${name}: ${e.message.split('\n')[0]}`); console.log('FAIL', name, '-', e.message.split('\n')[0]); } }
+async function check(name, fn) { try { await fn(); passed++; console.log('PASS', name); } catch (e) { const full = String(e.message).slice(0, 1500); failures.push(`${name}: ${e.message.split('\n')[0]}`); console.log('FAIL', name, '-', full); } }
 async function open({ w = 1280, h = 900, touch = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: touch }); const page = await ctx.newPage(); page.setDefaultTimeout(15000);
   const errs = [], bad = [], external = []; const origin = new URL(base).origin;
   page.on('pageerror', e => errs.push('pageerror: ' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/pagead|googlesyndication|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
   page.on('response', r => { const u = new URL(r.url()); if (u.origin === origin && r.status() >= 400 && r.request().resourceType() !== 'document') bad.push(`${r.status()} ${u.pathname}`); });
-  page.on('request', r => { const u = new URL(r.url()); if (/^https?:/.test(r.url()) && u.origin !== origin && !/pagead|googlesyndication|google\.com/.test(r.url())) external.push(r.url()); });
+  // The site ships its real AdSense tag untouched. Tests never talk to ad networks: ad hosts are aborted silently,
+  // any other third-party request is recorded (and fails the test) and aborted.
+  const AD = /(googlesyndication|doubleclick|googleadservices|adtrafficquality|adsbygoogle|(^|\.)google\.com$)/;
+  await ctx.route('**/*', route => { const u = new URL(route.request().url()); if (u.origin === origin) return route.continue(); if (AD.test(u.hostname)) return route.abort(); external.push(u.href); return route.abort(); });
   return { ctx, page, errs, bad, external };
 }
 const overflow = p => p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -60,6 +63,12 @@ try {
       assert.deepEqual(problems, []); assert.deepEqual(c.external, []); await c.ctx.close();
     });
   }
+  await check('test harness: ad hosts are aborted silently, any other third-party host is reported', async () => {
+    const c = await open(); await c.page.goto(base, { waitUntil: 'networkidle' });
+    await c.page.evaluate(() => Promise.allSettled([fetch('https://tpc.googlesyndication.com/x'), fetch('https://googleads.g.doubleclick.net/x'), fetch('https://www.google.com/x')]));
+    assert.deepEqual(c.external, [], 'ad hosts must not be reported');
+    await c.page.evaluate(() => fetch('https://example.org/tracker.js').catch(() => {})); assert.deepEqual(c.external, ['https://example.org/tracker.js']); await c.ctx.close();
+  });
   await check('Mahjong frontend loads without a backend: no API configured, no network calls to any service', async () => {
     const c = await open(); await c.page.goto(base + 'play/mahjong/', { waitUntil: 'networkidle' });
     // On a production hostname config.js must leave the API empty (localhost/127.0.0.1 is dev mode and points at a local server).
