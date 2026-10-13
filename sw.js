@@ -377,7 +377,7 @@ const ASSETS=[
 /* Cloudflare serves /x/index.html as a 307 to /x/. A redirected Response cannot answer a navigation, so cache a plain copy. */
 const plain=r=>r.redirected?r.blob().then(b=>new Response(b,{status:r.status,statusText:r.statusText,headers:r.headers})):Promise.resolve(r);
 self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>Promise.all(ASSETS.map(asset=>fetch(asset).then(response=>{if(!response.ok)throw new Error("precache failed: "+asset);return plain(response)}).then(copy=>cache.put(asset,copy))))).then(()=>self.skipWaiting())));
-self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key))))));
+self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 /* Navigations with new query strings must reuse their own cached document, not the home fallback. */
 const lookupCached=async request=>{
  const direct=await caches.match(request);if(direct)return direct;

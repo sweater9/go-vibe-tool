@@ -30,7 +30,7 @@ const results = []; let browser;
 const watchdog = setTimeout(() => { console.error('FAIL watchdog: suite exceeded 240 s'); process.exit(1); }, 240000);
 async function check(label, fn) {
   try { await fn(); results.push({ label, ok: true }); console.log('PASS', label); }
-  catch (e) { results.push({ label, ok: false, error: e.message }); console.error('FAIL', label, '::', JSON.stringify(String(e.message)).slice(0, 1500)); }
+  catch (e) { results.push({ label, ok: false, error: e.message }); console.error('FAIL', label, '::', JSON.stringify(String(e.message)).slice(0, 1500), '## RECENT', JSON.stringify(diagLog.filter(x => !/SWDIAG|ERR/.test(x)).slice(-14))); }
 }
 const NEW_TOOLS = { 'curl-snippets': /cURL/i, 'key-hash': /hash|token|uuid/i, 'regex-playground': /regex/i, 'tailwind-css': /tailwind/i, 'shadow-glass': /shadow|glass/i, 'svg-sanitizer': /svg/i, 'image-metadata-stripper': /metadata|exif/i, 'image-batch-compressor': /compress/i, 'table-converter': /table|markdown/i };
 const NINE = ['ai-prompts', 'productivity', 'files-pdf', 'images-design', 'privacy-security', 'developer', 'business-finance', 'writing-text', 'links-web'];
@@ -38,6 +38,8 @@ const ready = p => p.waitForFunction(() => typeof openTool === 'function' && typ
 const swReady = p => p.evaluate(async () => { if (!('serviceWorker' in navigator)) return; await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }); setTimeout(r, 8000); }); });
 const diagLog = [];
 function watch(page, errs) {
+  page.on('load', () => diagLog.push(Date.now() + ' LOAD ' + page.url().replace(/^https?:\/\/[^/]+/, '')));
+  page.on('domcontentloaded', () => diagLog.push(Date.now() + ' DCL ' + page.url().replace(/^https?:\/\/[^/]+/, '')));
   page.on('framenavigated', f => { if (f === page.mainFrame()) diagLog.push(Date.now() + ' NAV ' + f.url().replace(/^https?:\/\/[^/]+/, '')); });
   page.on('console', m => { const x = m.text(); if (/^SWDIAG/.test(x)) diagLog.push(Date.now() + ' ' + x.slice(0, 170)); else if (m.type() === 'error') diagLog.push(Date.now() + ' ERR ' + x.slice(0, 120)); });
   page.addInitScript(() => { try { navigator.serviceWorker?.addEventListener('message', e => { if (e.data && e.data.swDiag) console.log('SWDIAG ' + JSON.stringify(e.data)); }); } catch {} });
