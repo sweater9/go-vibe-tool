@@ -33,7 +33,8 @@ const E=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;","
 const reduced=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
 const listed=t=>typeof isListed==="function"?isListed(t):true;
 const allTools=()=>typeof tools!=="undefined"?tools.filter(listed):[];
-const byId=id=>allTools().filter(t=>t[0]===id)[0];
+const catalogId=id=>typeof retiredTools!=="undefined"&&retiredTools[id]?retiredTools[id]:allTools().some(t=>t[0]===id)?id:window.GVTStudios?.canonical[window.GVTStudios?.aliases[id]]||id;
+const byId=id=>allTools().filter(t=>t[0]===catalogId(id))[0];
 const ic=(name,cls)=>'<svg class="ic'+(cls?" "+cls:"")+'" aria-hidden="true" focusable="false"><use href="#i-'+name+'"/></svg>';
 const iconFor=t=>ICONS[t[1]]||["sparkle","h-v"];
 const tok=s=>String(s||"").toLowerCase().replace(/[^a-z0-9+#.]+/g," ").trim().split(/\s+/).filter(Boolean);
@@ -87,7 +88,8 @@ function card(t,isFav){
   '<button class="favorite-btn" type="button" data-fav="'+id+'" aria-pressed="'+(isFav?"true":"false")+'" aria-label="'+(isFav?"Remove "+title+" from favourites":"Add "+title+" to favourites")+'" title="'+(isFav?"Remove from favourites":"Add to favourites")+'">'+(isFav?"★":"☆")+'</button>'+
  '</article>';
 }
-const favs=()=>typeof discoveryLoad==="function"?discoveryLoad(DISCOVERY_FAV_KEY):[];
+const favs=()=>typeof discoveryLoad==="function"?discoveryLoad(DISCOVERY_FAV_KEY).map(catalogId):[];
+toggleFavorite=function(id,event){if(event){event.stopPropagation();event.preventDefault()}const key=catalogId(id),fav=discoveryLoad(DISCOVERY_FAV_KEY),next=fav.some(x=>catalogId(x)===key)?fav.filter(x=>catalogId(x)!==key):[id,...fav].slice(0,12);discoverySave(DISCOVERY_FAV_KEY,next);renderCatalog();renderDiscoveryShelf()};
 /* Re-render a list while keeping keyboard focus on the same favourite button. */
 function keepFocus(box,fn){
  const ae=document.activeElement,id=ae&&ae.dataset&&ae.dataset.fav&&box.contains(ae)?ae.dataset.fav:null;
