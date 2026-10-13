@@ -10,6 +10,11 @@ if (!token || !account) fail('CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID mus
 if (!/^[a-f0-9]{32}$/i.test(account)) fail('CLOUDFLARE_ACCOUNT_ID does not look like a 32-character account id.');
 if (PROTECTED.includes(PREVIEW)) fail(`Refusing to deploy over the existing Worker "${PREVIEW}". Use a separate preview name.`);
 if (!/-preview$/.test(PREVIEW)) fail(`Preview Worker name must end in "-preview" (got "${PREVIEW}").`);
+// The only permitted deployment target is exactly this Worker, and the config Wrangler will really use must name it.
+const ONLY_TARGET = 'go-vibe-tool-v8-preview';
+if (PREVIEW !== ONLY_TARGET) fail(`The only permitted deployment target is "${ONLY_TARGET}" (got "${PREVIEW}").`);
+const cfgName = (await import('node:fs')).readFileSync(new URL('../wrangler.preview.jsonc', import.meta.url), 'utf8').replace(/^\s*\/\/.*$/gm, '').match(/"name"\s*:\s*"([^"]+)"/)?.[1];
+if (cfgName !== ONLY_TARGET) fail(`wrangler.preview.jsonc names "${cfgName}", not "${ONLY_TARGET}". Refusing to deploy.`);
 async function api(path) {
   const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${account}${path}`, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
   let body = null; try { body = await res.json(); } catch { /* non-JSON */ }
