@@ -222,7 +222,7 @@
  .homepage .wrap{width:min(100% - 28px,1160px)}
  .homepage .hero{padding:20px 0 84px;text-align:left}
  .homepage .hero h1{margin-left:0;margin-right:0;font-size:clamp(32px,9.4vw,40px)}
- .homepage .hero .lead{font-size:15px;margin:0}
+ .homepage .hero .lead{font-size:15px;line-height:1.6;margin:0;text-align:left;text-wrap:pretty;max-width:100%}
  .cats-wrap{margin-top:-54px}
  .cats-panel{padding:12px 12px 14px}
  .cat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
