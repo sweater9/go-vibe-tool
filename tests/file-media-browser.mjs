@@ -39,9 +39,11 @@ async function check(name, fn) {
 /* Ad hosts are the site's own AdSense tag (unmodified, ignored); any OTHER third-party request made while using a tool is a failure. */
 const AD_HOST = /(googlesyndication|doubleclick|googleadservices|adtrafficquality|adsbygoogle|(^|\.)google\.com$|^csi\.gstatic\.com$)/;
 const isAd = u => AD_HOST.test(u.hostname) || /pagead/i.test(u.href);
-async function open({ w = 1280, h = 900, touch = false, init = null, perms = false } = {}) {
-  const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: touch, acceptDownloads: true });
-  if (perms) { try { await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin }); } catch { /* not supported by this engine */ } }
+async function open({ w = 1280, h = 900, touch = false, init = null, perms = false, noSW = false } = {}) {
+  // noSW: with a service worker active, requests for cached/precached files are answered by the worker and network blocking cannot be simulated reliably
+  const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: touch, acceptDownloads: true, ...(noSW ? { serviceWorkers: 'block' } : {}) });
+  // clipboard permissions exist only in Chromium; other engines are checked through the on-page status messages and the textarea contents
+  if (perms && engine === 'chromium') await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin });
   if (init) await ctx.addInitScript(init);
   const page = await ctx.newPage(); page.setDefaultTimeout(20000);
   const errs = [], external = [];
@@ -282,7 +284,7 @@ await check('SVG UI: paste text, paste into box, drop and pick a file; results, 
   assert.match(await page.locator('#svgReport').innerText(), /event handler/);
   // real paste event with text
   await page.evaluate(svg => { const dt = new DataTransfer(); dt.setData('text/plain', svg); document.querySelector('#fmRoot .fm-drop').dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); }, CORPUS[0].svg);
-  await page.waitForFunction(() => /script/.test(document.querySelector('#svgReport')?.innerText || ''));
+  await page.waitForFunction(() => /<script>/.test(document.querySelector('#svgInput')?.value || '') && /<script> — /.test(document.querySelector('#svgReport')?.innerText || ''));
   assert.match(await page.inputValue('#svgInput'), /<script>/); assert.doesNotMatch(await page.inputValue('#svgOutput'), /script/);
   // drop a file onto the zone
   await page.evaluate(svg => { const dt = new DataTransfer(); dt.items.add(new File([svg], 'dropped.svg', { type: 'image/svg+xml' })); document.querySelector('#fmRoot .fm-drop').dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true })); }, BENIGN);
@@ -538,7 +540,7 @@ await check('Compressor: fallback messaging when a format is unavailable (simula
   await ctx.close();
 });
 await check('Compressor: AVIF encoder failure (simulated blocked wasm) falls back to WebP/JPEG with an explanation and the batch continues', async () => {
-  const { ctx, page } = await open(); await openTool(page, 'image-batch-compressor');
+  const { ctx, page } = await open({ noSW: true }); await openTool(page, 'image-batch-compressor');
   await page.waitForFunction(() => document.querySelector('#cmpCaps')?.dataset.caps);
   const caps = await page.evaluate(() => GVTImage.detectEncoders()); if (!caps.avifWasm) { console.log('  (this browser has no wasm AVIF path; skipped)'); await ctx.close(); return; }
   await ctx.route('**/vendor/avif/avif_enc.*', r => r.abort());
@@ -670,23 +672,24 @@ await check('offline: after one online visit every tool still loads and works wi
   await openTool(page, 'image-batch-compressor'); const online = await genImage(page, { w: 64, h: 64, type: 'image/png', draw: NOISE });
   await compress(page, asFile('warm.png', 'image/png', online), { format: 'image/avif', skip: false }); const warm = await itemInfo(page);
   const caps = await page.evaluate(() => GVTImage.detectEncoders());
-  // go offline
-  await ctx.setOffline(true);
-  await page.goto(base + '?tool=svg-sanitizer'); await page.waitForSelector('#fmRoot[data-ready]');
+  // go offline by stopping the server: the page can then only be served by the service worker's cache (Firefox refuses to navigate at all with setOffline)
+  server.closeAllConnections?.(); await new Promise(r => server.close(r));
+  const openOffline = async id => { await page.goto(base); await page.waitForSelector('.cat-tile'); await page.evaluate(t => openTool(t), id); await page.waitForSelector(`#fmRoot[data-tool="${id}"][data-ready]`); };
+  await openOffline('svg-sanitizer');
   await page.click('#svgExample'); await page.waitForSelector('#svgVerified:not(:empty)'); assert.match(await page.locator('#svgSizes').innerText(), /SVGO 4\./, 'SVGO available offline'); assert.doesNotMatch(await page.inputValue('#svgOutput'), /script/);
-  await page.goto(base + '?tool=table-converter'); await page.waitForSelector('#fmRoot[data-ready]'); await page.click('#tblExCsv'); await page.waitForSelector('#tblSummary');
-  await page.goto(base + '?tool=image-metadata-stripper'); await page.waitForSelector('#fmRoot[data-ready]');
+  await openOffline('table-converter'); await page.click('#tblExCsv'); await page.waitForSelector('#tblSummary');
+  await openOffline('image-metadata-stripper');
   await strip(page, asFile('o.jpg', 'image/jpeg', F.injectJpeg(online.length ? await genImage(page, { w: 30, h: 30, draw: REDBLUE }) : new Uint8Array(), FULL_META)));
   assert.equal(await page.locator('#stripList .fm-item').getAttribute('data-meta-after'), 'none');
-  await page.goto(base + '?tool=image-batch-compressor'); await page.waitForSelector('#fmRoot[data-ready]');
+  await openOffline('image-batch-compressor');
   const png = await genImage(page, { w: 64, h: 64, type: 'image/png', draw: NOISE });
   await compress(page, asFile('off.png', 'image/png', png), { format: 'image/webp', skip: false }); assert.equal((await itemInfo(page)).state, 'done');
   if (caps['image/avif'] && warm.type === 'image/avif') { await page.click('#cmpClear'); await compress(page, asFile('off2.png', 'image/png', png), { format: 'image/avif', skip: false }); const it = await itemInfo(page); assert.equal(it.type, 'image/avif', 'AVIF works offline after the encoder was cached: ' + it.text); }
   assert.deepEqual(errs.filter(e => !/Failed to fetch|NetworkError|net::|Load failed/i.test(e)), []);
-  await ctx.setOffline(false); await ctx.close();
+  await ctx.close();
 });
 
 console.log(`\n${engine}: ${passed} passed, ${failures.length} failed`);
 if (failures.length) { console.log('\nFAILURES:\n' + failures.map(f => ' - ' + f).join('\n')); }
-await browser.close(); server.close();
+await browser.close(); try { server.close(); } catch { /* already stopped by the offline test */ }
 process.exit(failures.length ? 1 : 0);
