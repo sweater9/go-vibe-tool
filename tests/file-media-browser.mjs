@@ -47,7 +47,7 @@ async function open({ w = 1280, h = 900, touch = false, init = null, perms = fal
   if (init) await ctx.addInitScript(init);
   const page = await ctx.newPage(); page.setDefaultTimeout(20000);
   const errs = [], external = [];
-  page.on('pageerror', e => errs.push('pageerror: ' + e.message));
+  page.on('pageerror', e => errs.push('pageerror: ' + e.message + ' @ ' + String(e.stack || '').split('\n').slice(0, 3).join(' | ').slice(0, 300)));
   page.on('console', m => { if (m.type() === 'error' && !/pagead|googlesyndication|Failed to load resource|ERR_TUNNEL|ERR_INTERNET|ERR_NAME|ERR_FAILED|ERR_BLOCKED/.test(m.text())) errs.push('console: ' + m.text()); });
   page.on('request', r => { let u; try { u = new URL(r.url()); } catch { return; } if (/^https?:$/.test(u.protocol) && u.origin !== origin && !isAd(u) && !external.includes(u.href)) external.push(u.href); });
   await ctx.route('**/*', route => { const u = new URL(route.request().url()); return u.origin === origin || u.protocol === 'blob:' || u.protocol === 'data:' ? route.continue() : route.abort(); });
@@ -56,6 +56,7 @@ async function open({ w = 1280, h = 900, touch = false, init = null, perms = fal
 async function openTool(page, id) {
   await page.goto(base + '?tool=' + id);
   await page.waitForSelector('#fmRoot[data-ready]');
+  await page.waitForLoadState('networkidle').catch(() => {}); // let the site's own service-worker registration and (blocked) ad tag settle before the next navigation
 }
 const overflow = p => p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 const bytesOf = async dl => new Uint8Array(await fs.readFile(await dl.path()));
@@ -144,6 +145,7 @@ await check('each tool opens from the catalogue, from ?tool= and from its catego
     await page.click(`#categoryTools [data-open="${id}"]`); await page.waitForSelector('#fmRoot[data-ready]');
     assert.equal(await page.getAttribute('#fmRoot', 'data-tool'), id);
     await page.click('#workspace .workspace-head .btn'); assert.equal(await page.evaluate(() => document.querySelector('#workspace').classList.contains('active')), false);
+    await page.waitForLoadState('networkidle').catch(() => {});
   }
   assert.deepEqual(errs, []); await ctx.close();
 });
@@ -283,11 +285,12 @@ await check('SVG UI: paste text, paste into box, drop and pick a file; results, 
   assert.doesNotMatch(await page.inputValue('#svgOutput'), /onload/);
   assert.match(await page.locator('#svgReport').innerText(), /event handler/);
   // real paste event with text
-  await page.evaluate(svg => { const dt = new DataTransfer(); dt.setData('text/plain', svg); document.querySelector('#fmRoot .fm-drop').dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); }, CORPUS[0].svg);
+  // (the event is a plain Event carrying a real DataTransfer: Firefox ignores clipboardData/dataTransfer in the ClipboardEvent/DragEvent constructors, our handlers read the same properties)
+  await page.evaluate(svg => { const dt = new DataTransfer(); dt.setData('text/plain', svg); const ev = new Event('paste', { bubbles: true, cancelable: true }); Object.defineProperty(ev, 'clipboardData', { value: dt }); document.querySelector('#fmRoot .fm-drop').dispatchEvent(ev); }, CORPUS[0].svg);
   await page.waitForFunction(() => /<script>/.test(document.querySelector('#svgInput')?.value || '') && /<script> — /.test(document.querySelector('#svgReport')?.innerText || ''));
   assert.match(await page.inputValue('#svgInput'), /<script>/); assert.doesNotMatch(await page.inputValue('#svgOutput'), /script/);
   // drop a file onto the zone
-  await page.evaluate(svg => { const dt = new DataTransfer(); dt.items.add(new File([svg], 'dropped.svg', { type: 'image/svg+xml' })); document.querySelector('#fmRoot .fm-drop').dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true })); }, BENIGN);
+  await page.evaluate(svg => { const dt = new DataTransfer(); dt.items.add(new File([svg], 'dropped.svg', { type: 'image/svg+xml' })); const ev = new Event('drop', { bubbles: true, cancelable: true }); Object.defineProperty(ev, 'dataTransfer', { value: dt }); document.querySelector('#fmRoot .fm-drop').dispatchEvent(ev); }, BENIGN);
   await page.waitForFunction(() => /Fidelity/.test(document.querySelector('#svgOutput')?.value || ''));
   const rows = await page.locator('#svgSizes tbody tr').count(); assert.equal(rows, 3);
   await page.waitForFunction(() => [...document.querySelectorAll('#svgSizes [data-gz]')].every(c => c.textContent !== '…'));
@@ -299,6 +302,10 @@ await check('SVG UI: paste text, paste into box, drop and pick a file; results, 
   assert.equal(new TextDecoder().decode(await bytesOf(dl)), await page.inputValue('#svgOutput')); assert.match(dl.suggestedFilename(), /\.min\.svg$/);
   await page.click('#svgCopy'); await page.waitForFunction(() => /Copied|Copy failed/.test(document.querySelector('#fmRoot .fm-status')?.textContent || ''));
   if (engine === 'chromium') assert.equal(await page.evaluate(() => navigator.clipboard.readText()), await page.inputValue('#svgOutput'));
+  // pasting into the code box itself (native text paste path)
+  await page.focus('#svgInput'); await page.fill('#svgInput', ''); await page.keyboard.insertText(CORPUS[1].svg);
+  await page.waitForFunction(() => /onload/.test(document.querySelector('#svgInput').value) && /event handler/.test(document.querySelector('#svgReport')?.innerText || ''));
+  assert.doesNotMatch(await page.inputValue('#svgOutput'), /onload/);
   // errors are announced
   await page.fill('#svgInput', '<svg><oops'); await page.waitForSelector('#svgReport [role=alert]'); assert.match(await page.locator('#svgReport [role=alert]').innerText(), /not well-formed/);
   assert.equal(await page.inputValue('#svgOutput'), '');
