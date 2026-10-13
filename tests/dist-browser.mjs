@@ -24,10 +24,12 @@ async function open({ w = 1280, h = 900, touch = false } = {}) {
   const errs = [], bad = [], external = []; const origin = new URL(base).origin;
   page.on('pageerror', e => errs.push('pageerror: ' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/pagead|googlesyndication|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
   page.on('response', r => { const u = new URL(r.url()); if (u.origin === origin && r.status() >= 400 && r.request().resourceType() !== 'document') bad.push(`${r.status()} ${u.pathname}`); });
-  // The site ships its real AdSense tag untouched. Tests never talk to ad networks: ad hosts are aborted silently,
-  // any other third-party request is recorded (and fails the test) and aborted.
+  // The site ships its real AdSense tag untouched. Tests never talk to ad networks. Third-party requests are RECORDED from the page's own
+  // request events (fired by every engine; WebKit does not reliably expose all cross-origin requests to context routing), and
+  // anything that is not an ad host fails the test. Routing is used only to keep ad and third-party traffic off the network.
   const AD = /(googlesyndication|doubleclick|googleadservices|adtrafficquality|adsbygoogle|(^|\.)google\.com$)/;
-  await ctx.route('**/*', route => { const u = new URL(route.request().url()); if (u.origin === origin) return route.continue(); if (AD.test(u.hostname)) return route.abort(); external.push(u.href); return route.abort(); });
+  page.on('request', r => { let u; try { u = new URL(r.url()); } catch { return; } if (/^https?:$/.test(u.protocol) && u.origin !== origin && !AD.test(u.hostname) && !external.includes(u.href)) external.push(u.href); });
+  await ctx.route('**/*', route => { const u = new URL(route.request().url()); if (u.origin === origin) return route.continue(); return route.abort(); });
   return { ctx, page, errs, bad, external };
 }
 const overflow = p => p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
