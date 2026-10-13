@@ -42,7 +42,6 @@ function watch(page, errs) {
   page.on('domcontentloaded', () => diagLog.push(Date.now() + ' DCL ' + page.url().replace(/^https?:\/\/[^/]+/, '')));
   page.on('framenavigated', f => { if (f === page.mainFrame()) diagLog.push(Date.now() + ' NAV ' + f.url().replace(/^https?:\/\/[^/]+/, '')); });
   page.on('console', m => { const x = m.text(); if (/^SWDIAG/.test(x)) diagLog.push(Date.now() + ' ' + x.slice(0, 170)); else if (m.type() === 'error') diagLog.push(Date.now() + ' ERR ' + x.slice(0, 120)); });
-  page.addInitScript(() => { try { navigator.serviceWorker?.addEventListener('message', e => { if (e.data && e.data.swDiag) console.log('SWDIAG ' + JSON.stringify(e.data)); }); } catch {} });
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon|net::ERR|Failed to load resource|googlesyndication|pagead|adsbygoogle/.test(m.text())) errs.push('console: ' + m.text()); });
 }
