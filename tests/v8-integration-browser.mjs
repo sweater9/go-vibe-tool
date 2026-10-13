@@ -36,8 +36,11 @@ const NEW_TOOLS = { 'curl-snippets': /cURL/i, 'key-hash': /hash|token|uuid/i, 'r
 const NINE = ['ai-prompts', 'productivity', 'files-pdf', 'images-design', 'privacy-security', 'developer', 'business-finance', 'writing-text', 'links-web'];
 const ready = p => p.waitForFunction(() => typeof openTool === 'function' && typeof tools !== 'undefined' && document.querySelector('.cat-tile'));
 const swReady = p => p.evaluate(async () => { if (!('serviceWorker' in navigator)) return; await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }); setTimeout(r, 8000); }); });
+const diagLog = [];
 function watch(page, errs) {
-  page.addInitScript(() => { try { navigator.serviceWorker?.addEventListener('message', e => { if (e.data && e.data.swDiag) console.error('SWDIAG ' + JSON.stringify(e.data)); }); } catch {} });
+  page.on('framenavigated', f => { if (f === page.mainFrame()) diagLog.push(Date.now() + ' NAV ' + f.url().replace(/^https?:\/\/[^/]+/, '')); });
+  page.on('console', m => { const x = m.text(); if (/^SWDIAG/.test(x)) diagLog.push(Date.now() + ' ' + x.slice(0, 170)); else if (m.type() === 'error') diagLog.push(Date.now() + ' ERR ' + x.slice(0, 120)); });
+  page.addInitScript(() => { try { navigator.serviceWorker?.addEventListener('message', e => { if (e.data && e.data.swDiag) console.log('SWDIAG ' + JSON.stringify(e.data)); }); } catch {} });
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon|net::ERR|Failed to load resource|googlesyndication|pagead|adsbygoogle/.test(m.text())) errs.push('console: ' + m.text()); });
 }
@@ -206,7 +209,7 @@ try {
       assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('it.discovery.favorites'))).sort(), ['hourly-rate', 'regex-playground', 'svg-sanitizer', 'url-cleaner']);
     });
     await check(tag('no uncaught page errors during home, category and tool navigation'), async () => {
-      assert.deepEqual(errs, [], `Uncaught browser errors: ${JSON.stringify(errs)}`);
+      assert.deepEqual(errs, [], `Uncaught browser errors: ${JSON.stringify(errs)} ## TIMELINE ${diagLog.slice(-70).join(' | ')}`);
     });
     await ctx.close();
   }
