@@ -204,7 +204,9 @@ try {
       assert.ok(/Recent/i.test(shelf));
       assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('it.discovery.favorites'))).sort(), ['hourly-rate', 'regex-playground', 'svg-sanitizer', 'url-cleaner']);
     });
-    await check(tag('no uncaught page errors during home, category and tool navigation'), async () => { assert.deepEqual(errs, []); });
+    await check(tag('no uncaught page errors during home, category and tool navigation'), async () => {
+      assert.deepEqual(errs, [], `Uncaught browser errors: ${JSON.stringify(errs)}`);
+    });
     await ctx.close();
   }
 
