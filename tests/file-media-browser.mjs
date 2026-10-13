@@ -309,7 +309,8 @@ await check('SVG UI: paste text, paste into box, drop and pick a file; results, 
   // errors are announced
   await page.fill('#svgInput', '<svg><oops'); await page.waitForSelector('#svgReport [role=alert]'); assert.match(await page.locator('#svgReport [role=alert]').innerText(), /not well-formed/);
   assert.equal(await page.inputValue('#svgOutput'), '');
-  assert.deepEqual(external, []); assert.deepEqual(errs, []); await ctx.close();
+  // Firefox itself logs "XML Parsing Error" to the console for the deliberately malformed markup typed above; nothing else may be logged
+  assert.deepEqual(external, []); assert.deepEqual(errs.filter(e => !/XML Parsing Error: unclosed token/.test(e)), []); await ctx.close();
 });
 await check('SVG UI: the unsafe example is flagged in the UI and the page never executes it', async () => {
   const { ctx, page, errs } = await open(); await openTool(page, 'svg-sanitizer');
