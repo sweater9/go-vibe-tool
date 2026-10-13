@@ -33,3 +33,36 @@ Convert epoch seconds, milliseconds, microseconds and nanoseconds with explicit 
 - Keyboard and mobile accessibility, offline operation where practical.
 - Unit tests, Chromium/Firefox/WebKit browser QA, static dist verification.
 - Do not merge or deploy V9 during V8 acceptance. Production changes require separate approval.
+
+
+## Additional V9 tools — premium-style features without mandatory subscriptions
+
+| Tool | Client-side approach | Intended value |
+| --- | --- | --- |
+| Screenshot Beautifier & 3D Mockup | Canvas + CSS transforms | Professional screenshots, device frames, perspective mockups and high-resolution PNG export without imposed watermarks |
+| PDF Signer & Document Flattener | Locally bundled pdf-lib | Add a drawn, typed or uploaded signature and flatten supported form/annotation content into an exported PDF |
+| Offline Image-to-Text OCR | Locally bundled Tesseract.js + WASM/language packs | Extract editable text from images without server upload or account |
+| Silence Stripper & Audio Leveler | Web Audio API + offline decoding/encoding | Detect and trim pauses, adjust gain, prevent clipping and export processed audio |
+| Watermark-Free Video/GIF Trimmer | Locally bundled ffmpeg.wasm, with capability-based fallback | Trim user-provided videos or GIFs without export watermark or account |
+
+### Screenshot Beautifier & 3D Mockup
+Provide padding, background gradients, shadow, rounded corners, device/browser frames, perspective tilt, live preview and high-resolution PNG export. Make export limits explicit and avoid copying third-party branded device artwork without rights. Handle large image memory and canvas limits; never add a watermark.
+
+### PDF Signer & Document Flattener
+Support placing a visible signature on chosen pages, resizing and previewing, and exporting the edited PDF locally. **A visible drawn/typed signature is not a cryptographic digital signature**; do not advertise certificate-based signing or legal validity without the necessary cryptographic workflow. Distinguish flattening interactive form fields from flattening arbitrary annotations; verify pdf-lib support, warn about unsupported PDF features, and preserve original files. Never claim to remove document security controls.
+
+### Offline Image-to-Text OCR
+Bundle OCR runtime and relevant language data locally for genuine offline operation after installation/cache; show download/storage size and optional language choices. Process images in a worker, with progress, cancellation, text correction and copy/export. OCR is imperfect, especially for handwriting, low-resolution text and complex layouts. No server processing.
+
+### Silence Stripper & Audio Leveler
+Provide adjustable silence threshold, minimum pause length and padding; visual waveform, before/after preview and export. Use offline audio processing and bounded memory. Basic normalization/compression is **not** AI noise removal, mastering or automatic speech enhancement. Preserve timing where requested and test mono/stereo, clipping and silent input.
+
+### Watermark-Free Video/GIF Trimmer
+Provide start/end markers, preview, format choice, local export and clear processing/memory progress. ffmpeg.wasm can require substantial download, CPU and RAM, especially on mobile; evaluate codecs, licensing, browser support, SharedArrayBuffer requirements and practical file limits before promising full support. Export without adding a watermark, but do not remove pre-existing watermarks or third-party rights notices. Provide graceful failure/fallback for unsupported formats.
+
+### V9 delivery gates for these five
+- Test offline operation with all required assets locally cached; no uploads or hidden remote calls.
+- Validate performance and memory on realistic large files, and document supported browsers/codecs.
+- Verify output fidelity, accessibility, cancellation and privacy.
+- Keep all ten V9 tools within the existing nine top-level categories.
+- No V9 deployment or production modification until V8 is accepted and V9 receives its own release review.
