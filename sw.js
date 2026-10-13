@@ -1,4 +1,4 @@
-const CACHE="govibetool-v8-5";
+const CACHE="govibetool-v8-studios-1";
 const LEGACY_CACHE="govibetool-v2-7";
 const ASSETS=[
   "./",
@@ -54,7 +54,7 @@ const ASSETS=[
   "./play/daily-word/engine.js",
   "./play/daily-word/words.js",
   "./play/daily-word/app.js",
-  "./manifest.webmanifest",
+  "./studios.html",\n  "./studios.js",\n  "./studios-routing.js",\n  "./manifest.webmanifest",
   "./assets/icon.svg",
   "./assets/logo-mark.svg",
   "./assets/icon-192.png",
