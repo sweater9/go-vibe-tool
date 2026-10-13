@@ -30,7 +30,7 @@ const results = []; let browser;
 const watchdog = setTimeout(() => { console.error('FAIL watchdog: suite exceeded 240 s'); process.exit(1); }, 240000);
 async function check(label, fn) {
   try { await fn(); results.push({ label, ok: true }); console.log('PASS', label); }
-  catch (e) { results.push({ label, ok: false, error: e.message }); console.error('FAIL', label, '::', String(e.message).split('\n')[0].slice(0, 300)); }
+  catch (e) { results.push({ label, ok: false, error: e.message }); console.error('FAIL', label, '::', JSON.stringify(String(e.message)).slice(0, 1500)); }
 }
 const NEW_TOOLS = { 'curl-snippets': /cURL/i, 'key-hash': /hash|token|uuid/i, 'regex-playground': /regex/i, 'tailwind-css': /tailwind/i, 'shadow-glass': /shadow|glass/i, 'svg-sanitizer': /svg/i, 'image-metadata-stripper': /metadata|exif/i, 'image-batch-compressor': /compress/i, 'table-converter': /table|markdown/i };
 const NINE = ['ai-prompts', 'productivity', 'files-pdf', 'images-design', 'privacy-security', 'developer', 'business-finance', 'writing-text', 'links-web'];
