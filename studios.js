@@ -1,27 +1,344 @@
-/* GoVibeTool V8 studios — no remote processing. */
-(()=>{"use strict";
-const $=id=>document.getElementById(id),output=(id,msg)=>{$(id).textContent=msg;};
-const aliases={"url-cleaner":"url","url-inspector":"url","utm-builder":"url","tracking-check":"url","link-fingerprint":"url","hourly-rate":"freelance","qr-payload":"qr","metadata":"privacy"};
-const tabs=["url","freelance","qr","privacy"];
-function selectTab(tab){if(!tabs.includes(tab))tab="url";for(const id of tabs){$(id).classList.toggle("hidden",id!==tab);document.querySelector('[data-tab="'+id+'"]').setAttribute("aria-selected",String(id===tab));}const u=new URL(location.href);u.searchParams.set("studio",tab);history.replaceState(null,"",u);}
-document.querySelectorAll("[data-tab]").forEach(b=>{b.addEventListener("click",()=>selectTab(b.dataset.tab));b.addEventListener("keydown",e=>{const i=tabs.indexOf(b.dataset.tab),d=e.key==="ArrowRight"?1:e.key==="ArrowLeft"?-1:0;if(!d)return;e.preventDefault();const next=tabs[(i+d+tabs.length)%tabs.length];selectTab(next);document.querySelector('[data-tab="'+next+'"]').focus();});});
-const qs=new URLSearchParams(location.search);selectTab(qs.get("studio")||aliases[qs.get("tool")]||"url");
-const trackers=new Set(["fbclid","gclid","dclid","msclkid","yclid","mc_cid","mc_eid","igshid","ref_src","_hsenc","_hsmi"]);
-let copyUrl="",redactedPreview="";
-function parseUrl(s){const u=new URL(s.trim());if(!["https:","http:"].includes(u.protocol))throw Error("Only HTTP and HTTPS links are supported.");if(!u.hostname)throw Error("Missing hostname.");return u;}
-function tracking(k){return /^utm_/i.test(k)||trackers.has(k.toLowerCase());}
-function inspect(){try{const u=parseUrl($("urlInput").value),clean=new URL(u.href),removed=[];for(const k of [...new Set(clean.searchParams.keys())])if(tracking(k)){removed.push(k);clean.searchParams.delete(k);}copyUrl=clean.href;const signals=[];if(u.username||u.password)signals.push("Credentials embedded in URL");if(u.hostname.startsWith("xn--")||u.hostname.split(".").some(p=>p.startsWith("xn--")))signals.push("Punycode hostname");if(u.protocol!=="https:")signals.push("Unencrypted HTTP");if(/[^\x00-\x7F]/.test(u.hostname))signals.push("Internationalized hostname");output("urlResult",["Host: "+u.hostname,"Path: "+u.pathname,"Query parameters: "+(u.searchParams.size||"none"),"Tracking keys: "+(removed.join(", ")||"none"),"Clean URL: "+clean.href,"Fingerprint: "+u.origin+u.pathname,"Signals: "+(signals.join("; ")||"No basic warning signals detected (not a safety verdict)")].join("\n"));}catch(e){copyUrl="";output("urlResult","Invalid URL: "+e.message);}}
-$("urlAnalyze").addEventListener("click",inspect);
-$("urlUtm").addEventListener("click",()=>{try{const u=parseUrl($("urlInput").value);for(const [key,id] of [["utm_source","utmSource"],["utm_medium","utmMedium"],["utm_campaign","utmCampaign"]]){const val=$(id).value.trim();if(val)u.searchParams.set(key,val);}copyUrl=u.href;output("urlResult","Campaign URL:\n"+copyUrl);}catch(e){copyUrl="";output("urlResult","Invalid URL: "+e.message);}});
-$("urlCopy").addEventListener("click",async()=>{if(!copyUrl)return;try{await navigator.clipboard.writeText(copyUrl);output("urlResult",$("urlResult").textContent+"\nCopied.");}catch{output("urlResult",$("urlResult").textContent+"\nClipboard unavailable; copy the displayed URL manually.");}});
-const num=id=>Number($(id).value);
-$("calcRate").addEventListener("click",()=>{const target=num("target"),overhead=num("overhead"),hours=num("hours"),weeks=num("weeks"),util=num("utilization"),tax=num("tax")/100,margin=num("margin")/100,quote=num("quoteHours");if(![target,overhead,hours,weeks,util,tax,margin,quote].every(Number.isFinite)||target<0||overhead<0||quote<0||hours<=0||hours>168||weeks<=0||weeks>52||util<=0||util>100||tax<0||tax>=.95||margin<0||margin>=.95){output("rateResult","Please enter valid nonnegative amounts and realistic hours, weeks, utilization, tax and margin.");return;}const billable=hours*weeks*util/100,needed=target/(1-tax)+overhead,base=needed/billable,rate=base/(1-margin);output("rateResult",["Estimated billable hours/year: "+billable.toFixed(1),"Revenue requirement before margin: "+needed.toFixed(2),"Break-even hourly rate: "+base.toFixed(2),"Suggested hourly rate: "+rate.toFixed(2),"Quote for "+quote+" hours: "+(rate*quote).toFixed(2),"Assumptions: tax applied to target income; margin applied to revenue. Currency is whatever unit you entered."].join("\n"));});
-$("calcPercent").addEventListener("click",()=>{const a=num("oldVal"),b=num("newVal");output("percentResult",!Number.isFinite(a)||!Number.isFinite(b)?"Enter valid numbers.":a===0?"Absolute change: "+(b-a)+". Percentage change undefined from zero.":"Absolute change: "+(b-a)+"; percentage change: "+(((b-a)/Math.abs(a))*100).toFixed(2)+"%");});
-function qrStatus(){const s=$("qrInput").value.trim();if(!s){output("qrValidation","Enter text or a URL.");return;}if(/^https?:/i.test(s)){try{parseUrl(s);output("qrValidation","Valid HTTP(S) URL payload.");}catch(e){output("qrValidation","Warning: "+e.message);}}else output("qrValidation","Plain-text payload (valid for QR).");}
-$("qrInput").addEventListener("input",qrStatus);
-$("qrGenerate").addEventListener("click",()=>{const s=$("qrInput").value.trim(),out=$("qrOutput");out.replaceChildren();if(!s){qrStatus();return;}if(typeof qrcode!=="function"){output("qrValidation","QR library unavailable.");return;}try{const qr=qrcode(0,"M");qr.addData(s);qr.make();const n=qr.getModuleCount(),scale=Math.max(4,Math.floor(360/(n+8))),m=4,c=document.createElement("canvas");c.width=c.height=(n+m*2)*scale;c.setAttribute("role","img");c.setAttribute("aria-label","QR code for the entered text");const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.fillStyle="#000";for(let r=0;r<n;r++)for(let k=0;k<n;k++)if(qr.isDark(r,k))x.fillRect((k+m)*scale,(r+m)*scale,scale,scale);out.appendChild(c);qrStatus();}catch(e){output("qrValidation","Unable to generate QR: the content is too long for a QR code.");}});
-$("qrDownload").addEventListener("click",()=>{const canvas=$("qrOutput").querySelector("canvas"),img=$("qrOutput").querySelector("img");const href=canvas?.toDataURL("image/png")||img?.src;if(!href){output("qrValidation","Generate a QR code first.");return;}const a=document.createElement("a");a.href=href;a.download="govibetool-qr.png";a.click();});
-const rules=[["Email addresses",/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,"piiEmail"],["Phone-like numbers",/(?<!\w)(?:\+?\d[\d\s().-]{7,}\d)(?!\w)/g,"piiPhone"],["Secret-like assignments",/\b(?:api[_-]?key|access[_-]?token|secret|password)\s*[:=]\s*["']?[^\s"'\n,;]{6,}/gi,"piiSecrets"]];
-$("piiRun").addEventListener("click",()=>{const source=$("piiInput").value,mode=$("piiMode").value;let red=source;const counts=[];for(const [name,re,check] of rules){if(!$(check).checked)continue;const found=[...source.matchAll(re)];counts.push(name+": "+found.length);if(mode==="redact")red=red.replace(re,"[REDACTED "+name+"]");}const urls=source.match(/https?:\/\/\S+/gi)||[];counts.push("URLs: "+urls.length+" (with query parameters: "+urls.filter(x=>x.includes("?")).length+")");redactedPreview=mode==="redact"?red:"";output("piiResult",counts.join("\n")+"\n\n"+(mode==="audit"?"Audit Only: original text unchanged.":"Redacted preview:\n"+red));});
-$("piiCopy").addEventListener("click",async()=>{if(!redactedPreview){output("piiResult","Run Auto-Redact first to produce a preview.");return;}try{await navigator.clipboard.writeText(redactedPreview);output("piiResult",$("piiResult").textContent+"\nCopied redacted preview.");}catch{output("piiResult",$("piiResult").textContent+"\nClipboard unavailable.");}});
+/* Consolidated workspace UI; shared QR engines and legacy APIs are retained. */
+(function () {
+  "use strict";
+  const c = window.GVTStudios;
+  if (!c) return;
+  const E = (s) =>
+    String(s ?? "").replace(
+      /[&<>"']/g,
+      (x) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[x],
+    );
+  const N = (id) => document.getElementById(id),
+    F = (id, label, value = "", type = "text") =>
+      `<div class="field"><label for="${id}">${label}</label><input id="${id}" type="${type}" value="${E(value)}"></div>`,
+    B = (id, text) =>
+      `<button type="button" class="btn alt" id="${id}">${text}</button>`;
+  let urlResult = "",
+    urlSensitive = false,
+    piiPreview = null;
+  const originalRedact = window.runRedactor,
+    originalGenerate = window.generateQR;
+  function urlTemplate() {
+    return (
+      F(
+        "urlInput",
+        "URL to inspect",
+        "https://example.com/page?utm_source=newsletter&ref=keep",
+      ) +
+      `<div class="actions">${B("urlAnalyze", "Inspect & clean")}${B("urlCopy", "Copy result")}</div><details><summary>Build a UTM campaign link</summary><div class="grid2">${F("utmSource", "UTM source", "newsletter")}${F("utmMedium", "UTM medium", "email")}${F("utmCampaign", "UTM campaign", "launch")}</div>${B("urlUtm", "Build UTM link")}</details><div id="urlResult" class="result" role="status" aria-live="polite">Enter a link to inspect.</div><p class="note">Known tracking keys are removed; other query data is retained. Redirects are never followed and a clean link is not a safety verdict.</p>`
+    );
+  }
+  function freelanceTemplate() {
+    const fields = [
+      ["target", "Annual target income", 100000],
+      ["overhead", "Annual overhead", 15000],
+      ["hours", "Working hours per week", 40],
+      ["weeks", "Working weeks per year", 46],
+      ["utilization", "Billable utilization (%)", 65],
+      ["tax", "User-estimated effective tax (%)", 0],
+      ["margin", "Desired profit margin (%)", 15],
+      ["quoteHours", "Quoted project hours", 20],
+    ];
+    return `<div class="grid2">${fields.map(([id, label, v]) => F(id, label, v, "number")).join("")}</div><p class="note">Use a consistent currency. Tax is your assumption; no jurisdiction-specific tax rate is supplied.</p>${B("calcRate", "Calculate & quote")}<div id="rateResult" class="result" role="status" aria-live="polite"></div><details open><summary>Effective hourly rate for a completed project (retained)</summary><div class="grid2">${F("hrRevenue", "Project revenue", 5000, "number")}${F("hrCosts", "Direct costs", 500, "number")}${F("hrBill", "Billable hours", 40, "number")}${F("hrUnpaid", "Unpaid/admin hours", 10, "number")}</div>${B("calcEffective", "Calculate effective rate")}<div id="effectiveResult" class="result" role="status" aria-live="polite"></div></details><a href="./?tool=percentage-change">Open independent Percentage Change calculator</a>`;
+  }
+  function privacyTemplate() {
+    return `<div class="field"><label for="piiMode">Mode</label><select id="piiMode"><option value="redact">Auto-Redact (preview)</option><option value="audit">Audit Only (unchanged input)</option></select></div><fieldset class="categories"><legend>Patterns to include</legend>${[
+      ["email", "Email addresses"],
+      ["phone", "Phone-like numbers"],
+      ["secrets", "Bearer/JWT/API keys and passwords"],
+      ["ip", "IPv4 addresses"],
+      ["connection", "Database connection strings"],
+    ]
+      .map(
+        ([id, label]) =>
+          `<label><input type="checkbox" data-pii="${id}" checked> ${label}</label>`,
+      )
+      .join(
+        "",
+      )}</fieldset>${redactorTemplate()}${B("piiApply", "Apply preview to input")}<p class="note">Audit classifies supported patterns without changing text. Auto-Redact makes a preview; Apply and Copy are explicit actions. Review for missed or overmatched data. Nothing is saved.</p>`;
+  }
+  window.runRedactor = function () {
+    if (!N("piiMode")) return originalRedact();
+    try {
+      const audit = N("piiMode").value === "audit",
+        r = c.redact(N("redactInput").value, {
+          audit,
+          mode: N("redactMode").value,
+          categories: [...document.querySelectorAll("[data-pii]:checked")].map(
+            (n) => n.dataset.pii,
+          ),
+        }),
+        counts = {};
+      for (const name of r.findings) counts[name] = (counts[name] || 0) + 1;
+      N("redactSummary").textContent =
+        (audit
+          ? "Audit Only — original text unchanged. "
+          : "Redacted preview. ") +
+        (Object.entries(counts)
+          .map(([k, v]) => k + ": " + v)
+          .join(" · ") || "No supported patterns found.");
+      const urls = N("redactInput").value.match(/https?:\/\/\S+/gi) || [];
+      N("redactSummary").textContent += " · URLs: " + urls.length + " · URLs with query parameters: " + urls.filter(x => x.includes("?")).length;
+      N("redactOutput").textContent = r.output;
+      piiPreview = r.preview;
+    } catch (e) {
+      piiPreview = null;
+      N("redactSummary").textContent = e.message;
+      N("redactOutput").textContent = "";
+    }
+  };
+  window.copyRedacted = async function () {
+    if (!N("piiMode")) return;
+    if (piiPreview === null) {
+      N("redactSummary").textContent =
+        "Run Auto-Redact to create a current preview before copying.";
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(piiPreview);
+      N("redactSummary").textContent += " Copied.";
+    } catch {
+      N("redactSummary").textContent +=
+        " Clipboard unavailable; select the preview manually.";
+    }
+  };
+  window.generateQR = function () {
+    if (N("qrValidation")) {
+      const r = c.validatePayload(qrPayload(), N("qrType").value);
+      N("qrValidation").textContent = r.message;
+      if (!r.ok) return;
+    }
+    if (window.qrcode?.stringToBytesFuncs?.["UTF-8"])
+      qrcode.stringToBytes = qrcode.stringToBytesFuncs["UTF-8"];
+    return originalGenerate();
+  };
+  function bind() {
+    N("urlAnalyze").onclick = () => {
+      try {
+        const r = c.inspectUrl(N("urlInput").value);
+        urlResult = r.clean;
+        urlSensitive = r.sensitive;
+        N("urlResult").textContent = [
+          `Scheme: ${r.scheme}`,
+          `Host: ${r.host}`,
+          `Port: ${r.port || "default"}`,
+          `Path: ${r.path}`,
+          "Query parameters:\n" +
+            (r.query.map(([k, v]) => k + " = " + v).join("\n") || "none"),
+          "Removed trackers: " + (r.removed.join(", ") || "none"),
+          "Clean URL: " + r.clean,
+          "Fingerprint: " + r.fingerprint,
+          "Signals: " +
+            (r.signals.join("; ") ||
+              "No basic warning signals (not a safety verdict)"),
+        ].join("\n");
+      } catch (e) {
+        urlResult = "";
+        N("urlResult").textContent = "Invalid URL: " + e.message;
+      }
+    };
+    N("urlUtm").onclick = () => {
+      try {
+        urlResult = c.utmUrl(N("urlInput").value, {
+          source: N("utmSource").value,
+          medium: N("utmMedium").value,
+          campaign: N("utmCampaign").value,
+        });
+        urlSensitive = c.inspectUrl(urlResult).sensitive;
+        N("urlResult").textContent = "Campaign URL:\n" + urlResult;
+      } catch (e) {
+        urlResult = "";
+        N("urlResult").textContent = e.message;
+      }
+    };
+    N("urlInput").oninput = () => {
+      urlResult = "";
+      N("urlResult").textContent = "Input changed; inspect or build again.";
+    };
+    N("urlCopy").onclick = async () => {
+      if (!urlResult) {
+        N("urlResult").textContent = "Inspect or build a URL first.";
+        return;
+      }
+      if (
+        urlSensitive &&
+        !confirm(
+          "This URL contains credentials or secret-like parameters. Copy anyway?",
+        )
+      )
+        return;
+      try {
+        await navigator.clipboard.writeText(urlResult);
+        N("urlResult").textContent += "\nCopied.";
+      } catch {
+        N("urlResult").textContent +=
+          "\nClipboard unavailable; select the displayed URL.";
+      }
+    };
+    N("calcRate").onclick = () => {
+      try {
+        const r = c.freelance(
+          Object.fromEntries(
+            [
+              "target",
+              "overhead",
+              "hours",
+              "weeks",
+              "utilization",
+              "tax",
+              "margin",
+              "quoteHours",
+            ].map((k) => [k, N(k).value]),
+          ),
+        );
+        N("rateResult").textContent = [
+          `Estimated billable hours/year: ${r.billable.toFixed(1)}`,
+          `Revenue requirement before margin: ${r.revenue.toFixed(2)}`,
+          `Break-even hourly rate: ${r.base.toFixed(2)}`,
+          `Suggested hourly rate: ${r.rate.toFixed(2)}`,
+          `Quote: ${r.quote.toFixed(2)}`,
+          "Assumptions: tax applied to target income; margin applied to revenue.",
+        ].join("\n");
+      } catch (e) {
+        N("rateResult").textContent = e.message;
+      }
+    };
+    N("calcEffective").onclick = () => {
+      try {
+        const r = c.effective({
+          revenue: N("hrRevenue").value,
+          costs: N("hrCosts").value,
+          billable: N("hrBill").value,
+          unpaid: N("hrUnpaid").value,
+        });
+        N("effectiveResult").textContent =
+          `Net income: ${r.net.toFixed(2)}\nEffective hourly rate: ${r.rate === null ? "Undefined from zero hours" : r.rate.toFixed(2)}\nBillable utilization: ${r.utilization === null ? "Undefined" : r.utilization.toFixed(1) + "%"}`;
+      } catch (e) {
+        N("effectiveResult").textContent = e.message;
+      }
+    };
+    const invalidate = () => {
+      piiPreview = null;
+      N("redactOutput").textContent = "";
+      N("redactSummary").textContent =
+        "Input or options changed; analyze again.";
+    };
+    N("redactInput").oninput = invalidate;
+    N("piiMode").onchange = invalidate;
+    N("redactMode").onchange = invalidate;
+    document
+      .querySelectorAll("[data-pii]")
+      .forEach((n) => (n.onchange = invalidate));
+    N("piiApply").onclick = () => {
+      if (piiPreview === null) {
+        N("redactSummary").textContent =
+          "Create a current Auto-Redact preview first.";
+        return;
+      }
+      N("redactInput").value = piiPreview;
+      invalidate();
+    };
+    initQR();
+    N("qrFields").addEventListener("input", () => {
+      N("qrValidation").textContent = c.validatePayload(
+        qrPayload(),
+        N("qrType").value,
+      ).message;
+    });
+  }
+  function select(tab, id, { historyChange = true } = {}) {
+    if (!c.titles[tab]) tab = "url";
+    for (const name of Object.keys(c.titles)) {
+      N("studio-" + name).hidden = name !== tab;
+      const b = document.querySelector('[data-studio="' + name + '"]');
+      b.setAttribute("aria-selected", String(name === tab));
+      b.tabIndex = name === tab ? 0 : -1;
+    }
+    if (tab !== "qr") stopCamera();
+    const h = N("studioTitle");
+    h.textContent = c.titles[tab];
+    if (historyChange) {
+      const u = new URL(location.href);
+      u.searchParams.set("studio", tab);
+      u.searchParams.set("tool", id || c.canonical[tab]);
+      history.replaceState(null, "", u);
+    }
+    N("workspace").classList.add("active");
+  }
+  function mount(id = "link-fingerprint", tab) {
+    urlResult = "";
+    piiPreview = null;
+    const w = N("workspace");
+    if (!document.querySelector('link[href="studios.css"]')) {
+      const l = document.createElement("link");
+      l.rel = "stylesheet";
+      l.href = "studios.css";
+      document.head.appendChild(l);
+    }
+    w.innerHTML = `<div id="studioRoot"><div class="workspace-head"><div><span class="tag">Consolidated Studio</span><h2 id="studioTitle"></h2></div>${document.querySelector(".studio-page") ? "" : '<button type="button" class="btn alt" onclick="closeTool()">Close</button>'}</div><div class="studio-switcher" role="tablist" aria-label="Choose a studio">${Object.entries(
+      c.titles,
+    )
+      .map(
+        ([key, title]) =>
+          `<button class="btn alt" type="button" role="tab" id="studio-tab-${key}" aria-controls="studio-${key}" data-studio="${key}">${E(title)}</button>`,
+      )
+      .join("")}</div>${[
+      ["url", urlTemplate()],
+      ["freelance", freelanceTemplate()],
+      [
+        "qr",
+        '<p id="qrValidation" class="note" role="status">Plain text and HTTP(S) links can be encoded. Wi-Fi, contact, image decoding and camera controls are retained.</p>' +
+          qrTemplate(),
+      ],
+      ["privacy", privacyTemplate()],
+    ]
+      .map(
+        ([key, body]) =>
+          `<section id="studio-${key}" class="studio-panel" role="tabpanel" aria-labelledby="studio-tab-${key}" hidden>${body}</section>`,
+      )
+      .join("")}<div id="out" aria-live="polite"></div></div>`;
+    bind();
+    if (id === "metadata") N("piiMode").value = "audit";
+    document.querySelectorAll("[data-studio]").forEach((b) => {
+      b.onclick = () => {
+        const chosen = b.dataset.studio;
+        rememberTool(c.canonical[chosen]);
+        select(chosen);
+      };
+      b.onkeydown = (e) => {
+        const keys = Object.keys(c.titles),
+          i = keys.indexOf(b.dataset.studio);
+        let target;
+        if (e.key === "ArrowRight") target = (i + 1) % keys.length;
+        if (e.key === "ArrowLeft") target = (i + keys.length - 1) % keys.length;
+        if (e.key === "Home") target = 0;
+        if (e.key === "End") target = keys.length - 1;
+        if (target !== undefined) {
+          e.preventDefault();
+          const n = document.querySelector(
+            '[data-studio="' + keys[target] + '"]',
+          );
+          n.click();
+          n.focus();
+        }
+      };
+    });
+    select(tab || c.aliases[id] || "url", id);
+    w.focus({ preventScroll: true });
+    return w;
+  }
+  window.GVTStudioUI = { mount };
+  if (document.querySelector(".studio-page")) {
+    const q = new URLSearchParams(location.search),
+      id = q.get("tool") || c.canonical[q.get("studio")] || "link-fingerprint";
+    rememberTool(id);
+    mount(id, q.get("studio"));
+  }
 })();

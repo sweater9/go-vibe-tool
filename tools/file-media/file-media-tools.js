@@ -539,8 +539,13 @@
     return '<div class="workspace-head"><div><span class="tag">' + esc(t[1]) + '</span><span class="tag new-tag">NEW</span><h2>' + esc(t[2]) + '</h2><p class="desc">' + esc(t[3]) +
       '</p></div><button class="btn alt no-print" type="button" onclick="closeTool()">Close</button></div>';
   }
+  var previousClose = closeTool;
+  function cleanup(){revokeAll();if(window.GVTImage&&window.GVTImage.stopAvifWorker)window.GVTImage.stopAvifWorker();}
+  closeTool=function(){cleanup();return previousClose();};
   openTool = function (id) {
+    cleanup();
     if (!ids[id]) return previousOpen(id);
+    closeTool();
     if (typeof rememberTool === "function") rememberTool(id);
     var t = ids[id], w = document.getElementById("workspace"), spec = MOUNT[id];
     revokeAll();

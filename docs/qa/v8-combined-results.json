@@ -1,0 +1,430 @@
+{
+  "date": "2026-10-13",
+  "base": "ca5f926a581f0620caf02dc38e06871797fe9aab",
+  "decision": "NO-GO: full Firefox/WebKit navigation incomplete",
+  "logs": [
+    {
+      "log": "artifacts/integration-full-unit-final.log",
+      "sha256": "ae9817714eeda12ef8a2fe0c586751ba97616ed88630b68ddfc34c634d705d5e",
+      "passedLines": 51,
+      "failures": [],
+      "tail": [
+        "PASS package.json test script runs the integration and studio checks; nine categories are not changed here",
+        "PASS built dist (when present) ships studios, developer, file-media and wasm assets",
+        "",
+        "11 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/integration-build.log",
+      "sha256": "aab5aeda967294dda6ff89ef7194624946fa6d152e66c5f7ae93b778f94b374a",
+      "passedLines": 0,
+      "failures": [],
+      "tail": [
+        "> node scripts/verify-dist.mjs dist",
+        "",
+        "399 files, 13.02 MiB, largest vendor/avif/avif_enc.wasm (3404 KiB)",
+        "OK"
+      ]
+    },
+    {
+      "log": "artifacts/tailwind.log",
+      "sha256": "5516ad130d485fa65ddb0f21c6d00ed221d811c60a715fa4ae92562137028435",
+      "passedLines": 0,
+      "failures": [],
+      "tail": [
+        "> govibetool@5.0.0 test:developer:tailwind",
+        "> node tests/v8-developer-tailwind.mjs",
+        "",
+        "Tailwind 3.4 compiler: generated arbitrary values compile to expected CSS."
+      ]
+    },
+    {
+      "log": "artifacts/studios-unit.log",
+      "sha256": "b0530dcdf3d5adfc0a06a727106925c52f422f00c0d78e36693088fedf159fd6",
+      "passedLines": 0,
+      "failures": [],
+      "tail": [
+        "\u2139 cancelled 0",
+        "\u2139 skipped 0",
+        "\u2139 todo 0",
+        "\u2139 duration_ms 483.969292"
+      ]
+    },
+    {
+      "log": "artifacts/inherited-integration-static.log",
+      "sha256": "a79e7ddd8b7d98dcb6f05b53fe76417eaa3d664c6708b7ec3f5c07d3344bcf2c",
+      "passedLines": 11,
+      "failures": [],
+      "tail": [
+        "PASS package.json test script runs the integration and studio checks; nine categories are not changed here",
+        "PASS built dist (when present) ships studios, developer, file-media and wasm assets",
+        "",
+        "11 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/maintenance-final-chromium.log",
+      "sha256": "e30330915f485641d451fc97ea877c9ee5a7d19e75f0458e853f1f3cd0debdac",
+      "passedLines": 32,
+      "failures": [],
+      "tail": [
+        "    \"serviceWorkerHtmlForExternalRequests\": [],",
+        "    \"responseReadFailures\": []",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "log": "artifacts/developer-chromium.log",
+      "sha256": "83ea61ee8c4399af06d3dc55adb224aa4c3db428e2605bd3abdf9c9c74b5ce51",
+      "passedLines": 18,
+      "failures": [],
+      "tail": [
+        "PASS 1280 multilayer shadow, glass controls, presets, reset and arbitrary values",
+        "PASS 1280 responsive layout and labelled keyboard controls for every tool",
+        "PASS 1280 no secret persistence, external requests or JavaScript errors",
+        "PASS 1280 offline with origin stopped: all five tools and worker execute from cache"
+      ]
+    },
+    {
+      "log": "artifacts/developer-firefox.log",
+      "sha256": "83ea61ee8c4399af06d3dc55adb224aa4c3db428e2605bd3abdf9c9c74b5ce51",
+      "passedLines": 18,
+      "failures": [],
+      "tail": [
+        "PASS 1280 multilayer shadow, glass controls, presets, reset and arbitrary values",
+        "PASS 1280 responsive layout and labelled keyboard controls for every tool",
+        "PASS 1280 no secret persistence, external requests or JavaScript errors",
+        "PASS 1280 offline with origin stopped: all five tools and worker execute from cache"
+      ]
+    },
+    {
+      "log": "artifacts/developer-webkit.log",
+      "sha256": "83ea61ee8c4399af06d3dc55adb224aa4c3db428e2605bd3abdf9c9c74b5ce51",
+      "passedLines": 18,
+      "failures": [],
+      "tail": [
+        "PASS 1280 multilayer shadow, glass controls, presets, reset and arbitrary values",
+        "PASS 1280 responsive layout and labelled keyboard controls for every tool",
+        "PASS 1280 no secret persistence, external requests or JavaScript errors",
+        "PASS 1280 offline with origin stopped: all five tools and worker execute from cache"
+      ]
+    },
+    {
+      "log": "artifacts/media-chromium.log",
+      "sha256": "b17c9c0014e4587f51c1ecf4e28c3ba37413754c5614be3d8f45b6a4d98214d0",
+      "passedLines": 37,
+      "failures": [],
+      "tail": [
+        "PASS privacy: using all four tools sends no data anywhere (only same-origin and blob requests; no third-party except the site's own ad tag)",
+        "PASS offline: after one online visit every tool still loads and works with the network off (SVGO, table, strip, WebP and AVIF)",
+        "",
+        "chromium: 37 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/media-firefox.log",
+      "sha256": "ea20742dbc3055deade4e562199acf6d961edae1d52a20cd6d1b73bd80877682",
+      "passedLines": 37,
+      "failures": [],
+      "tail": [
+        "PASS privacy: using all four tools sends no data anywhere (only same-origin and blob requests; no third-party except the site's own ad tag)",
+        "PASS offline: after one online visit every tool still loads and works with the network off (SVGO, table, strip, WebP and AVIF)",
+        "",
+        "firefox: 37 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/media-webkit.log",
+      "sha256": "f628ecb7635e6d82e451996dd050ae14b1e59bdb940423bcb6c1f9f948cfb9eb",
+      "passedLines": 37,
+      "failures": [],
+      "tail": [
+        "PASS privacy: using all four tools sends no data anywhere (only same-origin and blob requests; no third-party except the site's own ad tag)",
+        "PASS offline: after one online visit every tool still loads and works with the network off (SVGO, table, strip, WebP and AVIF)",
+        "",
+        "webkit: 37 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/labs-chromium.log",
+      "sha256": "e8d8cf6ab3e2b10453f62a6aa6093e16e237c139899e18be3eb1adedbd112483",
+      "passedLines": 30,
+      "failures": [],
+      "tail": [
+        "PASS mobile: touch device can use a lab (tap tabs, buttons)",
+        "PASS offline: labs hub and labs load from the service-worker cache",
+        "PASS privacy: labs make no third-party requests",
+        "chromium: 30 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/labs-firefox.log",
+      "sha256": "10b17bcc0c32da44faa53481c7d38421d44deea580596c4f0d296ae0f3547fb1",
+      "passedLines": 30,
+      "failures": [],
+      "tail": [
+        "PASS mobile: touch device can use a lab (tap tabs, buttons)",
+        "PASS offline: labs hub and labs load from the service-worker cache",
+        "PASS privacy: labs make no third-party requests",
+        "firefox: 30 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/labs-webkit.log",
+      "sha256": "670bf22e8932f3d4aecced21ced72d7a630f4801e85d3d4cfeb1319b24fed6ab",
+      "passedLines": 30,
+      "failures": [],
+      "tail": [
+        "PASS mobile: touch device can use a lab (tap tabs, buttons)",
+        "PASS offline: labs hub and labs load from the service-worker cache",
+        "PASS privacy: labs make no third-party requests",
+        "webkit: 30 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/play-chromium.log",
+      "sha256": "13726974809e13bddecc837521b45a70352d79a8a88b62294e420e154aab9e72",
+      "passedLines": 28,
+      "failures": [],
+      "tail": [
+        "PASS mobile: Daily Word help and stats dialogs are keyboard accessible",
+        "PASS offline: games load and play from the service-worker cache",
+        "PASS privacy: no third-party requests from either game",
+        "chromium: 28 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/play-firefox.log",
+      "sha256": "955e2eaf6c36fbc70702646ba82ba9549757b252e4d0561a1df7975c70f99621",
+      "passedLines": 28,
+      "failures": [],
+      "tail": [
+        "PASS mobile: Daily Word help and stats dialogs are keyboard accessible",
+        "PASS offline: games load and play from the service-worker cache",
+        "PASS privacy: no third-party requests from either game",
+        "firefox: 28 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/play-webkit.log",
+      "sha256": "76c3ac685e0332964efe6c22b2abaa4a8f6cd95c6b851d5290080cb128adfdf5",
+      "passedLines": 28,
+      "failures": [],
+      "tail": [
+        "PASS mobile: Daily Word help and stats dialogs are keyboard accessible",
+        "PASS offline: games load and play from the service-worker cache",
+        "PASS privacy: no third-party requests from either game",
+        "webkit: 28 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/integration-chromium.log",
+      "sha256": "74ab9a77ea057bed1e7131d007c1b3e215b389331ad565835093b0d748479ab3",
+      "passedLines": 42,
+      "failures": [],
+      "tail": [
+        "PASS 1280: offline studios?studio=url",
+        "PASS 1280: offline knowledge/",
+        "PASS 1280: offline labs/",
+        "PASS 1280: offline play/"
+      ]
+    },
+    {
+      "log": "artifacts/integration-firefox.log",
+      "sha256": "74ab9a77ea057bed1e7131d007c1b3e215b389331ad565835093b0d748479ab3",
+      "passedLines": 42,
+      "failures": [],
+      "tail": [
+        "PASS 1280: offline studios?studio=url",
+        "PASS 1280: offline knowledge/",
+        "PASS 1280: offline labs/",
+        "PASS 1280: offline play/"
+      ]
+    },
+    {
+      "log": "artifacts/integration-webkit.log",
+      "sha256": "74ab9a77ea057bed1e7131d007c1b3e215b389331ad565835093b0d748479ab3",
+      "passedLines": 42,
+      "failures": [],
+      "tail": [
+        "PASS 1280: offline studios?studio=url",
+        "PASS 1280: offline knowledge/",
+        "PASS 1280: offline labs/",
+        "PASS 1280: offline play/"
+      ]
+    },
+    {
+      "log": "artifacts/navigation-chromium.log",
+      "sha256": "2d85ee2fafb966bc4b95effa74e6130790c340c602936af76f37b97794a8c7a2",
+      "passedLines": 126,
+      "failures": [],
+      "tail": [
+        "PASS 1440 privacy copy intact",
+        "PASS 1440 no page errors",
+        "PASS reduced motion disables transitions",
+        "chromium: 126 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/navigation-firefox.log",
+      "sha256": "2b6c699b9479833cc069006c94e42ebc753b9a0d3afa0023e37529719096c958",
+      "passedLines": 7,
+      "failures": [],
+      "tail": [
+        "positions 375 [ 61, 358, 877, 1246, 2344, 2907 ]",
+        "PASS 375 order: header, intro, categories, search, more, privacy",
+        "PASS 375 search sits below the category tiles",
+        "PASS 375 search finds tool"
+      ]
+    },
+    {
+      "log": "artifacts/navigation-webkit.log",
+      "sha256": "e006980e78ca37158cf5105a6c55c2a955ce9c248c03a04da90dae41a2e077da",
+      "passedLines": 19,
+      "failures": [],
+      "tail": [
+        "PASS 375 category Open launches tool and close returns",
+        "PASS 375 favourites and recent persist",
+        "PASS 375 navigation",
+        "PASS 375 touch targets >=44px"
+      ]
+    },
+    {
+      "log": "artifacts/inherited-browser-final-chromium.log",
+      "sha256": "e39774d56f6b6cd7cbf1ef0457abfe6b38fd982ee18d5285cd03426a301c18e3",
+      "passedLines": 68,
+      "failures": [],
+      "tail": [
+        "PASS keyboard: skip link, category tile and tool card are reachable and operable",
+        "PASS offline: service worker serves home, studios, a developer tool and a file & media tool",
+        "",
+        "chromium: 68 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/inherited-browser-final-firefox.log",
+      "sha256": "f34f0b8db167d7c897435dd5cc64883f7f5e31cf02a2f6bc1e6217dc10ba8770",
+      "passedLines": 67,
+      "failures": [
+        "FAIL desktop no uncaught page errors during home, category and tool navigation :: Expected values to be strictly deep-equal:"
+      ],
+      "tail": [
+        "PASS keyboard: skip link, category tile and tool card are reachable and operable",
+        "PASS offline: service worker serves home, studios, a developer tool and a file & media tool",
+        "",
+        "firefox: 67 passed, 1 failed"
+      ]
+    },
+    {
+      "log": "artifacts/inherited-browser-final-webkit.log",
+      "sha256": "6d729b05f202225818ebf010989cf10b7e7446b221700b8f5f961fc314c6a6b6",
+      "passedLines": 68,
+      "failures": [],
+      "tail": [
+        "PASS keyboard: skip link, category tile and tool card are reachable and operable",
+        "PASS offline: service worker serves home, studios, a developer tool and a file & media tool",
+        "",
+        "webkit: 68 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/inherited-browser-final-firefox-ready.log",
+      "sha256": "a75c7b73eb830abb3f5c5c7ddff6e12880c5e5a52c4b43d1c6c3e38efedeebfa",
+      "passedLines": 68,
+      "failures": [],
+      "tail": [
+        "PASS keyboard: skip link, category tile and tool card are reachable and operable",
+        "PASS offline: service worker serves home, studios, a developer tool and a file & media tool",
+        "",
+        "firefox: 68 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/inherited-browser-final-chromium.log",
+      "sha256": "e39774d56f6b6cd7cbf1ef0457abfe6b38fd982ee18d5285cd03426a301c18e3",
+      "passedLines": 68,
+      "failures": [],
+      "tail": [
+        "PASS keyboard: skip link, category tile and tool card are reachable and operable",
+        "PASS offline: service worker serves home, studios, a developer tool and a file & media tool",
+        "",
+        "chromium: 68 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/inherited-browser-final-webkit.log",
+      "sha256": "6d729b05f202225818ebf010989cf10b7e7446b221700b8f5f961fc314c6a6b6",
+      "passedLines": 68,
+      "failures": [],
+      "tail": [
+        "PASS keyboard: skip link, category tile and tool card are reachable and operable",
+        "PASS offline: service worker serves home, studios, a developer tool and a file & media tool",
+        "",
+        "webkit: 68 passed, 0 failed"
+      ]
+    },
+    {
+      "log": "artifacts/integration-chromium.log",
+      "sha256": "74ab9a77ea057bed1e7131d007c1b3e215b389331ad565835093b0d748479ab3",
+      "passedLines": 42,
+      "failures": [],
+      "tail": [
+        "PASS 1280: offline studios?studio=url",
+        "PASS 1280: offline knowledge/",
+        "PASS 1280: offline labs/",
+        "PASS 1280: offline play/"
+      ]
+    },
+    {
+      "log": "artifacts/integration-firefox.log",
+      "sha256": "74ab9a77ea057bed1e7131d007c1b3e215b389331ad565835093b0d748479ab3",
+      "passedLines": 42,
+      "failures": [],
+      "tail": [
+        "PASS 1280: offline studios?studio=url",
+        "PASS 1280: offline knowledge/",
+        "PASS 1280: offline labs/",
+        "PASS 1280: offline play/"
+      ]
+    },
+    {
+      "log": "artifacts/integration-webkit.log",
+      "sha256": "74ab9a77ea057bed1e7131d007c1b3e215b389331ad565835093b0d748479ab3",
+      "passedLines": 42,
+      "failures": [],
+      "tail": [
+        "PASS 1280: offline studios?studio=url",
+        "PASS 1280: offline knowledge/",
+        "PASS 1280: offline labs/",
+        "PASS 1280: offline play/"
+      ]
+    },
+    {
+      "log": "artifacts/maintenance-final-chromium.log",
+      "sha256": "e30330915f485641d451fc97ea877c9ee5a7d19e75f0458e853f1f3cd0debdac",
+      "passedLines": 32,
+      "failures": [],
+      "tail": [
+        "    \"serviceWorkerHtmlForExternalRequests\": [],",
+        "    \"responseReadFailures\": []",
+        "  }",
+        "}"
+      ]
+    },
+    {
+      "log": "artifacts/integration-build.log",
+      "sha256": "aab5aeda967294dda6ff89ef7194624946fa6d152e66c5f7ae93b778f94b374a",
+      "passedLines": 0,
+      "failures": [],
+      "tail": [
+        "> node scripts/verify-dist.mjs dist",
+        "",
+        "399 files, 13.02 MiB, largest vendor/avif/avif_enc.wasm (3404 KiB)",
+        "OK"
+      ]
+    }
+  ],
+  "note": "Earlier failed attempts retained for audit; final Firefox consolidation log is inherited-browser-final-firefox-ready.log. Full Firefox/WebKit navigation remains incomplete."
+}

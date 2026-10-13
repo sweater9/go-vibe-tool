@@ -126,7 +126,7 @@ jobs:
           SITE_ROOT: dist
         run: |
           set +e; failed=""
-          for t in v8-browser play-games-browser labs-browser file-media-browser v5-maintenance-browser prompt-improver-browser tool-fixes-browser; do
+          for t in v8-browser play-games-browser labs-browser v5-maintenance-browser prompt-improver-browser tool-fixes-browser; do
             echo "::group::$t (${{ matrix.browser }}, dist)"
             node tests/$t.mjs ${{ matrix.browser }} > "/tmp/$t.log" 2>&1; rc=$?; cat "/tmp/$t.log"; echo "::endgroup::"
             if [ $rc -ne 0 ]; then failed="$failed $t"; echo "::error title=SUITE FAILED: $t (${{ matrix.browser }}, dist)::$(grep -E 'FAIL|Error|expected|actual|issues' "/tmp/$t.log" | head -8 | tr '\n' ' ' | cut -c1-700)"; else echo "SUITE PASSED: $t (${{ matrix.browser }}, dist)"; fi

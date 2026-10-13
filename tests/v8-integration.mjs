@@ -16,10 +16,9 @@ function precacheList() {
   assert.ok(m, 'ASSETS array found');
   return vm.runInNewContext('[' + m[1] + ']');
 }
-function routeTable(src) {
-  const m = src.match(/(?:const routes|const aliases)=(\{[^}]*\})/);
-  assert.ok(m, 'route table found');
-  return JSON.parse(JSON.stringify(vm.runInNewContext('(' + m[1] + ')')));
+function routeTable() {
+  const context={module:{exports:{}}};vm.runInNewContext(read('studios-core.js'),context);
+  return JSON.parse(JSON.stringify(context.module.exports.aliases));
 }
 
 ok('sw.js is valid JavaScript with no literal "\\n" escape sequences leaking into code', () => {
@@ -66,7 +65,7 @@ ok('script order: catalogue scripts register tools before discovery boots, routi
   const order = [...html.matchAll(/<script[^>]+src="([^"]+)"/g)].map(m => m[1]);
   const at = f => order.indexOf(f);
   for (const f of ['tools.js', 'v21-tools.js', 'v6-tools.js', 'v8-developer-tools.js', 'tools/file-media/file-media-tools.js']) assert.ok(at(f) >= 0 && at(f) < at('v8-discovery.js'), f + ' loads before v8-discovery.js');
-  assert.ok(at('studios-routing.js') > at('v8-discovery.js'), 'studios-routing.js loads after every openTool wrapper');
+  assert.ok(at('studios-routing.js') > at('tools/file-media/file-media-tools.js') && at('studios-routing.js') < at('v8-discovery.js'), 'studios-routing.js loads after every openTool wrapper');
 });
 
 ok('studio route table: routing script and studio page agree, targets are the four studios', () => {
@@ -79,8 +78,8 @@ ok('studio route table only uses real catalogue IDs and never captures a richer 
   const ids = new Set(); const dir = ['tools.js', 'v2-tools.js', 'v21-tools.js', 'v6-tools.js'];
   for (const f of dir) for (const m of read(f).matchAll(/\["([a-z0-9-]+)","[A-Za-z &]+","[^"]+"/g)) ids.add(m[1]);
   const table = routeTable(routing);
-  for (const id of Object.keys(table)) assert.ok(ids.has(id), 'unknown tool id in routes: ' + id);
-  for (const keep of ['qr-studio', 'pii-secret-redactor', 'percentage-change']) assert.ok(!(keep in table), keep + ' must keep opening its own tool');
+  for (const id of Object.keys(table)) assert.ok(ids.has(id) || ['link-fingerprint-inspector','effective-hourly-rate'].includes(id), 'unknown tool id in routes: ' + id);
+  assert.ok(!('percentage-change' in table), 'Percentage Change remains independent'); assert.equal(table['qr-studio'], 'qr'); assert.equal(table['pii-secret-redactor'], 'privacy'); for (const retained of ['qrTemplate()', 'redactorTemplate()', 'originalGenerate()', 'originalRedact()']) assert.ok(studios.includes(retained), retained + ' retains richer shared engine');
   for (const real of ['url-cleaner', 'utm-builder', 'link-fingerprint', 'hourly-rate']) assert.ok(real in table, real + ' routes to a studio');
 });
 

@@ -22,7 +22,10 @@ const server = http.createServer(async (req, res) => {
   } catch { res.writeHead(404).end('Not found'); }
 });
 await new Promise(r => server.listen(0, '127.0.0.1', r));
-const base = `http://127.0.0.1:${server.address().port}/`;
+const port=server.address().port;const sockets=new Set();server.on('connection',socket=>{sockets.add(socket);socket.on('close',()=>sockets.delete(socket));});
+const stopOrigin=()=>new Promise(resolve=>{server.close(resolve);for(const socket of sockets)socket.destroy();});
+const startOrigin=()=>new Promise(resolve=>server.listen(port,'127.0.0.1',resolve));
+const base = `http://127.0.0.1:${port}/`;
 const results = []; let browser;
 const watchdog = setTimeout(() => { console.error('FAIL watchdog: suite exceeded 240 s'); process.exit(1); }, 240000);
 async function check(label, fn) {
@@ -46,7 +49,7 @@ try {
     await blockAds(ctx);
     const page = await ctx.newPage(); page.setDefaultTimeout(15000);
     const errs = []; watch(page, errs);
-    await page.goto(base); await ready(page);
+    await page.goto(base); await ready(page); await swReady(page);
     const tag = s => `${label} ${s}`;
 
     await check(tag('exactly nine top-level categories, all expected IDs, no extra category'), async () => {
@@ -87,10 +90,10 @@ try {
     for (const [id, studio] of Object.entries(routed)) {
       await check(tag(`legacy deep link ?tool=${id} lands on the ${studio} studio`), async () => {
         await page.goto(base + '?tool=' + id);
-        await page.waitForURL(/studios\.html/);
+        await page.waitForSelector('#studioRoot');
         assert.equal(new URL(page.url()).searchParams.get('studio'), studio);
-        assert.equal(await page.locator(`[data-tab="${studio}"]`).getAttribute('aria-selected'), 'true');
-        assert.ok(await page.locator('#' + studio).isVisible());
+        assert.equal(await page.locator(`[data-studio="${studio}"]`).getAttribute('aria-selected'), 'true');
+        assert.ok(await page.locator('#studio-' + studio).isVisible());
       });
     }
     for (const [id, re] of [['qr-studio', /QR/i], ['pii-secret-redactor', /PII/i], ['percentage-change', /percent/i]]) {
@@ -113,18 +116,18 @@ try {
     await check(tag('studios page has a link on the home footer and returns home'), async () => {
       await page.goto(base); await ready(page);
       await page.locator('footer a[href="studios.html"]').click();
-      await page.waitForURL(/studios\.html/);
-      await page.locator('header a[href="./"]').click();
+      await page.waitForSelector('#studioRoot');
+      await page.locator('a[href="./"]').first().click();
       await page.waitForURL(u => !u.pathname.endsWith('studios.html'));
     });
 
-    await page.goto(base + 'studios.html'); await page.waitForSelector('#url');
+    await page.goto(base + 'studios.html'); await page.waitForSelector('#studio-url');
     await check(tag('URL & Link Studio: inspects, strips tracking parameters, builds UTM, rejects bad input'), async () => {
       await page.fill('#urlInput', 'https://example.com/a/b?utm_source=x&fbclid=1&keep=2');
       await page.click('#urlAnalyze');
       const t = await page.locator('#urlResult').innerText();
-      assert.match(t, /Host: example\.com/); assert.match(t, /Tracking keys: utm_source, fbclid/); assert.match(t, /Clean URL: https:\/\/example\.com\/a\/b\?keep=2/); assert.match(t, /not a safety verdict/);
-      await page.fill('#utmSource', 'news'); await page.fill('#utmMedium', 'email'); await page.fill('#utmCampaign', 'launch'); await page.click('#urlUtm');
+      assert.match(t, /Host: example\.com/); assert.match(t, /Removed trackers: utm_source, fbclid/); assert.match(t, /Clean URL: https:\/\/example\.com\/a\/b\?keep=2/); assert.match(t, /not a safety verdict/);
+      await page.locator('#studio-url details summary').click(); await page.fill('#utmSource', 'news'); await page.fill('#utmMedium', 'email'); await page.fill('#utmCampaign', 'launch'); await page.click('#urlUtm');
       assert.match(await page.locator('#urlResult').innerText(), /utm_source=news.*utm_medium=email.*utm_campaign=launch/s);
       await page.fill('#urlInput', 'javascript:alert(1)'); await page.click('#urlAnalyze');
       assert.match(await page.locator('#urlResult').innerText(), /Invalid URL/);
@@ -132,48 +135,52 @@ try {
       const w = await page.locator('#urlResult').innerText(); assert.match(w, /Credentials embedded/); assert.match(w, /Punycode/); assert.match(w, /Unencrypted HTTP/);
     });
     await check(tag('Freelance calculator: correct arithmetic and input validation'), async () => {
-      await page.click('[data-tab="freelance"]');
+      await page.click('[data-studio="freelance"]');
       await page.fill('#target', '100000'); await page.fill('#overhead', '15000'); await page.fill('#hours', '40'); await page.fill('#weeks', '46'); await page.fill('#utilization', '65'); await page.fill('#tax', '0'); await page.fill('#margin', '15'); await page.fill('#quoteHours', '20');
       await page.click('#calcRate');
       const t = await page.locator('#rateResult').innerText();
-      assert.match(t, /Estimated billable hours\/year: 1196\.0/); assert.match(t, /Break-even hourly rate: 96\.15/); assert.match(t, /Suggested hourly rate: 113\.12/); assert.match(t, /Quote for 20 hours: 2262\./);
+      assert.match(t, /Estimated billable hours\/year: 1196\.0/); assert.match(t, /Break-even hourly rate: 96\.15/); assert.match(t, /Suggested hourly rate: 113\.12/); assert.match(t, /Quote: 2262\./);
       await page.fill('#utilization', '0'); await page.click('#calcRate');
-      assert.match(await page.locator('#rateResult').innerText(), /valid/i);
-      await page.locator('#freelance details summary').click();
-      await page.fill('#oldVal', '0'); await page.fill('#newVal', '5'); await page.click('#calcPercent');
-      assert.match(await page.locator('#percentResult').innerText(), /undefined from zero/);
-      await page.fill('#oldVal', '100'); await page.fill('#newVal', '120'); await page.click('#calcPercent');
-      assert.match(await page.locator('#percentResult').innerText(), /20\.00%/);
+      assert.match(await page.locator('#rateResult').innerText(), /between|positive|valid/i);
+      await page.click('#calcEffective');
+      assert.match(await page.locator('#effectiveResult').innerText(), /90\.00/);
+      await page.goto(base+'?tool=percentage-change');await ready(page);
+      await page.fill('#old', '0');await page.fill('#newv', '5');await page.evaluate(()=>pct());
+      assert.match(await page.locator('#out').innerText(), /not defined when the starting value is zero/);
+      await page.fill('#old', '100');await page.fill('#newv', '120');await page.evaluate(()=>pct());
+      assert.match(await page.locator('#out').innerText(), /20\.00%/);
+      await page.goto(base+'studios.html?studio=qr');
+
     });
     await check(tag('QR Studio v2: plain text valid, malformed URL warned, QR rendered'), async () => {
-      await page.click('[data-tab="qr"]');
-      await page.fill('#qrInput', 'hello world'); await page.dispatchEvent('#qrInput', 'input');
+      await page.click('[data-studio="qr"]');
+      await page.selectOption('#qrType','text'); await page.fill('#qrText', 'hello world'); await page.dispatchEvent('#qrText', 'input');
       assert.match(await page.locator('#qrValidation').innerText(), /Plain-text payload/);
-      await page.fill('#qrInput', 'https://'); await page.dispatchEvent('#qrInput', 'input');
+      await page.fill('#qrText', 'https://'); await page.dispatchEvent('#qrText', 'input');
       assert.match(await page.locator('#qrValidation').innerText(), /Warning/);
-      await page.fill('#qrInput', 'https://example.com/ok'); await page.click('#qrGenerate');
+      await page.fill('#qrText', 'https://example.com/ok'); await page.evaluate(()=>generateQR());
       await page.waitForSelector('#qrOutput canvas, #qrOutput img');
       assert.match(await page.locator('#qrValidation').innerText(), /Valid HTTP/);
     });
     await check(tag('PII & Secret Redactor studio: audit leaves text, redact masks, categories respected'), async () => {
-      await page.click('[data-tab="privacy"]');
-      await page.fill('#piiInput', 'mail jane@example.com call +1 415 555 0100 password=hunter2hunter2');
-      await page.selectOption('#piiMode', 'audit'); await page.click('#piiRun');
-      let t = await page.locator('#piiResult').innerText();
-      assert.match(t, /Email addresses: 1/); assert.match(t, /Audit Only/); assert.ok(!/REDACTED/.test(t));
-      await page.selectOption('#piiMode', 'redact'); await page.uncheck('#piiPhone'); await page.click('#piiRun');
-      t = await page.locator('#piiResult').innerText();
-      assert.match(t, /\[REDACTED Email addresses\]/); assert.match(t, /\[REDACTED Secret-like assignments\]/); assert.ok(t.includes('415 555 0100'), 'unchecked category must stay');
+      await page.click('[data-studio="privacy"]');
+      await page.fill('#redactInput', 'mail jane@example.com call +1 415 555 0100 password=hunter2hunter2');
+      await page.selectOption('#piiMode', 'audit'); await page.evaluate(()=>runRedactor());
+      let t = await page.locator('#studio-privacy').innerText();
+      assert.match(t, /Email: 1/); assert.match(t, /Audit Only/); assert.ok(!/REDACTED/.test(t));
+      await page.selectOption('#piiMode', 'redact'); await page.uncheck('[data-pii=phone]'); await page.evaluate(()=>runRedactor());
+      t = await page.locator('#studio-privacy').innerText();
+      assert.match(t, /\[EMAIL_REDACTED\]/); assert.match(t, /\[API_KEY_REDACTED\]/); assert.ok(t.includes('415 555 0100'), 'unchecked category must stay');
       assert.ok(!t.includes('hunter2hunter2'));
     });
     await check(tag('studios: tabs are keyboard operable and expose correct ARIA state'), async () => {
-      await page.goto(base + 'studios.html'); await page.waitForSelector('#url');
-      await page.locator('[data-tab="url"]').focus();
-      await page.keyboard.press('Tab'); assert.equal(await page.evaluate(() => document.activeElement.dataset.tab), 'freelance');
+      await page.goto(base + 'studios.html'); await page.waitForSelector('#studio-url');
+      await page.locator('[data-studio="url"]').focus();
+      await page.keyboard.press('ArrowRight'); assert.equal(await page.evaluate(() => document.activeElement.dataset.studio), 'freelance');
       await page.keyboard.press('Enter');
-      assert.equal(await page.locator('[data-tab="freelance"]').getAttribute('aria-selected'), 'true');
-      assert.equal(await page.locator('[data-tab="url"]').getAttribute('aria-selected'), 'false');
-      assert.ok(await page.locator('#freelance').isVisible() && !(await page.locator('#url').isVisible()));
+      assert.equal(await page.locator('[data-studio="freelance"]').getAttribute('aria-selected'), 'true');
+      assert.equal(await page.locator('[data-studio="url"]').getAttribute('aria-selected'), 'false');
+      assert.ok(await page.locator('#studio-freelance').isVisible() && !(await page.locator('#studio-url').isVisible()));
       const roles = await page.evaluate(() => ({ tablist: !!document.querySelector('[role=tablist]'), tabs: document.querySelectorAll('[role=tab]').length, panels: document.querySelectorAll('[role=tabpanel]').length }));
       assert.deepEqual(roles, { tablist: true, tabs: 4, panels: 4 });
       const unlabeled = await page.evaluate(() => [...document.querySelectorAll('input,textarea,select')].filter(e => !document.querySelector(`label[for="${e.id}"]`) && !e.closest('label') && !e.getAttribute('aria-label')).map(e => e.id));
@@ -197,7 +204,7 @@ try {
       assert.ok(/Recent/i.test(shelf));
       assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('it.discovery.favorites'))).sort(), ['hourly-rate', 'regex-playground', 'svg-sanitizer', 'url-cleaner']);
     });
-    await check(tag('no uncaught page errors during home, category and tool navigation'), async () => { assert.equal(errs.length, 0, errs.slice(0, 4).join(' || ').slice(0, 600)); });
+    await check(tag('no uncaught page errors during home, category and tool navigation'), async () => { assert.deepEqual(errs, []); });
     await ctx.close();
   }
 
@@ -218,21 +225,20 @@ try {
     });
     await swReady(page);
     await check('offline: service worker serves home, studios, a developer tool and a file & media tool', async () => {
-      await page.goto(base + 'studios.html'); await page.waitForSelector('#url'); await swReady(page);
+      await page.goto(base + 'studios.html'); await page.waitForSelector('#studio-url'); await swReady(page);
       await page.goto(base + '?tool=table-converter'); await ready(page);
       const cached = await page.evaluate(async () => { const keys = await caches.keys(); const out = []; for (const k of keys) out.push(...(await (await caches.open(k)).keys()).map(r => new URL(r.url).pathname)); return out; });
       for (const p of ['/studios.html', '/studios.js', '/v8-developer-tools.js', '/tools/file-media/file-media-tools.js', '/index.html']) assert.ok(cached.includes(p), 'not cached: ' + p);
-      // Genuinely offline: stop the origin server (Firefox's setOffline blocks navigations before a service worker can answer).
-      server.closeAllConnections?.(); await new Promise(r => server.close(r));
+      await stopOrigin();
       try {
-        await page.goto(base + 'studios.html?studio=qr'); await page.waitForSelector('#qr', { state: 'visible' });
-        await page.fill('#qrInput', 'offline text'); await page.click('#qrGenerate'); await page.waitForSelector('#qrOutput canvas, #qrOutput img');
+        await page.goto(base + 'studios.html?studio=qr'); await page.waitForSelector('#studio-qr', { state: 'visible' });
+        await page.selectOption('#qrType','text');await page.fill('#qrText', 'offline text'); await page.evaluate(()=>generateQR()); await page.waitForSelector('#qrOutput canvas, #qrOutput img');
         await page.goto(base + '?tool=regex-playground'); await ready(page);
         assert.match(await page.locator('#workspace h2').first().innerText(), /regex/i);
         await page.goto(base + '?tool=svg-sanitizer'); await ready(page);
         assert.match(await page.locator('#workspace h2').first().innerText(), /svg/i);
-        await page.goto(base + '?tool=url-cleaner'); await page.waitForURL(/studios\.html/); await page.waitForSelector('#url');
-      } finally { /* server intentionally stays down; this is the last check */ }
+        await page.goto(base + '?tool=url-cleaner'); await page.waitForSelector('#studioRoot'); await page.waitForSelector('#studio-url');
+      } finally { await startOrigin(); }
     });
     await ctx.close();
   }
@@ -241,7 +247,7 @@ try {
 } finally {
   clearTimeout(watchdog);
   if (browser) await browser.close();
-  if (server.listening) server.close();
+  server.close();
   await fs.writeFile(path.join(out, 'results.json'), JSON.stringify({ engine, results }, null, 2));
 }
 const failed = results.filter(r => !r.ok);
