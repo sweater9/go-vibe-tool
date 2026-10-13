@@ -406,4 +406,5 @@ async function respond(request){
  catch(err){diag("network",err,request);return request.mode==="navigate"?((await caches.match("./index.html"))||Response.error()):Response.error()}
 }
 self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);if(url.origin!==location.origin)return;
- event.respondWith(respond(event.request).then(r=>{if(!(r instanceof Response)){diag("non-response",String(r),event.request);return fetch(event.request)}return r},err=>{diag("respond-rejected",err,event.request);return fetch(event.request)}))});
+ if(/\.(?:svg|png|css)$/.test(url.pathname))diag("tl-start",Date.now(),event.request);
+ event.respondWith(respond(event.request).then(r=>{if(/\.(?:svg|png|css)$/.test(url.pathname))diag("tl-done "+r.type+" "+r.status,Date.now(),event.request);if(!(r instanceof Response)){diag("non-response",String(r),event.request);return fetch(event.request)}return r},err=>{diag("respond-rejected",err,event.request);return fetch(event.request)}))});
