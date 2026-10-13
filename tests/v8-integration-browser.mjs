@@ -197,7 +197,7 @@ try {
       assert.ok(/Recent/i.test(shelf));
       assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('it.discovery.favorites'))).sort(), ['hourly-rate', 'regex-playground', 'svg-sanitizer', 'url-cleaner']);
     });
-    await check(tag('no uncaught page errors during home, category and tool navigation'), async () => { assert.deepEqual(errs, []); });
+    await check(tag('no uncaught page errors during home, category and tool navigation'), async () => { assert.equal(errs.length, 0, errs.slice(0, 4).join(' || ').slice(0, 600)); });
     await ctx.close();
   }
 
@@ -222,7 +222,8 @@ try {
       await page.goto(base + '?tool=table-converter'); await ready(page);
       const cached = await page.evaluate(async () => { const keys = await caches.keys(); const out = []; for (const k of keys) out.push(...(await (await caches.open(k)).keys()).map(r => new URL(r.url).pathname)); return out; });
       for (const p of ['/studios.html', '/studios.js', '/v8-developer-tools.js', '/tools/file-media/file-media-tools.js', '/index.html']) assert.ok(cached.includes(p), 'not cached: ' + p);
-      await ctx.setOffline(true);
+      // Genuinely offline: stop the origin server (Firefox's setOffline blocks navigations before a service worker can answer).
+      server.closeAllConnections?.(); await new Promise(r => server.close(r));
       try {
         await page.goto(base + 'studios.html?studio=qr'); await page.waitForSelector('#qr', { state: 'visible' });
         await page.fill('#qrInput', 'offline text'); await page.click('#qrGenerate'); await page.waitForSelector('#qrOutput canvas, #qrOutput img');
@@ -231,7 +232,7 @@ try {
         await page.goto(base + '?tool=svg-sanitizer'); await ready(page);
         assert.match(await page.locator('#workspace h2').first().innerText(), /svg/i);
         await page.goto(base + '?tool=url-cleaner'); await page.waitForURL(/studios\.html/); await page.waitForSelector('#url');
-      } finally { await ctx.setOffline(false); }
+      } finally { /* server intentionally stays down; this is the last check */ }
     });
     await ctx.close();
   }
@@ -240,7 +241,7 @@ try {
 } finally {
   clearTimeout(watchdog);
   if (browser) await browser.close();
-  server.close();
+  if (server.listening) server.close();
   await fs.writeFile(path.join(out, 'results.json'), JSON.stringify({ engine, results }, null, 2));
 }
 const failed = results.filter(r => !r.ok);
