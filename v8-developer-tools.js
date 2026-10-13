@@ -13,7 +13,7 @@
       "key-hash",
       "Privacy & Safety",
       "Universal Key & Hash Tool",
-      "SHA hashes, HMAC, secure UUID v4 batches, random hex tokens and API keys with Web Crypto.",
+      "SHA-1, SHA-256 (sha256) and SHA-512 hashes, HMAC, secure UUID v4 batches, random hex tokens and API keys with Web Crypto.",
     ],
     [
       "regex-playground",
