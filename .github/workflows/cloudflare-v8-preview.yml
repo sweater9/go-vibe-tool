@@ -1,0 +1,205 @@
+name: Cloudflare V8 Preview (isolated Worker)
+# Manual build, verification and (optional) deployment of the V8 branch to an ISOLATED Cloudflare Workers
+# static-assets preview named go-vibe-tool-v8-preview. It never touches the "go-vibe-tool" Worker, production,
+# DNS, custom domains, AdSense or the Mahjong backend. Nothing is deployed unless you tick "deploy".
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy the verified dist/ to the isolated preview Worker (unticked = build, verify and test only)
+        type: boolean
+        default: false
+  # Bootstrap only: GitHub registers a workflow_dispatch-only file once it has run (or reached the default branch).
+  # This path-filtered push (this file only) runs build + verify + tests with deploy OFF; it can never deploy.
+  push:
+    branches: [feature/v8-discovery-navigation]
+    paths: ['.github/workflows/cloudflare-v8-preview.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloudflare-v8-preview
+  cancel-in-progress: false
+
+env:
+  REQUIRED_REF: refs/heads/feature/v8-discovery-navigation
+  PREVIEW_WORKER: go-vibe-tool-v8-preview
+  WRANGLER_VERSION: 4.149.0
+  PLAYWRIGHT_VERSION: 1.56.0
+
+jobs:
+  build:
+    name: build + verify dist (commit pinned)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      sha: ${{ steps.pin.outputs.sha }}
+      tree: ${{ steps.pin.outputs.tree }}
+    steps:
+      - name: Refuse any ref except the V8 development branch
+        run: |
+          if [ "$GITHUB_REF" != "$REQUIRED_REF" ]; then
+            echo "::error title=Wrong ref::This workflow only runs on ${REQUIRED_REF#refs/heads/}. It was started on $GITHUB_REF. Nothing was built or deployed."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Pin and record the exact commit
+        id: pin
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA" || { echo "::error::checked-out commit differs from the dispatched commit"; exit 1; }
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"; echo "tree=$(git rev-parse HEAD^{tree})" >> "$GITHUB_OUTPUT"
+          { echo "### Commit under test"; echo "- branch: \`${GITHUB_REF#refs/heads/}\`"; echo "- commit: \`$(git rev-parse HEAD)\`"; echo "- tree: \`$(git rev-parse HEAD^{tree})\`"; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fail early if this revision has no build script (the Cloudflare "Missing script" failure)
+        run: |
+          node -e "const s=require('./package.json').scripts||{}; for (const k of ['build','verify:dist']) if(!s[k]){console.error('::error title=Missing script::package.json has no \"'+k+'\" script at '+process.env.GITHUB_SHA); process.exit(1)}"
+          grep -q '"directory": "./dist"' wrangler.jsonc && grep -q '"directory": "./dist"' wrangler.preview.jsonc
+      - name: Install dependencies reproducibly (none are declared today; uses the lockfile if that changes)
+        run: |
+          if node -e "const p=require('./package.json'); process.exit(Object.keys({...p.dependencies,...p.devDependencies}).length?0:1)"; then
+            test -f package-lock.json || { echo "::error::dependencies are declared but there is no package-lock.json"; exit 1; }
+            npm ci
+          else
+            echo "package.json declares no dependencies; the build uses Node built-ins only"
+          fi
+      - name: Build
+        run: npm run build
+      - name: Verify dist (size limits, forbidden paths, references, service worker, sitemap)
+        run: npm run verify:dist
+      - name: Repository test suite
+        run: npm test
+      - name: Record artifact checksum
+        run: |
+          (cd dist && find . -type f | LC_ALL=C sort | xargs sha256sum) > dist.sha256
+          echo "dist files: $(wc -l < dist.sha256), bundle checksum: $(sha256sum dist.sha256 | cut -d' ' -f1)" | tee -a "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v8-preview-dist
+          path: |
+            dist/
+            dist.sha256
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error
+
+  browser:
+    name: browser tests (${{ matrix.browser }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@${{ env.PLAYWRIGHT_VERSION }}
+      - name: Install browser (retry; the download occasionally hangs)
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            DEBUG=pw:install timeout -k 10 240 npx playwright install --with-deps ${{ matrix.browser }} > install.log 2>&1 && exit 0
+            echo "browser install attempt $attempt failed or timed out"; tail -n 15 install.log
+            sudo pkill -f 'apt-get|dpkg' || true; sleep 5
+          done
+          exit 1
+      - name: Build the output under test
+        run: npm run build
+      - name: Cloudflare-style dist suite, homepage / Labs / Play / Mahjong frontend / Knowledge / Learn / tools / offline
+        run: node tests/dist-browser.mjs ${{ matrix.browser }}
+      - name: Existing suites against the built output (SITE_ROOT=dist)
+        env:
+          SITE_ROOT: dist
+        run: |
+          set +e; failed=""
+          for t in v8-browser play-games-browser labs-browser v5-maintenance-browser prompt-improver-browser tool-fixes-browser; do
+            echo "::group::$t (${{ matrix.browser }}, dist)"
+            node tests/$t.mjs ${{ matrix.browser }} > "/tmp/$t.log" 2>&1; rc=$?; cat "/tmp/$t.log"; echo "::endgroup::"
+            if [ $rc -ne 0 ]; then failed="$failed $t"; echo "::error title=SUITE FAILED: $t (${{ matrix.browser }}, dist)::$(grep -E 'FAIL|Error|expected|actual|issues' "/tmp/$t.log" | head -8 | tr '\n' ' ' | cut -c1-700)"; else echo "SUITE PASSED: $t (${{ matrix.browser }}, dist)"; fi
+          done
+          echo "failed suites =${failed:- none}"; [ -z "$failed" ]
+
+  deploy:
+    name: deploy isolated preview Worker
+    needs: [build, browser]
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Create a GitHub Environment named cloudflare-v8-preview, put the two secrets there, and (optionally)
+    # add required reviewers so a person approves every deployment.
+    environment:
+      name: cloudflare-v8-preview
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Stop cleanly if the Cloudflare secrets are not configured (values are never printed)
+        run: |
+          missing=""; [ -n "$CLOUDFLARE_API_TOKEN" ] || missing="$missing CLOUDFLARE_API_TOKEN"; [ -n "$CLOUDFLARE_ACCOUNT_ID" ] || missing="$missing CLOUDFLARE_ACCOUNT_ID"
+          if [ -n "$missing" ]; then echo "::error title=Cloudflare credentials missing::Add${missing} as secrets of the GitHub Environment cloudflare-v8-preview. Nothing was deployed."; exit 1; fi
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.sha }}
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: v8-preview-dist
+          path: .
+      - name: Re-verify the downloaded artifact is exactly what was tested
+        run: |
+          (cd dist && find . -type f | LC_ALL=C sort | xargs sha256sum) | diff - dist.sha256 && echo "artifact checksums match"
+          npm run verify:dist
+      - name: Cloudflare preflight (read-only; refuses production names and custom domains)
+        run: node scripts/cf-preflight.mjs
+      - name: Install Wrangler (exact version)
+        run: npm install --no-save wrangler@${{ env.WRANGLER_VERSION }}
+      - name: Deploy dist/ to the isolated preview Worker
+        id: deploy
+        env:
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          set -o pipefail
+          npx wrangler deploy --config wrangler.preview.jsonc --message "V8 preview ${{ needs.build.outputs.sha }}" 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+          url=$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' "$RUNNER_TEMP/deploy.log" | head -1)
+          [ -n "$url" ] || { echo "::error::could not determine the workers.dev URL from the deploy output"; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          { echo "### Preview deployed"; echo "- worker: \`${PREVIEW_WORKER}\` (isolated; production Worker untouched)"; echo "- commit: \`${{ needs.build.outputs.sha }}\`"; echo "- URL: $url"; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify the live site serves exactly the built bytes
+        run: node scripts/verify-live-assets.mjs "${{ steps.deploy.outputs.url }}" dist
+      - run: npm install --no-save playwright@${{ env.PLAYWRIGHT_VERSION }}
+      - name: Install Chromium (retry)
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do DEBUG=pw:install timeout -k 10 240 npx playwright install --with-deps chromium > install.log 2>&1 && exit 0; sudo pkill -f 'apt-get|dpkg' || true; sleep 5; done; exit 1
+      - name: Browser checks against the deployed preview (read-only; offline-with-server-stopped is local-only)
+        env:
+          DIST_BASE_URL: ${{ steps.deploy.outputs.url }}
+          LABS_BASE_URL: ${{ steps.deploy.outputs.url }}
+          PLAY_BASE_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          set +e; failed=""
+          for t in dist-browser labs-browser play-games-browser; do
+            node tests/$t.mjs chromium > "/tmp/$t.log" 2>&1; rc=$?; cat "/tmp/$t.log"
+            [ $rc -eq 0 ] || failed="$failed $t"
+            { echo "- live $t (chromium): $([ $rc -eq 0 ] && echo PASS || echo FAIL) — $(grep -E 'passed,' /tmp/$t.log | tail -1)"; } >> "$GITHUB_STEP_SUMMARY"
+          done
+          [ -z "$failed" ] || { echo "::error::live checks failed:$failed"; exit 1; }

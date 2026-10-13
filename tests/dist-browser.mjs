@@ -1,5 +1,5 @@
 /* Browser tests for the clean static output (dist/) served with Cloudflare-style routing.
-   node tests/dist-browser.mjs [chromium|firefox|webkit]   env: PLAYWRIGHT_PACKAGE, DIST_ARTIFACTS
+   node tests/dist-browser.mjs [chromium|firefox|webkit]   env: PLAYWRIGHT_PACKAGE, DIST_BASE_URL (test a deployed preview)
    Rebuilds dist/ first so the test always checks the real build output. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,7 +13,9 @@ const engine = process.argv[2] || 'chromium';
 const repo = fileURLToPath(new URL('../', import.meta.url));
 const dist = path.join(repo, 'dist');
 execFileSync(process.execPath, [path.join(repo, 'scripts/build-static.mjs')], { stdio: 'pipe' });
-const srv = createDistServer(dist); await srv.start(); const base = srv.base;
+// DIST_BASE_URL=https://... tests an already-deployed preview instead of the local server (offline-with-server-stopped is then skipped).
+const liveUrl = process.env.DIST_BASE_URL ? process.env.DIST_BASE_URL.replace(/\/?$/, '/') : '';
+const srv = createDistServer(dist); if (!liveUrl) await srv.start(); const base = liveUrl || srv.base;
 const browser = await pw[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
 let passed = 0; const failures = [];
 async function check(name, fn) { try { await fn(); passed++; console.log('PASS', name); } catch (e) { failures.push(`${name}: ${e.message.split('\n')[0]}`); console.log('FAIL', name, '-', e.message.split('\n')[0]); } }
@@ -80,7 +82,7 @@ try {
     await c.page.waitForFunction(async need => { for (const n of await caches.keys()) { const k = new Set((await (await caches.open(n)).keys()).map(r => new URL(r.url).pathname)); if (need.every(x => k.has(x))) return true; } return false; }, listed, { timeout: 30000 });
     assert.ok(listed.length >= 50); assert.equal(await c.page.evaluate(async () => (await navigator.serviceWorker.getRegistration()).scope), base); await c.ctx.close();
   });
-  await check('offline from dist: installed site loads homepage, Labs, Play games and Mahjong frontend with the server stopped', async () => {
+  if (!liveUrl) await check('offline from dist: installed site loads homepage, Labs, Play games and Mahjong frontend with the server stopped', async () => {
     const c = await open({ w: 390, h: 844, touch: true }); await c.page.goto(base + 'labs/cyber/', { waitUntil: 'networkidle' });
     await c.page.evaluate(async () => { await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }); setTimeout(r, 8000); }); });
     const need = ['/index.html', '/labs/index.html', '/labs/ai/index.html', '/labs/workflow/workflow-engine.js', '/play/2048/index.html', '/play/mahjong/index.html', '/play/mahjong/mahjong.mjs'];
@@ -97,5 +99,5 @@ try {
     await c.ctx.close();
   });
 } finally { await browser.close(); await srv.stop().catch(() => {}); }
-console.log(`${engine} (dist): ${passed} passed, ${failures.length} failed`);
+console.log(`${engine} (dist${liveUrl ? ', live ' + liveUrl : ''}): ${passed} passed, ${failures.length} failed`);
 if (failures.length) { console.error(failures.join('\n')); process.exit(1); }
