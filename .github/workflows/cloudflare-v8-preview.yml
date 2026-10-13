@@ -1,0 +1,29 @@
+name: Cloudflare V8 Preview (isolated Worker)
+# DISPATCH STUB. GitHub only shows the "Run workflow" button for workflows whose file, with a workflow_dispatch
+# trigger, exists on the DEFAULT branch. This file exists only to make the button appear. It deploys nothing.
+#
+# When you run the workflow and choose the branch feature/v8-discovery-navigation in the "Use workflow from"
+# dropdown, GitHub runs the version of this same file that lives ON THAT BRANCH (the real build/verify/deploy
+# workflow). Choosing any other branch, including main, runs only this stub, which does nothing and fails.
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Deploy to the isolated preview Worker (default off; honoured only by the feature-branch version)
+        type: boolean
+        default: false
+
+permissions: {}
+
+jobs:
+  stub:
+    name: dispatch stub (does nothing on this branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Refuse to run from this branch
+        env:
+          RUN_REF: ${{ github.ref }}
+        run: |
+          echo "::error title=Wrong branch::This is only the dispatch stub. Re-run it and pick feature/v8-discovery-navigation in 'Use workflow from'. Nothing was built or deployed ($RUN_REF)."
+          exit 1
