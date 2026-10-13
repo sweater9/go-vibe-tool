@@ -65,9 +65,13 @@ try {
   }
   await check('test harness: ad hosts are aborted silently, any other third-party host is reported', async () => {
     const c = await open(); await c.page.goto(base, { waitUntil: 'networkidle' });
-    await c.page.evaluate(() => Promise.allSettled([fetch('https://tpc.googlesyndication.com/x'), fetch('https://googleads.g.doubleclick.net/x'), fetch('https://www.google.com/x')]));
-    assert.deepEqual(c.external, [], 'ad hosts must not be reported');
-    await c.page.evaluate(() => fetch('https://example.org/tracker.js').catch(() => {})); assert.deepEqual(c.external, ['https://example.org/tracker.js']); await c.ctx.close();
+    // Subresource loads always pass through request routing in every engine (a cross-origin fetch() may be stopped by the browser first).
+    const load = urls => c.page.evaluate(urls => Promise.allSettled(urls.map(u => new Promise((res, rej) => { const i = new Image(); i.onload = res; i.onerror = rej; i.src = u; }))), urls);
+    await load(['https://tpc.googlesyndication.com/pixel.gif', 'https://googleads.g.doubleclick.net/pixel.gif', 'https://www.google.com/pixel.gif']);
+    await new Promise(r => setTimeout(r, 1500)); assert.deepEqual(c.external, [], 'ad hosts must not be reported');
+    await load(['https://example.org/tracker.gif']);
+    for (let i = 0; i < 50 && !c.external.length; i++) await new Promise(r => setTimeout(r, 100)); // the route handler runs in this process, so poll instead of assuming ordering
+    assert.deepEqual(c.external, ['https://example.org/tracker.gif']); await c.ctx.close();
   });
   await check('Mahjong frontend loads without a backend: no API configured, no network calls to any service', async () => {
     const c = await open(); await c.page.goto(base + 'play/mahjong/', { waitUntil: 'networkidle' });
