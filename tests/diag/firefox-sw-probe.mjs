@@ -15,6 +15,7 @@ const browser = await pw[engine].launch({ headless: true });
 const isSwErr = t => /ServiceWorker intercepted/.test(t);
 const variants = {
   idle: async p => { await p.goto(base); await p.waitForTimeout(6000); },
+  navigate_away_0ms: async p => { await p.goto(base, { waitUntil: 'commit' }); await p.goto(base + 'studios.html'); await p.waitForTimeout(1500); },
   navigate_away_300ms: async p => { await p.goto(base); await p.waitForTimeout(300); await p.goto(base + 'studios.html'); await p.waitForTimeout(1500); },
   navigate_away_after_sw_ready: async p => { await p.goto(base); await p.evaluate(async () => { await navigator.serviceWorker.ready; }); await p.goto(base + 'studios.html'); await p.waitForTimeout(1500); },
   reload_after_idle: async p => { await p.goto(base); await p.waitForTimeout(3000); await p.reload(); await p.waitForTimeout(1500); },
