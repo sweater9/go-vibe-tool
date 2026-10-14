@@ -145,8 +145,26 @@ try {
       await page.fill('#urlInput', 'http://user:pw@xn--e1afmkfd.example/'); await page.click('#urlAnalyze');
       const w = await page.locator('#urlResult').innerText(); assert.match(w, /Credentials embedded/); assert.match(w, /Punycode/); assert.match(w, /Unencrypted HTTP/);
     });
+    // Diagnostic-only: capture actual DOM input events, without synthesizing clicks or changing assertions.
+    const studioEvents = [];
+    if (process.env.V8_STUDIO_EVENT_TRACE === '1') {
+      await page.evaluate(() => {
+        window.__studioEventTrace = [];
+        for (const kind of ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click']) {
+          document.addEventListener(kind, event => {
+            const target = event.target?.closest?.('[data-studio], #calcRate, #urlAnalyze') || event.target;
+            window.__studioEventTrace.push({ kind, target: target?.id || target?.getAttribute?.('data-studio') || target?.tagName, active: document.querySelector('[data-studio][aria-selected="true"]')?.getAttribute('data-studio'), time: performance.now() });
+            if (window.__studioEventTrace.length > 100) window.__studioEventTrace.shift();
+          }, true);
+        }
+      });
+    }
     await check(tag('Freelance calculator: correct arithmetic and input validation'), async () => {
       await page.click('[data-studio="freelance"]');
+      if (process.env.V8_STUDIO_EVENT_TRACE === '1') {
+        const state = await page.evaluate(() => ({ active: document.querySelector('[data-studio][aria-selected="true"]')?.getAttribute('data-studio'), targetVisible: !!document.querySelector('#target')?.getClientRects().length, events: window.__studioEventTrace || [] }));
+        console.log('FREELANCE_AFTER_CLICK', JSON.stringify(state));
+      }
       await page.fill('#target', '100000'); await page.fill('#overhead', '15000'); await page.fill('#hours', '40'); await page.fill('#weeks', '46'); await page.fill('#utilization', '65'); await page.fill('#tax', '0'); await page.fill('#margin', '15'); await page.fill('#quoteHours', '20');
       await page.click('#calcRate');
       const t = await page.locator('#rateResult').innerText();
