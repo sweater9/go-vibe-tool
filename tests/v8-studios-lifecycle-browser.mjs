@@ -1,19 +1,28 @@
 /* Native browser regression checks for Studio lifecycle; local origin only. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import {createStudioRecorder} from './helpers/studio-interaction-recorder.mjs';
 import {createDistServer} from '../scripts/serve-dist.mjs';
 const pw=await import(process.env.PLAYWRIGHT_PACKAGE||'playwright');
 const engine=process.argv[2]||'chromium';
 const server=createDistServer(process.env.SITE_ROOT||'dist');await server.start();
-const results=[];let browser;
-async function check(label,run){try{await run();results.push({label,ok:true});console.log('PASS',label);}catch(error){results.push({label,ok:false,error:error.message});console.error('FAIL',label,error.message);}}
+const out=process.env.STUDIO_QA_ARTIFACTS||`artifacts/studios-lifecycle-${engine}`;
+await fs.mkdir(out,{recursive:true});
+const results=[];let browser,currentRecorder,currentWidth;const failedWidths=new Set();
+async function check(label,run){currentRecorder?.mark(label,'start');try{await run();results.push({label,ok:true});currentRecorder?.mark(label,'passed');console.log('PASS',label);}catch(error){failedWidths.add(currentWidth);results.push({label,ok:false,error:error.message});currentRecorder?.mark(label,'failed');console.error('FAIL',label,error.message);}}
 try{
  browser=await pw[engine].launch({headless:true});
  for(const width of [375,1280]){
-  const ctx=await browser.newContext({viewport:{width,height:900}});const page=await ctx.newPage();page.setDefaultTimeout(15000);
+  currentWidth=width;
+  const ctx=await browser.newContext({viewport:{width,height:900}});let recorder;
+  try {
+  if(engine==='firefox')await ctx.tracing.start({screenshots:true,snapshots:true,sources:true});
+  const page=await ctx.newPage();page.setDefaultTimeout(15000);
+  if(engine==='firefox')recorder=await createStudioRecorder(page);
+  currentRecorder=recorder;
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto(server.base+'?category=business-finance&tool=hourly-rate');await page.waitForSelector('#studio-freelance:not([hidden])');
-  await check(`${width} initial route and calculator bindings`,async()=>{await page.click('#calcRate');assert.match(await page.locator('#rateResult').innerText(),/Quote: 2262\./);});
+  await check(`${width} initial route and calculator bindings`,async()=>{await page.click('#calcRate');assert.match(await page.locator('#rateResult').innerText(),/Quote: 2262\./);if(engine==='firefox'&&process.env.GVT_STUDIO_DIAGNOSTIC_PROBE==='1')throw Error('Controlled diagnostic artifact probe');});
   await check(`${width} repeated alias opens preserve the form and live handlers`,async()=>{
    await page.fill('#target','120000');await page.click('#calcRate');const quote=await page.locator('#rateResult').innerText();
    await page.evaluate(()=>openTool('url-cleaner'));await page.waitForSelector('#studio-url:not([hidden])');
@@ -38,7 +47,15 @@ try{
    await page.goto(server.base+'studios?studio=freelance');await page.waitForSelector('#studio-freelance:not([hidden])');await page.click('#calcRate');assert.match(await page.locator('#rateResult').innerText(),/113\.12/);
   });
   await check(`${width} no uncaught errors or horizontal overflow`,async()=>{assert.deepEqual(errors,[]);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));});
-  await ctx.close();
+  } catch(error) {
+   failedWidths.add(width);results.push({label:`${width} setup/execution`,ok:false,error:error.message});console.error('FAIL',width,error.message);
+  } finally {
+   if(recorder)await fs.writeFile(`${out}/interactions-${width}.json`,JSON.stringify({engine,width,...await recorder.flush()},null,2));
+   if(engine==='firefox') {
+    try{await ctx.tracing.stop(failedWidths.has(width)?{path:`${out}/trace-${width}.zip`}:undefined);}catch(error){results.push({label:`${width} trace finalization`,ok:false,error:error.message});}
+   }
+   currentRecorder=null;await ctx.close();
+  }
  }
-}finally{if(browser)await browser.close();await server.stop();await fs.mkdir('artifacts',{recursive:true});await fs.writeFile(`artifacts/studios-lifecycle-${engine}.json`,JSON.stringify({engine,results},null,2));}
+}finally{if(browser)await browser.close();await server.stop();await fs.mkdir('artifacts',{recursive:true});await fs.writeFile(`${out}/results.json`,JSON.stringify({engine,results},null,2));if(!process.env.STUDIO_QA_ARTIFACTS)await fs.writeFile(`artifacts/studios-lifecycle-${engine}.json`,JSON.stringify({engine,results},null,2));}
 if(results.some(result=>!result.ok))process.exitCode=1;
