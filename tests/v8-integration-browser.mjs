@@ -37,7 +37,13 @@ const NINE = ['ai-prompts', 'productivity', 'files-pdf', 'images-design', 'priva
 const ready = p => p.waitForFunction(() => typeof openTool === 'function' && typeof tools !== 'undefined' && document.querySelector('.cat-tile'));
 const swReady = p => p.evaluate(async () => { if (!('serviceWorker' in navigator)) return; await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }); setTimeout(r, 8000); }); });
 const diagLog = [];
+/* Late-injected stylesheets (studios.css, file-media.css) are still in flight right after `load`. Navigating on immediately makes
+   Firefox report every intercepted, cancelled request as a console error, so wait for them. This is a wait, not a filter:
+   every console error is still collected and asserted. */
+const settleStyles = p => p.waitForFunction(() => document.readyState === 'complete' && [...document.querySelectorAll('link[rel=stylesheet]')].every(l => l.sheet), null, { timeout: 5000 }).catch(() => {});
 function watch(page, errs) {
+  const goto = page.goto.bind(page);
+  page.goto = async (...args) => { const r = await goto(...args); await settleStyles(page); return r; };
   page.on('load', () => diagLog.push(Date.now() + ' LOAD ' + page.url().replace(/^https?:\/\/[^/]+/, '')));
   page.on('domcontentloaded', () => diagLog.push(Date.now() + ' DCL ' + page.url().replace(/^https?:\/\/[^/]+/, '')));
   page.on('framenavigated', f => { if (f === page.mainFrame()) diagLog.push(Date.now() + ' NAV ' + f.url().replace(/^https?:\/\/[^/]+/, '')); });
