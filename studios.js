@@ -224,6 +224,15 @@
         N("effectiveResult").textContent = e.message;
       }
     };
+    // Results describe the assumptions used, never a subsequently edited form.
+    for (const id of ["target", "overhead", "hours", "weeks", "utilization", "tax", "margin", "quoteHours"])
+      N(id).addEventListener("input", () => {
+        N("rateResult").textContent = "Assumptions changed; calculate again.";
+      });
+    for (const id of ["hrRevenue", "hrCosts", "hrBill", "hrUnpaid"])
+      N(id).addEventListener("input", () => {
+        N("effectiveResult").textContent = "Project inputs changed; calculate again.";
+      });
     const invalidate = () => {
       piiPreview = null;
       N("redactOutput").textContent = "";
@@ -273,9 +282,21 @@
     N("workspace").classList.add("active");
   }
   function mount(id = "link-fingerprint", tab) {
+    const w = N("workspace");
+    if (!w) throw Error("The Studio workspace is not ready.");
+    // Opening another alias or tab in this workspace must not replace its DOM
+    // and discard user input, event handlers, or calculation results.
+    if (w.querySelector("#studioRoot") && w.classList.contains("active")) {
+      if (id === "metadata" && N("piiMode").value !== "audit") {
+        N("piiMode").value = "audit";
+        N("piiMode").dispatchEvent(new Event("change"));
+      }
+      select(tab || c.aliases[id] || "url", id);
+      w.focus({ preventScroll: true });
+      return w;
+    }
     urlResult = "";
     piiPreview = null;
-    const w = N("workspace");
     if (!document.querySelector('link[href="studios.css"]')) {
       const l = document.createElement("link");
       l.rel = "stylesheet";
@@ -304,6 +325,10 @@
           `<section id="studio-${key}" class="studio-panel" role="tabpanel" aria-labelledby="studio-tab-${key}" hidden>${body}</section>`,
       )
       .join("")}<div id="out" aria-live="polite"></div></div>`;
+    // The shared QR engine retains its mode/canvas across mounts. A fresh
+    // selector starts at URL; synchronize its engine before rendering fields.
+    if (typeof qrType !== "undefined") qrType = N("qrType").value;
+    if (typeof qrCanvas !== "undefined") qrCanvas = null;
     bind();
     if (id === "metadata") N("piiMode").value = "audit";
     document.querySelectorAll("[data-studio]").forEach((b) => {
@@ -334,11 +359,24 @@
     w.focus({ preventScroll: true });
     return w;
   }
-  window.GVTStudioUI = { mount };
-  if (document.querySelector(".studio-page")) {
+  function dispose() {
+    urlResult = "";
+    urlSensitive = false;
+    piiPreview = null;
+    stopCamera();
+    if (typeof qrCanvas !== "undefined") qrCanvas = null;
+  }
+  window.GVTStudioUI = { mount, dispose };
+  function initializeStandalone() {
+    if (!document.querySelector(".studio-page")) return;
     const q = new URLSearchParams(location.search),
       id = q.get("tool") || c.canonical[q.get("studio")] || "link-fingerprint";
     rememberTool(id);
     mount(id, q.get("studio"));
   }
+  // Defer the first mount until legacy DOM-ready hooks have finished; the API
+  // is available immediately so the routing wrapper can install synchronously.
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", initializeStandalone, { once: true });
+  else initializeStandalone();
 })();

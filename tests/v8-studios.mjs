@@ -39,6 +39,16 @@ test("URL studio keeps all legitimate parameters and inspects trackers without v
   assert.ok(c.inspectUrl("https://user:pass@example.com").sensitive);
   assert.ok(c.inspectUrl("https://example.com?token=abc").sensitive);
 });
+test("effective rates reject blank inputs and arithmetic overflow without rejecting zero hours", () => {
+  const project = { revenue: 5000, costs: 500, billable: 40, unpaid: 10 };
+  for (const key of Object.keys(project))
+    for (const value of [null, undefined, " ", Infinity, -1])
+      assert.throws(() => c.effective({ ...project, [key]: value }));
+  assert.throws(() => c.effective({ ...project, billable: 1e308, unpaid: 1e308 }));
+  assert.throws(() => c.effective({ ...project, revenue: 1e308, billable: 1e-300, unpaid: 0 }));
+  assert.equal(c.effective({ ...project, billable: 0, unpaid: 0 }).rate, null);
+  assert.equal(c.effective({ ...project, revenue: 0 }).rate, -10);
+});
 test("UTM builder encodes values and preserves unrelated query pairs", () => {
   const url = c.utmUrl("https://example.com?x=1&x=2", {
     source: "a b",
@@ -71,6 +81,10 @@ test("freelance quote math, finite inputs and zero utilization errors", () => {
     { tax: -1 },
     { target: "" },
     { target: "Infinity" },
+    { target: "   " },
+    { target: 1e308, overhead: 1e308 },
+    { hours: 1e-300, weeks: 1e-300 },
+    { target: 1e308, quoteHours: 1e308 },
   ])
     assert.throws(() => c.freelance({ ...d, ...change }));
   assert.equal(

@@ -112,7 +112,7 @@
     ];
     const v = {};
     for (const k of keys) {
-      if (d[k] === "" || d[k] === null || d[k] === undefined)
+      if (d[k] === null || d[k] === undefined || String(d[k]).trim() === "")
         throw Error(
           "Enter every numeric assumption, using 0 where appropriate.",
         );
@@ -141,13 +141,18 @@
       revenue = v.target / (1 - v.tax / 100) + v.overhead,
       base = revenue / billable,
       rate = base / (1 - v.margin / 100);
-    return { billable, revenue, base, rate, quote: rate * v.quoteHours };
+    const quote = rate * v.quoteHours;
+    if (billable <= 0 || ![billable, revenue, base, rate, quote].every(Number.isFinite))
+      throw Error("These assumptions exceed the supported calculation range.");
+    return { billable, revenue, base, rate, quote };
   }
   function effective(d) {
     for (const k of ["revenue", "costs", "billable", "unpaid"])
-      if (d[k] === "" || !Number.isFinite(Number(d[k])) || Number(d[k]) < 0)
+      if (d[k] === null || d[k] === undefined || String(d[k]).trim() === "" || !Number.isFinite(Number(d[k])) || Number(d[k]) < 0)
         throw Error("Enter nonnegative project amounts and hours.");
     const total = Number(d.billable) + Number(d.unpaid);
+    if (!Number.isFinite(total) || (total && !Number.isFinite((Number(d.revenue) - Number(d.costs)) / total)))
+      throw Error("These project inputs exceed the supported calculation range.");
     return {
       net: Number(d.revenue) - Number(d.costs),
       rate: total ? (Number(d.revenue) - Number(d.costs)) / total : null,
