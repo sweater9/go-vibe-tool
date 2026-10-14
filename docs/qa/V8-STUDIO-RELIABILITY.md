@@ -25,6 +25,6 @@ node --test tests/v8-studios.mjs tests/v8-studios-lifecycle.mjs
 npm run build
 ```
 
-Native browser regression coverage is in `tests/v8-studios-lifecycle-browser.mjs` (375px and 1280px; twelve assertions per engine). A dedicated test-only workflow runs it in Chromium, Firefox and WebKit with Playwright 1.56.0. Local Chromium installation was attempted once and failed during browser archive download, so native browser execution for this change is pending CI. No assertions were skipped or reduced because of that limitation.
+Native browser regression coverage is in `tests/v8-studios-lifecycle-browser.mjs` (375px and 1280px; twelve assertions per engine). A dedicated test-only workflow runs it in Chromium, Firefox and WebKit with Playwright 1.56.0. Local Chromium installation was attempted once and failed during browser archive download, but native CI execution subsequently passed: **12 checks each in Chromium, Firefox and WebKit** (36 total), at 375px and 1280px. The DOM job also passed all 14 tests. Evidence: [Studio Lifecycle QA run 38538226412](https://github.com/sweater9/go-vibe-tool/actions/runs/38538226412), implementation commit `52e73751d137ea80616475bd30f2b0d355a6f497`. No assertions were skipped or reduced because of that limitation.
 
 No merge or deployment. Existing broader staging blockers remain outside this focused repair unless their owning QA work clears them.
