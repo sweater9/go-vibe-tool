@@ -85,7 +85,7 @@ ok('studio route table only uses real catalogue IDs and never captures a richer 
 
 ok('package.json test script runs the integration and studio checks; nine categories are not changed here', () => {
   const t = JSON.parse(read('package.json')).scripts.test;
-  for (const needle of ['tests/v8-integration.mjs', 'node --check studios.js', 'node --check studios-routing.js', 'tests/file-media-core.mjs', 'tests/v8-developer-design.mjs']) assert.ok(t.includes(needle), 'missing from npm test: ' + needle);
+  for (const needle of ['tests/v8-integration.mjs', 'node --check studios.js', 'node --check studios-routing.js', 'tests/file-media-core.mjs', 'tests/v8-developer-design.mjs', 'tests/v8-service-worker.mjs']) assert.ok(t.includes(needle), 'missing from npm test: ' + needle);
 });
 
 ok('built dist (when present) ships studios, developer, file-media and wasm assets', () => {

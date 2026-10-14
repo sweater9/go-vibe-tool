@@ -1,0 +1,86 @@
+name: V8 Firefox Stabilization
+on:
+  push:
+    branches: [fix/v8-firefox-stabilization]
+  pull_request:
+    branches: [integration/v8-combined-acceptance]
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npm run build
+      - name: Acceptance matrix (every suite runs; any failure fails the job)
+        env:
+          SITE_ROOT: dist
+        run: |
+          set +e
+          failed=""
+          for t in v8-integration-browser v8-combined-browser v8-developer-browser file-media-browser v8-browser knowledge-v4-dist-browser labs-browser play-games-browser; do
+            echo "::group::$t (${{ matrix.engine }})"
+            node tests/$t.mjs ${{ matrix.engine }}
+            rc=$?
+            echo "::endgroup::"
+            if [ $rc -ne 0 ]; then failed="$failed $t"; echo "::error title=SUITE FAILED: $t::exit $rc"; fi
+          done
+          echo "failed suites =${failed:- none}"
+          [ -z "$failed" ]
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stabilization-${{ matrix.engine }}
+          path: artifacts/
+  firefox-repeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps firefox
+      - run: npm run build
+      - name: Repeat the Firefox integration suite to expose intermittent failures
+        env:
+          SITE_ROOT: dist
+          REPEATS: '20'
+        run: |
+          set +e
+          bad=0
+          for i in $(seq 1 $REPEATS); do
+            echo "::group::run $i"
+            node tests/v8-integration-browser.mjs firefox > /tmp/rep.log 2>&1
+            rc=$?
+            grep -E '^(FAIL|firefox:)' /tmp/rep.log | cut -c1-6000
+            echo "::endgroup::"
+            if [ $rc -ne 0 ]; then bad=$((bad+1)); fi
+          done
+          echo "failing runs: $bad of $REPEATS"
+          [ $bad -eq 0 ]
+  firefox-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps firefox
+      - run: npm run build
+      - run: node tests/diag/firefox-sw-probe.mjs firefox 20
+        env:
+          SITE_ROOT: dist

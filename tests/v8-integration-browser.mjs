@@ -30,13 +30,24 @@ const results = []; let browser;
 const watchdog = setTimeout(() => { console.error('FAIL watchdog: suite exceeded 240 s'); process.exit(1); }, 240000);
 async function check(label, fn) {
   try { await fn(); results.push({ label, ok: true }); console.log('PASS', label); }
-  catch (e) { results.push({ label, ok: false, error: e.message }); console.error('FAIL', label, '::', String(e.message).split('\n')[0].slice(0, 300)); }
+  catch (e) { results.push({ label, ok: false, error: e.message }); console.error('FAIL', label, '::', JSON.stringify(String(e.message)).slice(0, 1500), '## RECENT', JSON.stringify(diagLog.filter(x => !/SWDIAG|ERR/.test(x)).slice(-14))); }
 }
 const NEW_TOOLS = { 'curl-snippets': /cURL/i, 'key-hash': /hash|token|uuid/i, 'regex-playground': /regex/i, 'tailwind-css': /tailwind/i, 'shadow-glass': /shadow|glass/i, 'svg-sanitizer': /svg/i, 'image-metadata-stripper': /metadata|exif/i, 'image-batch-compressor': /compress/i, 'table-converter': /table|markdown/i };
 const NINE = ['ai-prompts', 'productivity', 'files-pdf', 'images-design', 'privacy-security', 'developer', 'business-finance', 'writing-text', 'links-web'];
 const ready = p => p.waitForFunction(() => typeof openTool === 'function' && typeof tools !== 'undefined' && document.querySelector('.cat-tile'));
 const swReady = p => p.evaluate(async () => { if (!('serviceWorker' in navigator)) return; await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }); setTimeout(r, 8000); }); });
+const diagLog = [];
+/* Late-injected stylesheets (studios.css, file-media.css) are still in flight right after `load`. Navigating on immediately makes
+   Firefox report every intercepted, cancelled request as a console error, so wait for them. This is a wait, not a filter:
+   every console error is still collected and asserted. */
+const settleStyles = p => p.waitForFunction(() => document.readyState === 'complete' && [...document.querySelectorAll('link[rel=stylesheet]')].every(l => l.sheet), null, { timeout: 5000 }).catch(() => {});
 function watch(page, errs) {
+  const goto = page.goto.bind(page);
+  page.goto = async (...args) => { const r = await goto(...args); await settleStyles(page); return r; };
+  page.on('load', () => diagLog.push(Date.now() + ' LOAD ' + page.url().replace(/^https?:\/\/[^/]+/, '')));
+  page.on('domcontentloaded', () => diagLog.push(Date.now() + ' DCL ' + page.url().replace(/^https?:\/\/[^/]+/, '')));
+  page.on('framenavigated', f => { if (f === page.mainFrame()) diagLog.push(Date.now() + ' NAV ' + f.url().replace(/^https?:\/\/[^/]+/, '')); });
+  page.on('console', m => { const x = m.text(); if (/^SWDIAG/.test(x)) diagLog.push(Date.now() + ' ' + x.slice(0, 170)); else if (m.type() === 'error') diagLog.push(Date.now() + ' ERR ' + x.slice(0, 120)); });
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon|net::ERR|Failed to load resource|googlesyndication|pagead|adsbygoogle/.test(m.text())) errs.push('console: ' + m.text()); });
 }
@@ -139,7 +150,8 @@ try {
       await page.fill('#target', '100000'); await page.fill('#overhead', '15000'); await page.fill('#hours', '40'); await page.fill('#weeks', '46'); await page.fill('#utilization', '65'); await page.fill('#tax', '0'); await page.fill('#margin', '15'); await page.fill('#quoteHours', '20');
       await page.click('#calcRate');
       const t = await page.locator('#rateResult').innerText();
-      assert.match(t, /Estimated billable hours\/year: 1196\.0/); assert.match(t, /Break-even hourly rate: 96\.15/); assert.match(t, /Suggested hourly rate: 113\.12/); assert.match(t, /Quote: 2262\./);
+      const info = JSON.stringify(await page.evaluate(() => ({ url: location.href, ready: document.readyState, controlled: !!navigator.serviceWorker?.controller, values: ['target', 'overhead', 'hours', 'weeks', 'utilization', 'tax', 'margin', 'quoteHours'].map(id => document.getElementById(id)?.value), result: document.getElementById('rateResult')?.textContent })));
+      assert.match(t, /Estimated billable hours\/year: 1196\.0/, 'freelance result was ' + JSON.stringify(t) + ' state ' + info); assert.match(t, /Break-even hourly rate: 96\.15/); assert.match(t, /Suggested hourly rate: 113\.12/); assert.match(t, /Quote: 2262\./);
       await page.fill('#utilization', '0'); await page.click('#calcRate');
       assert.match(await page.locator('#rateResult').innerText(), /between|positive|valid/i);
       await page.click('#calcEffective');
@@ -205,7 +217,7 @@ try {
       assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('it.discovery.favorites'))).sort(), ['hourly-rate', 'regex-playground', 'svg-sanitizer', 'url-cleaner']);
     });
     await check(tag('no uncaught page errors during home, category and tool navigation'), async () => {
-      assert.deepEqual(errs, [], `Uncaught browser errors: ${JSON.stringify(errs)}`);
+      assert.deepEqual(errs, [], `Uncaught browser errors: ${JSON.stringify(errs)} ## TIMELINE ${diagLog.slice(-70).join(' | ')}`);
     });
     await ctx.close();
   }
