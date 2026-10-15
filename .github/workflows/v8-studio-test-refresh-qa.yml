@@ -21,7 +21,13 @@ jobs:
           node-version: '22'
       - run: npm install --no-save --package-lock=false jsdom@26.1.0
       - run: node --test tests/v8-studios.mjs tests/v8-studios-lifecycle.mjs tests/v8-studio-diagnostics.mjs
-      - run: node tests/v8-integration.mjs
+      - name: Static integration checks
+        run: |
+          set +e
+          node tests/v8-integration.mjs 2>&1 | tee integration.log
+          code=${PIPESTATUS[0]}
+          grep -E '^FAIL' integration.log | while IFS= read -r line; do echo "::error::$line"; done
+          exit $code
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 20
