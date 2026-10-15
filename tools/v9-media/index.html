@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; font-src 'self' blob: data:; img-src 'self' blob: data:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>V9 Local Media Tools · GoVibeTool</title>
+    <link rel="icon" href="../../assets/icon.svg" />
+    <link rel="stylesheet" href="media.css" />
+  </head>
+  <body>
+    <main>
+      <a href="../../">GoVibeTool · All categories</a>
+      <h1 id="title">V9 Local Media Tools</h1>
+      <p>
+        Files stay in this tab. No uploads, analytics, remote fonts, or CDN
+        dependencies. Close the tool to release files from memory. Downloads may
+        contain private content. Cancellation takes effect between processing
+        steps; large audio and image operations can briefly block the UI.
+      </p>
+      <nav aria-label="Media tools" id="nav"></nav>
+      <section id="tool" aria-labelledby="title"></section>
+      <p id="status" role="status" aria-live="polite"></p>
+      <button id="cancel" hidden>Cancel processing</button>
+      <div id="downloads"></div>
+      <details>
+        <summary>Offline readiness and privacy</summary>
+        <p>
+          First load requires this site's files. Use the button below to cache
+          all six tools, English OCR, and PDF/GIF engines before going offline.
+          Only application assets are cached; selected files and results are
+          never stored. Browser storage can be evicted. No claim of forensic
+          metadata removal or secure redaction is made.
+        </p>
+        <button id="offline">Prepare offline use</button>
+        <p id="offlineStatus" role="status"></p>
+      </details>
+    </main>
+    <script src="../../v9-utilities-core.js"></script>
+    <script src="media-core.js"></script>
+    <script type="module" src="media.js"></script>
+  </body>
+</html>
