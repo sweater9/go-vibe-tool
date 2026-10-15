@@ -13,17 +13,20 @@ export function recordStudioInteractions() {
     const promise=Promise.resolve(window.__gvtStudioDiagnosticEvent(record));
     pending.add(promise);promise.then(()=>pending.delete(promise),()=>pending.delete(promise));
   };
-  // No text/textarea/password values, cookies, storage or full URL queries are captured.
-  const calculation=target=>target instanceof Element?target.closest('#calcRate,#calcEffective'):null;
+  // No text/textarea/password values, cookies, storage or full URL queries are captured. URL Studio output echoes the
+  // analysed URL, so results are reduced to a coarse state and a length rather than recorded verbatim.
+  const analysis=target=>target instanceof Element?target.closest('#urlAnalyze,#urlUtm'):null;
+  const resultState=text=>!text?'empty':/^Enter a link/.test(text)?'initial':/^Input changed/.test(text)?'invalidated':/^Inspect or build/.test(text)?'refused':/^Scheme:/.test(text)?'inspected':/^Campaign URL:/.test(text)?'built':/^Invalid URL|^Only HTTP|^Unsupported|not a valid URL|Maximum/i.test(text)?'error':'other';
+  const summarize=()=>{const text=document.getElementById('urlResult')?.textContent||'';return {resultState:resultState(text),resultLength:text.length};};
   for(const type of ['pointerdown','pointerup','click'])document.addEventListener(type,event=>{
     const hit=Number.isFinite(event.clientX)&&Number.isFinite(event.clientY)?document.elementFromPoint?.(event.clientX,event.clientY):null;
     emit(type,{target:describe(event.target),hit:describe(hit),pointerType:event.pointerType||null,pointerId:event.pointerId??null,button:event.button,buttons:event.buttons,x:event.clientX,y:event.clientY,trusted:event.isTrusted,defaultPrevented:event.defaultPrevented});
-    const button=type==='click'&&calculation(event.target);
-    if(button)emit('calculation-request',{control:button.id});
+    const button=type==='click'&&analysis(event.target);
+    if(button)emit('analysis-request',{control:button.id});
   },true);
   document.addEventListener('click',event=>{
-    const button=calculation(event.target);
-    if(button)emit('calculation-complete',{control:button.id,result:document.getElementById(button.id==='calcRate'?'rateResult':'effectiveResult')?.textContent||''});
+    const button=analysis(event.target);
+    if(button)emit('analysis-complete',{control:button.id,...summarize()});
   });
   const observe=records=>{
     const root=document.getElementById('studioRoot');
@@ -32,10 +35,10 @@ export function recordStudioInteractions() {
     const results=new Set();
     for(const record of records){
       const element=record.target.nodeType===Node.ELEMENT_NODE?record.target:record.target.parentElement;
-      const result=element?.closest('#rateResult,#effectiveResult');
+      const result=element?.closest('#urlResult');
       if(result)results.add(result);
     }
-    for(const result of results)emit('calculation-result',{control:result.id,result:result.textContent||''});
+    for(const result of results)emit('analysis-result',{control:result.id,...summarize()});
   };
   new MutationObserver(observe).observe(document,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['aria-selected']});
   document.addEventListener('DOMContentLoaded',()=>emit('document-ready'),{once:true});

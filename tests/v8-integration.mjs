@@ -68,19 +68,19 @@ ok('script order: catalogue scripts register tools before discovery boots, routi
   assert.ok(at('studios-routing.js') > at('tools/file-media/file-media-tools.js') && at('studios-routing.js') < at('v8-discovery.js'), 'studios-routing.js loads after every openTool wrapper');
 });
 
-ok('studio route table: routing script and studio page agree, targets are the four studios', () => {
+ok('studio route table: routing script and studio page agree, targets are the three studios', () => {
   const a = routeTable(routing), b = routeTable(studios);
   assert.deepEqual(a, b);
-  assert.deepEqual([...new Set(Object.values(a))].sort(), ['freelance', 'privacy', 'qr', 'url']);
+  assert.deepEqual([...new Set(Object.values(a))].sort(), ['privacy', 'qr', 'url']);
 });
 
 ok('studio route table only uses real catalogue IDs and never captures a richer in-app tool', () => {
   const ids = new Set(); const dir = ['tools.js', 'v2-tools.js', 'v21-tools.js', 'v6-tools.js'];
   for (const f of dir) for (const m of read(f).matchAll(/\["([a-z0-9-]+)","[A-Za-z &]+","[^"]+"/g)) ids.add(m[1]);
   const table = routeTable(routing);
-  for (const id of Object.keys(table)) assert.ok(ids.has(id) || ['link-fingerprint-inspector','effective-hourly-rate'].includes(id), 'unknown tool id in routes: ' + id);
+  for (const id of Object.keys(table)) assert.ok(ids.has(id) || ['link-fingerprint-inspector'].includes(id), 'unknown tool id in routes: ' + id);
   assert.ok(!('percentage-change' in table), 'Percentage Change remains independent'); assert.equal(table['qr-studio'], 'qr'); assert.equal(table['pii-secret-redactor'], 'privacy'); for (const retained of ['qrTemplate()', 'redactorTemplate()', 'originalGenerate()', 'originalRedact()']) assert.ok(studios.includes(retained), retained + ' retains richer shared engine');
-  for (const real of ['url-cleaner', 'utm-builder', 'link-fingerprint', 'hourly-rate']) assert.ok(real in table, real + ' routes to a studio');
+  for (const real of ['url-cleaner', 'utm-builder', 'link-fingerprint', 'qr-payload', 'metadata']) assert.ok(real in table, real + ' routes to a studio');
 });
 
 ok('package.json test script runs the integration and studio checks; nine categories are not changed here', () => {
