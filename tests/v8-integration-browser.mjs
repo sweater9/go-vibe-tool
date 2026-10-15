@@ -65,7 +65,7 @@ const swReady = p => p.evaluate(async () => { if (!('serviceWorker' in navigator
 const settleStyles = page => page.waitForFunction(() => document.readyState === 'complete' && [...document.querySelectorAll('link[rel="stylesheet"]')].every(link => link.sheet), null, { timeout: 5000 }).catch(() => {});
 function watch(page, errs) {
   const originalGoto = page.goto.bind(page);
-  page.goto = async (...args) => { const response = await originalGoto(...args); await settleStyles(page); return response; };
+  page.goto = async (...args) => { const response = await originalGoto(...args); await settleStyles(page); if (process.env.V8_SCROLL_AUTO === '1') await page.addStyleTag({ content: 'html{scroll-behavior:auto!important}' }).catch(() => {}); return response; };
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon|net::ERR|Failed to load resource|googlesyndication|pagead|adsbygoogle/.test(m.text())) errs.push('console: ' + m.text()); });
 }
@@ -74,7 +74,7 @@ async function blockAds(ctx) { await ctx.route(/googlesyndication|pagead|gstatic
 try {
   browser = await pw[engine].launch({ headless: true });
   for (const [label, width, height, mobile] of [['desktop', 1280, 900, false], ['mobile', 375, 740, true]]) {
-    const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: mobile, isMobile: mobile && engine !== 'firefox' });
+    const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: mobile, isMobile: mobile && engine !== 'firefox', ...(process.env.V8_REDUCED_MOTION === '1' ? { reducedMotion: 'reduce' } : {}) });
     await blockAds(ctx);
     const page = await ctx.newPage(); page.setDefaultTimeout(15000);
     if (TRACE) {

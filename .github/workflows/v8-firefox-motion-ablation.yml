@@ -1,0 +1,55 @@
+name: V8 Firefox Motion Ablation
+# QA diagnostics only: local static server, read-only token, no deploy.
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/v8-firefox-studio-interaction-stability]
+    paths: ['.github/workflows/v8-firefox-motion-ablation.yml']
+permissions:
+  contents: read
+jobs:
+  ablation:
+    name: ${{ matrix.variant }} x20 (shard ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { variant: shipped, shard: 1 }
+          - { variant: shipped, shard: 2 }
+          - { variant: reduced-motion, shard: 1 }
+          - { variant: reduced-motion, shard: 2 }
+          - { variant: reduced-motion, shard: 3 }
+          - { variant: reduced-motion, shard: 4 }
+          - { variant: scroll-auto, shard: 1 }
+          - { variant: scroll-auto, shard: 2 }
+          - { variant: scroll-auto, shard: 3 }
+          - { variant: scroll-auto, shard: 4 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps firefox
+      - run: npm run build
+      - name: 20 Firefox integration runs for this variant
+        env:
+          SITE_ROOT: dist
+        run: |
+          set +e
+          case "${{ matrix.variant }}" in
+            reduced-motion) export V8_REDUCED_MOTION=1 ;;
+            scroll-auto) export V8_SCROLL_AUTO=1 ;;
+          esac
+          bad=0; : > /tmp/agg.txt
+          for i in $(seq 1 20); do
+            node tests/v8-integration-browser.mjs firefox > /tmp/rep.log 2>&1
+            rc=$?
+            echo "run $i rc=$rc $(grep -E '^firefox:' /tmp/rep.log | tail -1)"
+            if [ $rc -ne 0 ]; then bad=$((bad+1)); { echo "== run $i"; grep -E '^FAIL' /tmp/rep.log | cut -c1-300; } >> /tmp/agg.txt; fi
+          done
+          echo "variant=${{ matrix.variant }} shard=${{ matrix.shard }} failing runs: $bad of 20" | tee /tmp/agg-final.txt
+          cat /tmp/agg.txt >> /tmp/agg-final.txt
+          node tests/diag/emit-annotation.mjs notice "motion ${{ matrix.variant }} ${{ matrix.shard }}" /tmp/agg-final.txt
