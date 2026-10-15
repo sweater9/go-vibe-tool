@@ -18,6 +18,11 @@
     if (studio) studio.remove();
     return result;
   };
+  // Retire the Freelance Studio entries without changing other tool IDs or categories.
+  const retired = new Set(["hourly-rate", "effective-hourly-rate"]);
+  for (let i = tools.length - 1; i >= 0; i--) {
+    if (retired.has(tools[i][0])) tools.splice(i, 1);
+  }
   for (const t of tools) {
     const tab = c.aliases[t[0]];
     if (tab)
@@ -27,14 +32,16 @@
         " workspace. " +
         {
           url: "Inspect clean URLs, audit trackers and build UTM campaign links.",
-          freelance:
-            "Estimate freelance quotes, overhead and effective hourly rates.",
           qr: "Validate payloads, generate and decode QR text, URLs, Wi-Fi and contacts.",
           privacy:
             "Audit sensitive text, detect and redact metadata, tokens, credentials, IPs and connection strings.",
         }[tab];
   }
   openTool = function (id) {
+    if (retired.has(id)) {
+      if (document.getElementById("studioRoot")) closeTool();
+      return previousOpen.call(this, id);
+    }
     if (!c.aliases[id]) {
       if (document.getElementById("studioRoot")) closeTool();
       return previousOpen.apply(this, arguments);
