@@ -1,4 +1,4 @@
-const CACHE="govibetool-v8-7";
+const CACHE="govibetool-v8-8";
 const LEGACY_CACHE="govibetool-v2-7";
 const ASSETS=[
   "./",
@@ -16,6 +16,7 @@ const ASSETS=[
   "./v9-sha256.js",
   "./v9-social-card.js",
   "./v9-agent1-tools.js",
+  "./tools/v9-media/register.js",
   "./tools.js",
   "./v2-tools.js",
   "./v21-tools.js",
