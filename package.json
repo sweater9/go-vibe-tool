@@ -15,7 +15,8 @@
     "test:labs:browser": "node tests/labs-browser.mjs",
     "test:v8:browser": "node tests/v8-browser.mjs",
     "test:v4:browser": "node tests/knowledge-v4-browser.mjs",
-    "test:mahjong": "node --test tests/mahjong-engine.mjs tests/mahjong-integration.mjs",
+    "test:mahjong": "node --test tests/mahjong-engine.mjs tests/mahjong-integration.mjs tests/mahjong-solitaire.mjs",
+    "test:mahjong:solitaire": "node --test tests/mahjong-solitaire.mjs",
     "start:mahjong": "node multiplayer/server.mjs",
     "test:mahjong:browser": "node tests/mahjong-browser.mjs",
     "build": "node scripts/build-static.mjs",
@@ -30,8 +31,5 @@
     "test:file-media:browser": "node tests/file-media-browser.mjs",
     "test:studios": "node --check studios-core.js && node --check studios.js && node --check studios-routing.js && node --test tests/v8-studios.mjs",
     "test:integration:browser": "node tests/v8-combined-browser.mjs"
-  },
-  "devDependencies": {
-    "miniflare": "^4.20260730.0"
   }
 }
