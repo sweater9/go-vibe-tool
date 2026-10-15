@@ -1,4 +1,4 @@
 import test from "node:test";import assert from "node:assert/strict";import {createRequire} from "node:module";const require=createRequire(import.meta.url);const v9=require("../v9-utilities-core.js");
 test("epoch units and zones",()=>{for(const u of ["s","ms","us","ns"])assert.equal(v9.epoch("0",u).iso,"1970-01-01T00:00:00.000Z");assert.equal(v9.epoch("1000000000","ns").iso,"1970-01-01T00:00:01.000Z");assert.match(v9.epoch("0","s",["Asia/Dubai"]).zones[0].value,/04:00/);});
-test("invalid timestamps",()=>{assert.throws(()=>v9.epoch("1.5","s"));assert.throws(()=>v9.epoch("9999999999999999999999999","s"));});
+test("invalid timestamps",()=>{assert.throws(()=>v9.epoch("1.5.2","s"));assert.throws(()=>v9.epoch("1e3","s"));assert.throws(()=>v9.epoch("","s"));assert.equal(v9.epoch("1.5","s").iso,"1970-01-01T00:00:01.500Z");assert.throws(()=>v9.epoch("9999999999999999999999999","s"));});
 test("CSS curve validation",()=>{assert.equal(v9.bezier(.25,.1,.25,1),"cubic-bezier(0.25, 0.1, 0.25, 1)");assert.throws(()=>v9.bezier(-1,0,0,1));});
