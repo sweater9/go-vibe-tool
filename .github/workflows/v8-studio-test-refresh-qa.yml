@@ -44,9 +44,14 @@ jobs:
       - run: npm install --no-save --package-lock=false playwright@1.56.0
       - run: npx playwright install --with-deps ${{ matrix.engine }}
       - run: npm run build
-      - run: node tests/v8-studios-lifecycle-browser.mjs ${{ matrix.engine }}
-      - run: node tests/v8-integration-browser.mjs ${{ matrix.engine }}
-      - run: node tests/v8-combined-browser.mjs ${{ matrix.engine }}
+      - name: Browser suites
+        run: |
+          rc=0
+          for t in v8-studios-lifecycle-browser v8-integration-browser v8-combined-browser; do
+            node tests/$t.mjs ${{ matrix.engine }} > "$t.log" 2>&1 || { rc=1; echo "::error::$t failed"; }
+            grep -E '^FAIL' "$t.log" | while IFS= read -r line; do echo "::error::${line:0:900}"; done
+          done
+          exit $rc
       - name: Verify failure event logs and trace capture
         if: matrix.engine == 'firefox' && success()
         run: |
