@@ -405,7 +405,7 @@ self.addEventListener("fetch",event=>{
  if(event.request.method!=="GET")return;
  const url=new URL(event.request.url);
  if(url.origin!==location.origin)return;
- if(BROWSER_ICONS.test(url.pathname)&&self.navigator&&self.navigator.onLine!==false)return;
+ if((BROWSER_ICONS.test(url.pathname)||url.pathname.endsWith('/studios.css'))&&self.navigator&&self.navigator.onLine!==false)return;
  /* respondWith must never reject (an unexpected rejection is what Firefox reports as an intercept error): fall back to the network, then to a network error. */
  event.respondWith(Promise.resolve().then(()=>respondToRequest(event)).then(r=>r instanceof Response?r:fetch(event.request)).catch(()=>fetch(event.request).catch(()=>Response.error())));
 });
