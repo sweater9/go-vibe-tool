@@ -36,7 +36,13 @@ const NEW_TOOLS = { 'curl-snippets': /cURL/i, 'key-hash': /hash|token|uuid/i, 'r
 const NINE = ['ai-prompts', 'productivity', 'files-pdf', 'images-design', 'privacy-security', 'developer', 'business-finance', 'writing-text', 'links-web'];
 const ready = p => p.waitForFunction(() => typeof openTool === 'function' && typeof tools !== 'undefined' && document.querySelector('.cat-tile'));
 const swReady = p => p.evaluate(async () => { if (!('serviceWorker' in navigator)) return; await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }); setTimeout(r, 8000); }); });
+/* Wait for dynamically inserted stylesheets before leaving a page. Firefox may report
+   intercepted stylesheet requests cancelled by rapid navigation as SW errors.
+   This does not filter any console errors or alter product assertions. */
+const settleStyles = page => page.waitForFunction(() => document.readyState === 'complete' && [...document.querySelectorAll('link[rel="stylesheet"]')].every(link => link.sheet), null, { timeout: 5000 }).catch(() => {});
 function watch(page, errs) {
+  const originalGoto = page.goto.bind(page);
+  page.goto = async (...args) => { const response = await originalGoto(...args); await settleStyles(page); return response; };
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon|net::ERR|Failed to load resource|googlesyndication|pagead|adsbygoogle/.test(m.text())) errs.push('console: ' + m.text()); });
 }
