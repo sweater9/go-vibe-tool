@@ -1,0 +1,37 @@
+name: V8 Firefox Scroll Ablation
+# QA diagnostics only: local static server, read-only token, no deploy.
+on:
+  workflow_dispatch:
+  push:
+    branches: [fix/v8-firefox-studio-interaction-stability]
+    paths: ['tests/diag/studio-scroll-ablation.mjs', '.github/workflows/v8-firefox-scroll-ablation.yml']
+permissions:
+  contents: read
+jobs:
+  ablation:
+    name: ablation (${{ matrix.engine }} ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { engine: firefox, shard: 1 }
+          - { engine: firefox, shard: 2 }
+          - { engine: firefox, shard: 3 }
+          - { engine: chromium, shard: 1 }
+          - { engine: webkit, shard: 1 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npm run build
+      - name: Ablation (diagnostic; reports failure counts per mode)
+        env:
+          SITE_ROOT: dist
+        run: |
+          node tests/diag/studio-scroll-ablation.mjs ${{ matrix.engine }} 15 4 | tee /tmp/ablation.txt
+          node tests/diag/emit-annotation.mjs notice "ablation ${{ matrix.engine }} ${{ matrix.shard }}" /tmp/ablation.txt
