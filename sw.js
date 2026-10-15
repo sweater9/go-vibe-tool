@@ -376,7 +376,15 @@ const ASSETS=[
 ];
 /* Cloudflare serves /x/index.html as a 307 to /x/. A redirected Response cannot answer a navigation, so cache a plain copy. */
 const plain=r=>r.redirected?r.blob().then(b=>new Response(b,{status:r.status,statusText:r.statusText,headers:r.headers})):Promise.resolve(r);
-self.addEventListener("install",event=>event.waitUntil(caches.open(CACHE).then(cache=>Promise.all(ASSETS.map(asset=>fetch(asset).then(response=>{if(!response.ok)throw new Error("precache failed: "+asset);return plain(response)}).then(copy=>cache.put(asset,copy))))).then(()=>self.skipWaiting())));
+/* Precache with bounded concurrency. Launching hundreds of fetch+put calls at once starves the first page's own requests
+   (Firefox, fresh profile) and widens the window in which an immediate navigation tears down intercepted loads. */
+const PRECACHE_CONCURRENCY=6;
+async function precache(){
+ const cache=await caches.open(CACHE),queue=[...ASSETS];
+ const worker=async()=>{for(let asset;(asset=queue.shift())!==undefined;){const response=await fetch(asset);if(!response.ok)throw new Error("precache failed: "+asset);await cache.put(asset,await plain(response))}};
+ await Promise.all(Array.from({length:Math.min(PRECACHE_CONCURRENCY,queue.length)},worker));
+}
+self.addEventListener("install",event=>event.waitUntil(precache().then(()=>self.skipWaiting())));
 self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 /* Navigations with new query strings must reuse their own cached document, not the home fallback. */
 const lookupCached=async request=>{
@@ -387,4 +395,17 @@ const lookupCached=async request=>{
  const candidates=u.pathname.endsWith("/")?[u.pathname+"index.html"]:[u.pathname+".html",u.pathname+"/index.html"];
  for(const p of candidates){const hit=await caches.match(u.origin+p);if(hit)return hit;}
 };
-self.addEventListener("fetch",event=>{if(event.request.method!=="GET")return;const url=new URL(event.request.url);if(url.origin!==location.origin)return;const freshFirst=url.origin===location.origin&&(event.request.mode==="navigate"||/\.(?:html|js|mjs|css|json)$/.test(url.pathname));if(freshFirst){event.respondWith(fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>plain(copy).then(c=>cache.put(event.request,c)))}return response}).catch(()=>lookupCached(event.request).then(cached=>cached||(url.pathname.endsWith("/")?caches.match(url.pathname+"index.html"):undefined)).then(cached=>cached||(event.request.mode==="navigate"?caches.match("./index.html"):Response.error()))));return}event.respondWith(lookupCached(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok&&url.origin===location.origin){const copy=response.clone();caches.open(CACHE).then(cache=>plain(copy).then(c=>cache.put(event.request,c)))}return response}).catch(()=>event.request.mode==="navigate"?caches.match("./index.html"):Response.error())))});
+/* Browser-chrome icons (<link rel="icon">, apple-touch-icon, manifest icons) are requested by the browser right after load.
+   If the next navigation starts first, Firefox logs "A ServiceWorker intercepted the request and encountered an unexpected error"
+   for every one of them, whatever the worker does (a bare respondWith(fetch(request)) reproduces it). While the browser reports
+   it is online these requests are left to the browser; offline they are still answered from the cache. */
+const BROWSER_ICONS=/\/assets\/(?:icon\.svg|apple-touch-icon\.png|icon-192\.png|icon-512\.png)$/;
+const respondToRequest=event=>{const url=new URL(event.request.url);const freshFirst=url.origin===location.origin&&(event.request.mode==="navigate"||/\.(?:html|js|mjs|css|json)$/.test(url.pathname));if(freshFirst){return fetch(event.request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE).then(cache=>plain(copy).then(c=>cache.put(event.request,c))).catch(()=>{})}return response}).catch(()=>lookupCached(event.request).then(cached=>cached||(url.pathname.endsWith("/")?caches.match(url.pathname+"index.html"):undefined)).then(cached=>cached||(event.request.mode==="navigate"?caches.match("./index.html"):Response.error())))}return lookupCached(event.request).then(cached=>cached||fetch(event.request).then(response=>{if(response.ok&&url.origin===location.origin){const copy=response.clone();caches.open(CACHE).then(cache=>plain(copy).then(c=>cache.put(event.request,c))).catch(()=>{})}return response}).catch(()=>event.request.mode==="navigate"?caches.match("./index.html"):Response.error()))};
+self.addEventListener("fetch",event=>{
+ if(event.request.method!=="GET")return;
+ const url=new URL(event.request.url);
+ if(url.origin!==location.origin)return;
+ if(BROWSER_ICONS.test(url.pathname)&&self.navigator&&self.navigator.onLine!==false)return;
+ /* respondWith must never reject (an unexpected rejection is what Firefox reports as an intercept error): fall back to the network, then to a network error. */
+ event.respondWith(Promise.resolve().then(()=>respondToRequest(event)).then(r=>r instanceof Response?r:fetch(event.request)).catch(()=>fetch(event.request).catch(()=>Response.error())));
+});
