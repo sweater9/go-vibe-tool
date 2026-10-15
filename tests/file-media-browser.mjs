@@ -331,6 +331,8 @@ async function strip(page, fileSpec, { format, quality } = {}) {
   if (format) await page.selectOption('#stripFormat', format);
   await upload(page, fileSpec);
   await page.waitForSelector('#stripList .fm-item[data-state="done"], #stripList .fm-item[data-state="error"]');
+  const state = await page.locator('#stripList .fm-item').first().getAttribute('data-state');
+  assert.equal(state, 'done', 'Image Metadata Stripper must finish successfully before checking output or downloads');
 }
 await check('Stripper: JPEG with EXIF+GPS, IPTC, XMP, ICC and comment -> the downloaded file has none of them (verified on the real bytes)', async () => {
   const { ctx, page, errs, external } = await open(); await openTool(page, 'image-metadata-stripper');
@@ -392,9 +394,10 @@ await check('Stripper: output format and quality options, transparent PNG -> JPE
   assert.equal(await page.locator('#stripQuality').isDisabled(), true);
   const noise = await genImage(page, { w: 300, h: 200, draw: NOISE });
   await page.selectOption('#stripFormat', 'image/jpeg'); await page.click('#stripClear');
+  await page.waitForFunction(() => !document.querySelector('#stripList .fm-item'));
   await page.fill('#stripQuality', '95'); await strip(page, asFile('n.jpg', 'image/jpeg', noise));
   const hi = Number(await page.locator('#stripList .fm-item').getAttribute('data-out-bytes'));
-  await page.click('#stripClear'); await page.evaluate(() => { const q = document.querySelector('#stripQuality'); q.value = '50'; q.dispatchEvent(new Event('input', { bubbles: true })); });
+  await page.click('#stripClear'); await page.waitForFunction(() => !document.querySelector('#stripList .fm-item')); await page.evaluate(() => { const q = document.querySelector('#stripQuality'); q.value = '50'; q.dispatchEvent(new Event('input', { bubbles: true })); });
   await strip(page, asFile('n.jpg', 'image/jpeg', noise)); const lo = Number(await page.locator('#stripList .fm-item').getAttribute('data-out-bytes'));
   assert.ok(lo < hi, `quality 50 (${lo}) should be smaller than 95 (${hi})`);
   await ctx.close();
