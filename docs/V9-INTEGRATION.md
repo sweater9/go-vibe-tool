@@ -39,7 +39,7 @@ See `docs/v9-agent2-media.md` for the table. In short: the failures were in the 
 
 ## Test evidence (hosted GitHub Actions)
 
-Integration, tested at commit `42555d6a6c1347eead1cd836a55ed6f8452b7c68`: [run 38798983694](https://github.com/sweater9/go-vibe-tool/actions/runs/38798983694), all 7 jobs green (an earlier identical-code run on `c0abf5d`: [38795262845](https://github.com/sweater9/go-vibe-tool/actions/runs/38795262845)). Commits after `42555d6` change only documentation.
+Integration, tested at commit `42555d6a6c1347eead1cd836a55ed6f8452b7c68`: [run 38798983694](https://github.com/sweater9/go-vibe-tool/actions/runs/38798983694), all 7 jobs green (an earlier identical-code run on `c0abf5d`: [38795262845](https://github.com/sweater9/go-vibe-tool/actions/runs/38795262845)). Commits after `42555d6` change only documentation and CI configuration; the full QA also passed at `9c54b93` ([run 38800959555](https://github.com/sweater9/go-vibe-tool/actions/runs/38800959555), attempt 2 after one Firefox `v8-browser` timeout in attempt 1, see Remaining risks).
 
 | Gate | Result |
 | --- | --- |
@@ -80,6 +80,8 @@ Agent 2 branch, commit `b38998f055f682f1431174739872ff0085f35c19`: [run 38792811
 
 - The WebKit `int64` page error above is intermittent in the existing V8 site (about 1 in 6 mobile `dist-browser` runs on the baseline). Not fixed here (out of scope, V8 preserved); a release owner may want to track it.
 - `v5-maintenance-browser` flags the favicon request while the origin is stopped (baseline behaviour). The repository's existing "V5/V8 Cross-Browser PR Gate" runs that suite without an A/B and will show red on Chromium and WebKit for this reason (it reports `failed suites = v5-maintenance-browser` only); the V9 workflow's A/B comparison shows no new issues.
+- **Intermittent WebKit page crash, cause not established.** Once in this validation (repeat run 38802951752, `media-repeat (webkit, source, 2)`) the WebKit content process crashed ("Page crashed") while the Agent 2 offline test was preparing offline assets; the other WebKit media runs (about 40 across source and `dist`, including 20 in repeat runs) passed. It is not an assertion failure, it cannot be reproduced locally (no WebKit here), and there is no baseline to compare with because the media tools are new. It is recorded, not masked: no retry was added. A release owner should decide whether this rate (about 1 in 40 CI runs) is acceptable for Safari-class browsers, or ask for a memory-lean offline preparation (sequential fetches, no response cloning) as a follow-up.
+- Firefox `v8-browser` failed once (1 of 126 checks, a 10 s wait for category tool cards at 1440 px) in the first attempt of the final QA run and passed on the rerun and in 12 of 12 repeat runs (6 integration, 6 baseline). Treated as an intermittent V8 flake; not caused by V9 code paths as far as measured.
 - Firefox and WebKit cannot export WebM (see limitations); users get an accurate message and a GIF alternative.
 - Local verification covered Chromium only; Firefox and WebKit evidence is hosted CI.
 
