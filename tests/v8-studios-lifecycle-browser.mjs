@@ -41,8 +41,8 @@ try{
    await page.click('#urlCopy');assert.match(await page.locator('#urlResult').innerText(),/Inspect or build a URL first/);
    await page.fill('#urlInput','javascript:alert(1)');await page.click('#urlAnalyze');assert.match(await page.locator('#urlResult').innerText(),/Invalid URL/);
    await page.fill('#urlInput','');await page.click('#urlAnalyze');assert.match(await page.locator('#urlResult').innerText(),/Invalid URL/);
-   await page.fill('#urlInput','https://example.com/?x=1#frag');await page.fill('#utmSource','news letter');await page.fill('#utmMedium','email');await page.fill('#utmCampaign','launch');
-   await page.evaluate(()=>{const d=document.querySelector('#studio-url details');if(d)d.open=true;});await page.click('#urlUtm');
+   await page.fill('#urlInput','https://example.com/?x=1#frag');await page.locator('#studio-url details summary').click();await page.fill('#utmSource','news letter');await page.fill('#utmMedium','email');await page.fill('#utmCampaign','launch');
+   await page.click('#urlUtm');
    const built=await page.locator('#urlResult').innerText();assert.match(built,/^Campaign URL:/);assert.match(built,/utm_source=news\+letter/);assert.match(built,/#frag/);
   });
   await check(`${width} Privacy Studio previews invalidate, Apply needs a current preview, and Audit leaves text unchanged`,async()=>{
