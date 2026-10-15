@@ -5,6 +5,7 @@ import path from "node:path";
 import { existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
+import { createDistServer } from "../scripts/serve-dist.mjs";
 const require = createRequire(import.meta.url),
   pw = await import(
     process.env.PLAYWRIGHT_PACKAGE || require.resolve("playwright")
@@ -83,26 +84,49 @@ const types = {
   ".bcmap": "application/octet-stream",
   ".gz": "application/gzip",
 };
-const server = http.createServer(async (req, res) => {
-  try {
-    let f = path.resolve(
-      root,
-      "." + decodeURIComponent(new URL(req.url, "http://x").pathname),
-    );
-    if (f !== root && !f.startsWith(root + path.sep)) throw Error();
-    if ((await fs.stat(f)).isDirectory()) f = path.join(f, "index.html");
-    res.setHeader(
-      "Content-Type",
-      types[path.extname(f)] || "application/octet-stream",
-    );
-    res.end(await fs.readFile(f));
-  } catch {
-    res.statusCode = 404;
-    res.end("missing");
-  }
-});
-await new Promise((r) => server.listen(0, "127.0.0.1", r));
-const port = server.address().port;
+/* Source runs use a plain static server. Built-distribution runs use the same Cloudflare-style
+   routing as production (extensionless URLs, folder redirects, 404 page) so redirects and
+   caching of redirected responses are exercised, not just file reads. */
+const sourceServer = () => {
+  const server = http.createServer(async (req, res) => {
+    try {
+      let f = path.resolve(
+        root,
+        "." + decodeURIComponent(new URL(req.url, "http://x").pathname),
+      );
+      if (f !== root && !f.startsWith(root + path.sep)) throw Error();
+      if ((await fs.stat(f)).isDirectory()) f = path.join(f, "index.html");
+      res.setHeader(
+        "Content-Type",
+        types[path.extname(f)] || "application/octet-stream",
+      );
+      res.end(await fs.readFile(f));
+    } catch {
+      res.statusCode = 404;
+      res.end("missing");
+    }
+  });
+  const sockets = new Set();
+  server.on("connection", (s) => (sockets.add(s), s.on("close", () => sockets.delete(s))));
+  return {
+    start: (port = 0) =>
+      new Promise((r) =>
+        server.listen(port, "127.0.0.1", () => r(server.address().port)),
+      ),
+    stop: () =>
+      new Promise((r) => {
+        server.close(() => r());
+        for (const s of sockets) s.destroy();
+      }),
+  };
+};
+const makeServer = (port = 0) => {
+  if (target === "source") return sourceServer();
+  const dist = createDistServer(root, { port });
+  return { start: async () => (await dist.start(), dist.port), stop: dist.stop };
+};
+let server = makeServer();
+const port = await server.start();
 const base = `http://127.0.0.1:${port}`;
 /* Genuine offline: the origin server is stopped, so a request that is not answered by the
    service worker or cache fails with a refused connection. Playwright's setOffline() is not
@@ -112,8 +136,7 @@ let networkUp = true;
 const network = {
   async down() {
     if (!networkUp) return;
-    server.closeAllConnections();
-    await new Promise((r) => server.close(r));
+    await server.stop();
     networkUp = false;
     const refused = await new Promise((resolve) =>
       http
@@ -129,7 +152,8 @@ const network = {
   async up() {
     if (networkUp) return;
     if (engine === "chromium") await context.setOffline(false);
-    await new Promise((r) => server.listen(port, "127.0.0.1", r));
+    server = makeServer(port);
+    await server.start();
     networkUp = true;
   },
 };
@@ -145,7 +169,7 @@ try {
   });
 } catch (error) {
   await report("blocked", error);
-  await new Promise((r) => server.close(r));
+  await server.stop();
   throw error;
 }
 console.log(`Testing ${engine} ${browser.version()} (${target}, ${revision})`);
@@ -693,5 +717,5 @@ try {
   );
   if (failed) process.exitCode = 1;
   await browser.close();
-  await new Promise((r) => server.close(r));
+  await server.stop();
 }
