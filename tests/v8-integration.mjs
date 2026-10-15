@@ -93,5 +93,12 @@ ok('built dist (when present) ships studios, developer, file-media and wasm asse
   for (const f of ['studios.html', 'studios.js', 'studios-routing.js', 'v8-developer-core.js', 'v8-developer-tools.js', 'v8-developer.css', 'v8-regex-worker.js', 'tools/file-media/file-media-tools.js', 'tools/file-media/fm-avif-worker.js', 'vendor/avif/avif_enc.wasm', 'vendor/avif/avif_enc.js', 'vendor/svgo.browser.js', 'sw.js']) assert.ok(fs.existsSync('dist/' + f), 'dist is missing ' + f);
 });
 
+ok('Studio stylesheet loads with the home page, so a Studio is never shown before studios.css and mount() does not inject a late request', () => {
+  assert.equal((html.match(/<link[^>]+rel="stylesheet"[^>]+href="studios\.css"/g) || []).length, 1, 'index.html links studios.css exactly once');
+  assert.ok(html.indexOf('href="studios.css"') < html.indexOf('<script src="tools.js">'), 'studios.css is linked in the head, before scripts run');
+  assert.ok(precacheList().includes('./studios.css'), 'studios.css stays in the service-worker precache');
+  assert.match(studios, /document\.querySelector\('link\[href="studios\.css"\]'\)/, 'mount() still skips injection when the link already exists');
+});
+
 console.log(`\n${passed} passed, ${failed} failed`);
 process.exit(failed ? 1 : 0);

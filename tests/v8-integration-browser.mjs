@@ -46,8 +46,8 @@ async function dumpTrace(label) {
   const mine = events.filter(e => e.check === label || (e.type === 'test-step' && e.label === label));
   out(`${label} EVENTS ${mine.length} dropped=${droppedEvents} err=${collectionError}`);
   for (const e of mine.slice(-30)) {
-    if (e.type === 'test-step') { out(`${label} step ${e.status}`); continue; }
-    out(`${label} #${e.sequence} ${e.type} t=${Math.round(e.time)} o=${Math.round(e.timeOrigin) % 100000} tgt=${compact(e.target)} hit=${compact(e.hit)} xy=${e.x ?? '-'},${e.y ?? '-'} tab=${e.selectedTab} ws=${e.workspaceActive} rs=${e.readyState}${e.control ? ' ctl=' + e.control : ''}${e.result ? ' res=' + JSON.stringify(String(e.result).slice(0, 30)) : ''}${e.reason ? ' why=' + e.reason : ''}`);
+    if (e.type === 'test-step') { out(`step ${e.status}`); continue; }
+    out(`#${e.sequence} ${e.type} t=${Math.round(e.time)} o=${Math.round(e.timeOrigin) % 100000} tgt=${compact(e.target)} hit=${compact(e.hit)} xy=${e.x ?? '-'},${e.y ?? '-'} tab=${e.selectedTab} ws=${e.workspaceActive} rs=${e.readyState}${e.control ? ' ctl=' + e.control : ''}${e.result ? ' res=' + JSON.stringify(String(e.result).slice(0, 30)) : ''}${e.reason ? ' why=' + e.reason : ''}`);
   }
 }
 async function check(label, fn) {
@@ -65,7 +65,7 @@ const swReady = p => p.evaluate(async () => { if (!('serviceWorker' in navigator
 const settleStyles = page => page.waitForFunction(() => document.readyState === 'complete' && [...document.querySelectorAll('link[rel="stylesheet"]')].every(link => link.sheet), null, { timeout: 5000 }).catch(() => {});
 function watch(page, errs) {
   const originalGoto = page.goto.bind(page);
-  page.goto = async (...args) => { const response = await originalGoto(...args); await settleStyles(page); if (process.env.V8_SCROLL_AUTO === '1') await page.addStyleTag({ content: 'html{scroll-behavior:auto!important}' }).catch(() => {}); return response; };
+  page.goto = async (...args) => { const response = await originalGoto(...args); await settleStyles(page); return response; };
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon|net::ERR|Failed to load resource|googlesyndication|pagead|adsbygoogle/.test(m.text())) errs.push('console: ' + m.text()); });
 }
@@ -73,8 +73,11 @@ async function blockAds(ctx) { await ctx.route(/googlesyndication|pagead|gstatic
 
 try {
   browser = await pw[engine].launch({ headless: true });
+  /* The two interaction contexts use reducedMotion: v2.css sets html{scroll-behavior:smooth}, and in Firefox a fill()/click()
+     chain can dispatch a click at coordinates that are still animating (see docs/qa/V8-FIREFOX-INTERACTION-STABILITY.md).
+     Assertions are unchanged; the keyboard/offline context below keeps default motion. V8_REDUCED_MOTION=0 restores it. */
   for (const [label, width, height, mobile] of [['desktop', 1280, 900, false], ['mobile', 375, 740, true]]) {
-    const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: mobile, isMobile: mobile && engine !== 'firefox', ...(process.env.V8_REDUCED_MOTION === '1' ? { reducedMotion: 'reduce' } : {}) });
+    const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: mobile, isMobile: mobile && engine !== 'firefox', reducedMotion: process.env.V8_REDUCED_MOTION === '0' ? 'no-preference' : 'reduce' });
     await blockAds(ctx);
     const page = await ctx.newPage(); page.setDefaultTimeout(15000);
     if (TRACE) {

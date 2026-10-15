@@ -5,42 +5,22 @@ name: V8 Firefox Interaction Stability
 on:
   push:
     branches: [fix/v8-firefox-studio-interaction-stability]
+    paths-ignore: ['docs/**']
   pull_request:
     branches: [integration/v8-firefox-release-candidate]
+    paths-ignore: ['docs/**']
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  probe:
-    name: late-stylesheet probe (${{ matrix.engine }})
+  firefox-integration-x20:
+    name: firefox integration x20 (shard ${{ matrix.shard }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
-        engine: [firefox, chromium, webkit]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - run: npm install --no-save --package-lock=false playwright@1.56.0
-      - run: npx playwright install --with-deps ${{ matrix.engine }}
-      - run: npm run build
-      - name: Probe (diagnostic; reports counts per mode and viewport)
-        env:
-          SITE_ROOT: dist
-        run: |
-          node tests/diag/studio-late-css-probe.mjs ${{ matrix.engine }} 12 | tee /tmp/probe.txt
-          node tests/diag/emit-annotation.mjs notice "probe ${{ matrix.engine }}" /tmp/probe.txt
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: probe-${{ matrix.engine }}
-          path: artifacts/
-  firefox-integration-x20:
-    runs-on: ubuntu-latest
-    timeout-minutes: 75
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -62,48 +42,12 @@ jobs:
             echo "run $i rc=$rc $summary"
             if [ $rc -ne 0 ]; then
               bad=$((bad+1))
-              { echo "== run $i rc=$rc $summary"; grep -E '^FAIL' /tmp/rep.log | cut -c1-600; } >> /tmp/agg.txt
+              { echo "== run $i rc=$rc $summary"; grep -E '^FAIL' /tmp/rep.log | cut -c1-500; } >> /tmp/agg.txt
             fi
           done
           echo "failing runs: $bad of 20"
-          echo "integration x20: failing runs $bad of 20" | cat - /tmp/agg.txt > /tmp/agg-final.txt
-          node tests/diag/emit-annotation.mjs "$([ $bad -eq 0 ] && echo notice || echo error)" "firefox integration x20" /tmp/agg-final.txt
-          [ $bad -eq 0 ]
-  firefox-integration-trace:
-    name: firefox integration x20 traced (shard ${{ matrix.shard }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 75
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - run: npm install --no-save --package-lock=false playwright@1.56.0
-      - run: npx playwright install --with-deps firefox
-      - run: npm run build
-      - name: 20 traced Firefox integration runs (trace printed only for failing checks)
-        env:
-          SITE_ROOT: dist
-          V8_STUDIO_EVENT_TRACE: '1'
-        run: |
-          set +e
-          bad=0; : > /tmp/agg.txt
-          for i in $(seq 1 20); do
-            node tests/v8-integration-browser.mjs firefox > /tmp/rep.log 2>&1
-            rc=$?
-            echo "run $i rc=$rc $(grep -E '^firefox:' /tmp/rep.log | tail -1)"
-            if [ $rc -ne 0 ]; then
-              bad=$((bad+1))
-              { echo "== shard ${{ matrix.shard }} run $i rc=$rc"; grep -E '^FAIL' /tmp/rep.log | cut -c1-420; } >> /tmp/agg.txt
-            fi
-          done
-          echo "failing runs: $bad of 20"
-          echo "traced integration shard ${{ matrix.shard }}: failing runs $bad of 20" | cat - /tmp/agg.txt > /tmp/agg-final.txt
-          node tests/diag/emit-annotation.mjs "$([ $bad -eq 0 ] && echo notice || echo error)" "traced integration shard ${{ matrix.shard }}" /tmp/agg-final.txt
+          echo "integration x20 shard ${{ matrix.shard }}: failing runs $bad of 20" | cat - /tmp/agg.txt > /tmp/agg-final.txt
+          node tests/diag/emit-annotation.mjs "$([ $bad -eq 0 ] && echo notice || echo error)" "firefox integration x20 shard ${{ matrix.shard }}" /tmp/agg-final.txt
           [ $bad -eq 0 ]
   firefox-studio-x20:
     runs-on: ubuntu-latest
@@ -163,7 +107,6 @@ jobs:
           set +e
           failed=""; : > /tmp/agg.txt
           for t in v8-integration-browser v8-combined-browser v8-developer-browser file-media-browser v8-browser knowledge-v4-dist-browser labs-browser play-games-browser v8-studios-lifecycle-browser v8-studios-late-stylesheet-browser; do
-            [ -f tests/$t.mjs ] || { echo "skip (not present): $t"; continue; }
             node tests/$t.mjs ${{ matrix.engine }} > /tmp/t.log 2>&1
             rc=$?
             echo "$t rc=$rc $(grep -c '^PASS' /tmp/t.log) pass-lines"
