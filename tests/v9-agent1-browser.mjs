@@ -398,12 +398,19 @@ try {
     const dump = await page.evaluate(() => JSON.stringify({ l: Object.entries(localStorage), s: Object.entries(sessionStorage), c: document.cookie, u: location.href }));
     for (const s of ["SENTINEL", "abc.txt", "big.bin", "select password", "Imported & ready", "ts=1700000000123456789"]) assert.ok(!dump.includes(s), "found " + s + " in storage/URL");
   });
-  await check("offline: with the network cut, every tool still loads from the service-worker cache and converts", async () => {
+  await check("offline: with the origin server stopped, every tool still loads from the service-worker cache and converts", async () => {
+    /* Playwright's setOffline() blocks navigations at the network layer in Firefox (NS_ERROR_OFFLINE) and WebKit before the
+       service worker can answer, so the origin is stopped instead: nothing can be fetched, only the worker's cache can respond. */
     const O = await open();
     await O.page.goto(base); await O.page.evaluate(async () => { await navigator.serviceWorker.ready; });
     await O.page.reload({ waitUntil: "load" });
     await O.page.waitForFunction(() => navigator.serviceWorker.controller);
-    await O.ctx.setOffline(true);
+    const missing = await O.page.evaluate(async () => {
+      const need = ["./v9-utilities-core.js", "./v9-sql-engine.js", "./v9-sha256.js", "./v9-social-card.js", "./v9-agent1-tools.js", "./v9-agent1.css", "./index.html"];
+      const out = []; for (const f of need) if (!(await caches.match(new URL(f, location.href)))) out.push(f); return out;
+    });
+    assert.deepEqual(missing, [], "files missing from the service-worker cache before going offline");
+    await srv.stop();
     await O.page.goto(base + "?tool=sql-formatter"); await O.page.waitForSelector("#v9-sql-in");
     await O.page.fill("#v9-sql-in", "select 1"); await waitFor(O.page, () => document.querySelector("#v9-sql-out").value === "SELECT 1");
     await O.page.goto(base + "?tool=epoch-matrix&ts=0&unit=s&tz=UTC"); await O.page.waitForSelector("#v9-ep-out table");
