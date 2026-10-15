@@ -145,6 +145,7 @@ try {
       await page.click('[data-studio="freelance"]');
       await page.fill('#target', '100000'); await page.fill('#overhead', '15000'); await page.fill('#hours', '40'); await page.fill('#weeks', '46'); await page.fill('#utilization', '65'); await page.fill('#tax', '0'); await page.fill('#margin', '15'); await page.fill('#quoteHours', '20');
       await page.click('#calcRate');
+      await page.waitForFunction(() => /Estimated billable hours\/year: 1196\.0/.test(document.querySelector('#rateResult')?.textContent || ''), null, { timeout: 5000 });
       const t = await page.locator('#rateResult').innerText();
       assert.match(t, /Estimated billable hours\/year: 1196\.0/); assert.match(t, /Break-even hourly rate: 96\.15/); assert.match(t, /Suggested hourly rate: 113\.12/); assert.match(t, /Quote: 2262\./);
       await page.fill('#utilization', '0'); await page.click('#calcRate');
