@@ -138,6 +138,7 @@ try {
       await page.fill('#urlInput', 'javascript:alert(1)'); await page.click('#urlAnalyze');
       assert.match(await page.locator('#urlResult').innerText(), /Invalid URL/);
       await page.fill('#urlInput', 'http://user:pw@xn--e1afmkfd.example/'); await page.click('#urlAnalyze');
+      await page.waitForFunction(() => /Credentials embedded/.test(document.querySelector('#urlResult')?.textContent || ''), null, { timeout: 5000 });
       const w = await page.locator('#urlResult').innerText(); assert.match(w, /Credentials embedded/); assert.match(w, /Punycode/); assert.match(w, /Unencrypted HTTP/);
     });
     await check(tag('Freelance calculator: correct arithmetic and input validation'), async () => {
