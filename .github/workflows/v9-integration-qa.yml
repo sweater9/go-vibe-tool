@@ -136,7 +136,7 @@ jobs:
           python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/server.log 2>&1 &
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8765/ >/dev/null && break; sleep 1; done
           failed=""
-          for t in dist-browser v5-browser-smoke v5-maintenance-browser prompt-improver-browser tool-fixes-browser; do
+          for t in v5-browser-smoke prompt-improver-browser tool-fixes-browser; do
             echo "::group::$t (${{ matrix.engine }})"
             node tests/$t.mjs ${{ matrix.engine }} 2>&1 | tee artifacts/logs/$t.log
             rc=${PIPESTATUS[0]}
@@ -145,6 +145,50 @@ jobs:
           done
           echo "failed suites =${failed:- none}"
           [ -z "$failed" ]
+      - name: Check out the accepted V8 baseline for A/B comparison
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: db1d37540d92919f7b09612a91502dff0faf358c
+          path: v8-baseline
+      - name: v5-maintenance-browser, integration vs the accepted V8 baseline (fails only on NEW issues)
+        env:
+          BASE_URL: http://127.0.0.1:8765
+        run: |
+          # The suite flags a console "ERR_CONNECTION_REFUSED" (the browser-owned favicon request while the origin
+          # is stopped but navigator.onLine is still true, see PR #19) on the V8 baseline too. A/B compare so that a
+          # pre-existing issue is reproduced rather than assumed, and only a regression fails the job.
+          set +e
+          (cd v8-baseline && MAINTENANCE_ARTIFACTS="$PWD/../artifacts/maint-baseline" node tests/v5-maintenance-browser.mjs ${{ matrix.engine }} > ../artifacts/logs/v5-maintenance-baseline.log 2>&1; echo "baseline exit $?")
+          MAINTENANCE_ARTIFACTS="$PWD/artifacts/maint-integration" node tests/v5-maintenance-browser.mjs ${{ matrix.engine }} > artifacts/logs/v5-maintenance-integration.log 2>&1; echo "integration exit $?"
+          node -e '
+            const fs=require("fs");
+            const load=p=>{try{return JSON.parse(fs.readFileSync(p,"utf8"))}catch(e){return null}};
+            const b=load("artifacts/maint-baseline/results.json"), i=load("artifacts/maint-integration/results.json");
+            if(!b||!i){console.error("::error title=maintenance A/B::missing results (baseline "+!!b+", integration "+!!i+")");process.exit(1)}
+            const norm=m=>m.replace(/^\d+ /,"");
+            const baseIssues=new Set(b.issues.map(norm));
+            const fresh=i.issues.filter(m=>!baseIssues.has(norm(m)));
+            console.log("baseline: "+b.results.length+" checks passed, issues:",JSON.stringify([...baseIssues]));
+            console.log("integration: "+i.results.length+" checks passed, issues:",JSON.stringify([...new Set(i.issues.map(norm))]));
+            if(i.results.length<b.results.length){console.error("::error title=maintenance A/B::fewer passing checks than baseline");process.exit(1)}
+            if(fresh.length){console.error("::error title=maintenance A/B::NEW issues vs baseline: "+JSON.stringify(fresh));process.exit(1)}
+            console.log("no new issues vs the V8 baseline");
+          '
+      - name: dist-browser, integration vs the accepted V8 baseline (fails only on NEW failures)
+        run: |
+          # Reproduce, do not assume: any failure of this untouched V8 suite must also fail identically on the baseline.
+          set +e
+          (cd v8-baseline && node tests/dist-browser.mjs ${{ matrix.engine }} > ../artifacts/logs/dist-browser-baseline.log 2>&1; echo "baseline exit $?")
+          node tests/dist-browser.mjs ${{ matrix.engine }} > artifacts/logs/dist-browser-integration.log 2>&1; echo "integration exit $?"
+          fails() { grep -E "^(FAIL |\+ +')" "$1" | sort -u; }
+          fails artifacts/logs/dist-browser-baseline.log > /tmp/base.fails
+          fails artifacts/logs/dist-browser-integration.log > /tmp/int.fails
+          echo "--- baseline failures"; cat /tmp/base.fails; echo "--- integration failures"; cat /tmp/int.fails
+          grep -E "passed, [0-9]+ failed" artifacts/logs/dist-browser-baseline.log artifacts/logs/dist-browser-integration.log
+          new=$(comm -13 /tmp/base.fails /tmp/int.fails)
+          if [ -n "$new" ]; then echo "::error title=dist-browser A/B::NEW failures vs baseline: $new"; exit 1; fi
+          echo "no new failures vs the V8 baseline"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
