@@ -30,5 +30,8 @@
     "test:file-media:browser": "node tests/file-media-browser.mjs",
     "test:studios": "node --check studios-core.js && node --check studios.js && node --check studios-routing.js && node --test tests/v8-studios.mjs",
     "test:integration:browser": "node tests/v8-combined-browser.mjs"
+  },
+  "devDependencies": {
+    "miniflare": "^4.20260730.0"
   }
 }
