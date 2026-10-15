@@ -102,7 +102,37 @@ const server = http.createServer(async (req, res) => {
   }
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
-const base = `http://127.0.0.1:${server.address().port}`;
+const port = server.address().port;
+const base = `http://127.0.0.1:${port}`;
+/* Genuine offline: the origin server is stopped, so a request that is not answered by the
+   service worker or cache fails with a refused connection. Playwright's setOffline() is not
+   used for Firefox/WebKit because it fails navigations before the service worker can answer
+   (NS_ERROR_OFFLINE / WebKit internal error), which would test the emulator, not the app. */
+let networkUp = true;
+const network = {
+  async down() {
+    if (!networkUp) return;
+    server.closeAllConnections();
+    await new Promise((r) => server.close(r));
+    networkUp = false;
+    const refused = await new Promise((resolve) =>
+      http
+        .get(base + "/index.html", (res) => {
+          res.resume();
+          resolve(false);
+        })
+        .on("error", (e) => resolve(e.code === "ECONNREFUSED")),
+    );
+    assert.ok(refused, "origin must refuse connections while offline");
+    if (engine === "chromium") await context.setOffline(true);
+  },
+  async up() {
+    if (networkUp) return;
+    if (engine === "chromium") await context.setOffline(false);
+    await new Promise((r) => server.listen(port, "127.0.0.1", r));
+    networkUp = true;
+  },
+};
 try {
   browser = await engines[engine].launch({
     headless: true,
@@ -138,8 +168,11 @@ if (process.env.MEDIA_TRACE) {
     console.log("REQUEST FAILED", r.url(), r.failure()),
   );
 }
-await context.route("**/*", (r) =>
-  r.request().url().startsWith(base) ? r.continue() : r.abort(),
+/* Only third-party requests are intercepted. Same-origin traffic is deliberately not routed so
+   Playwright cannot stand between the page and its service worker. */
+await context.route(
+  (url) => !url.href.startsWith(base),
+  (r) => r.abort(),
 );
 const open = async (id) => {
   await page.goto(`${base}/tools/v9-media/?tool=${id}`);
@@ -162,27 +195,86 @@ const download = async (selector) => {
   await page.locator(selector).click();
   return fs.readFile(await (await promise).path());
 };
+/* Fixtures are chosen by what this engine can actually decode (metadata, dimensions and a seek),
+   not by canPlayType(), which can answer "maybe"/"probably" for media the engine then rejects. */
+const videoFixtures = [
+  ["video-tone.webm", "video/webm"],
+  ["video-tone-vp9.webm", "video/webm"],
+  ["video-tone.mp4", "video/mp4"],
+  ["video-tone.ogv", "video/ogg"],
+];
+let decodable;
+async function pickVideoFixture() {
+  if (decodable !== undefined) return decodable;
+  const probe = [];
+  for (const [file, type] of videoFixtures) {
+    const bytes = await fs.readFile(
+      new URL(`./fixtures/v9-media/${file}`, import.meta.url),
+    );
+    const outcome = await page.evaluate(
+      async ([b64, type]) => {
+        const data = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+        const el = document.createElement("video");
+        el.muted = true;
+        el.preload = "auto";
+        const url = URL.createObjectURL(new Blob([data], { type }));
+        const wait = (ok) =>
+          new Promise((resolve) => {
+            const t = setTimeout(() => resolve("timeout"), 10000);
+            el.addEventListener(ok, () => (clearTimeout(t), resolve("ok")), {
+              once: true,
+            });
+            el.addEventListener(
+              "error",
+              () => (clearTimeout(t), resolve("error " + el.error?.code)),
+              { once: true },
+            );
+          });
+        try {
+          const loaded = wait("loadedmetadata");
+          el.src = url;
+          const r = await loaded;
+          if (r !== "ok") return r;
+          if (!(el.videoWidth > 0 && el.duration > 1)) return "no video track";
+          const seeked = wait("seeked");
+          el.currentTime = 0.5;
+          return await seeked;
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      },
+      [bytes.toString("base64"), type],
+    );
+    probe.push(`${file}: ${outcome}`);
+    if (outcome === "ok") return (decodable = { file, type, bytes, probe });
+  }
+  return (decodable = { file: null, probe });
+}
+const NO_DECODER = (probe) =>
+  `This engine decodes none of the bundled video fixtures (${probe.join("; ")}). ` +
+  "Verified instead: the app reports it cannot decode the video, offers the GIF alternative and exports nothing.";
 async function loadVideoFixture() {
-  const ext = await page.evaluate(() => {
-    const video = document.createElement("video");
-    return video.canPlayType('video/webm;codecs="vp8,opus"')
-      ? "webm"
-      : video.canPlayType('video/mp4;codecs="avc1.42E01E,mp4a.40.2"')
-        ? "mp4"
-        : null;
-  });
-  assert.ok(
-    ext,
-    "Browser must decode at least one bundled video fixture codec",
-  );
-  const bytes = await fs.readFile(
-    new URL(`./fixtures/v9-media/video-tone.${ext}`, import.meta.url),
-  );
-  await upload(
-    `video.${ext}`,
-    ext === "webm" ? "video/webm" : "video/mp4",
-    bytes,
-  );
+  const fixture = await pickVideoFixture();
+  if (!fixture.file) {
+    const [file, type] = videoFixtures[0];
+    await upload(
+      file,
+      type,
+      await fs.readFile(new URL(`./fixtures/v9-media/${file}`, import.meta.url)),
+    );
+    await page.click("#loadMedia");
+    await page.waitForFunction(() =>
+      /^(Loaded|Could not complete:)/.test(
+        document.querySelector("#status").textContent,
+      ),
+    );
+    const status = await page.locator("#status").textContent();
+    assert.match(status, /^Could not complete:.*cannot decode/);
+    assert.match(status, /GIF/, "message must offer a supported alternative");
+    assert.equal(await page.locator("#downloads a").count(), 0);
+    return null;
+  }
+  await upload(fixture.file, fixture.type, fixture.bytes);
   await page.click("#loadMedia");
   await page.waitForFunction(() =>
     /^(Loaded|Could not complete:)/.test(
@@ -192,8 +284,9 @@ async function loadVideoFixture() {
   assert.match(
     await page.locator("#status").textContent(),
     /^Loaded/,
-    `Fixture ${ext} decoding failed`,
+    `Fixture ${fixture.file} decoding failed although the engine decoded it directly`,
   );
+  return fixture;
 }
 const check = async (name, fn) => {
   if (process.env.MEDIA_CHECK && !name.includes(process.env.MEDIA_CHECK)) {
@@ -374,7 +467,9 @@ try {
     "video WebM export captures audible audio or explains unavailable capture support",
     async () => {
       await open("video-gif-trimmer");
-      await loadVideoFixture();
+      const fixture = await loadVideoFixture();
+      if (!fixture)
+        return { limitation: NO_DECODER((await pickVideoFixture()).probe) };
       const supported = await page.evaluate(
         () =>
           typeof MediaRecorder !== "undefined" &&
@@ -434,7 +529,9 @@ try {
     "video-to-GIF exports five real frames with 500 ms duration",
     async () => {
       await open("video-gif-trimmer");
-      await loadVideoFixture();
+      const fixture = await loadVideoFixture();
+      if (!fixture)
+        return { limitation: NO_DECODER((await pickVideoFixture()).probe) };
       await page.selectOption("#format", "gif");
       await page.fill("#start", ".2");
       await page.fill("#end", ".7");
@@ -451,6 +548,24 @@ try {
       );
     },
   );
+  const WORKER_PATH = "/tools/v9-media/offline-worker.js";
+  const workerState = () =>
+    page.evaluate(async () => {
+      const controller = navigator.serviceWorker?.controller;
+      const names = await caches.keys();
+      const cache = names.find((n) => n.startsWith("gvt-v9-media-"));
+      return {
+        controller: controller ? new URL(controller.scriptURL).pathname : null,
+        cache,
+        entries: cache ? (await (await caches.open(cache)).keys()).length : 0,
+      };
+    });
+  const manifestFiles = JSON.parse(
+    await fs.readFile(
+      path.join(root, "tools/v9-media/vendor-assets.json"),
+      "utf8",
+    ),
+  ).length;
   await check(
     "offline asset preparation verifies pins and OCR works after offline reload",
     async () => {
@@ -459,15 +574,25 @@ try {
       await page.click("#offline");
       await page.waitForFunction(
         () =>
-          document
-            .querySelector("#offlineStatus")
-            .textContent.startsWith("Offline assets cached"),
+          /^Offline assets cached\./.test(
+            document.querySelector("#offlineStatus").textContent,
+          ),
         null,
         { timeout: 120000 },
       );
-      await context.setOffline(true);
+      // The page must really be controlled by the intended worker, with every pinned asset cached.
+      const before = await workerState();
+      assert.equal(before.controller, WORKER_PATH, JSON.stringify(before));
+      assert.ok(before.entries > manifestFiles, JSON.stringify(before));
+      assert.doesNotMatch(
+        await page.locator("#offlineStatus").textContent(),
+        /not yet controlled/,
+      );
+      await network.down();
       await page.reload();
       await page.waitForSelector("#recognize");
+      // Served by the worker while the origin refuses connections.
+      assert.equal((await workerState()).controller, WORKER_PATH);
       await upload("text.png", "image/png", png);
       await page.click("#recognize");
       await page.click("#cancel");
@@ -487,6 +612,7 @@ try {
   await check(
     "offline reloads all tools and processes a PDF without network",
     async () => {
+      await network.down(); // idempotent: stays offline if the previous check left it so
       for (const id of [
         "cubic-bezier",
         "screenshot-beautifier",
@@ -495,6 +621,7 @@ try {
       ])
         await open(id);
       await open("pdf-signer");
+      assert.equal((await workerState()).controller, WORKER_PATH);
       await upload("offline.pdf", "application/pdf", pdfBytes);
       await page.click("#loadPdf");
       await page.waitForSelector("#preview canvas");
@@ -507,6 +634,7 @@ try {
       );
     },
   );
+  await network.up();
   assert.deepEqual(external, [], "no external requests from tools");
   assert.deepEqual(errors, [], "no browser errors");
   await check(
@@ -516,8 +644,9 @@ try {
         viewport: { width: 1280, height: 900 },
         serviceWorkers: "block",
       });
-      await ctx.route("**/*", (r) =>
-        r.request().url().startsWith(base) ? r.continue() : r.abort(),
+      await ctx.route(
+        (url) => !url.href.startsWith(base),
+        (r) => r.abort(),
       );
       const home = await ctx.newPage();
       try {

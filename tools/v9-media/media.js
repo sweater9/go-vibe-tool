@@ -157,25 +157,45 @@ function abortable(promise) {
       .finally(() => signal.removeEventListener("abort", abort));
   });
 }
+/* Cheap, element-free duration for RIFF/WAVE so the limit check never depends on media-element events. */
+async function wavDuration(file) {
+  const head = new DataView(await file.slice(0, 4096).arrayBuffer());
+  const tag = (o) =>
+    o + 4 <= head.byteLength
+      ? String.fromCharCode(...new Uint8Array(head.buffer, o, 4))
+      : "";
+  if (tag(0) !== "RIFF" || tag(8) !== "WAVE") return NaN;
+  let byteRate = 0;
+  for (let o = 12; o + 8 <= head.byteLength; ) {
+    const size = head.getUint32(o + 4, true);
+    if (tag(o) === "fmt " && o + 20 <= head.byteLength)
+      byteRate = head.getUint32(o + 16, true);
+    if (tag(o) === "data" && byteRate)
+      return Math.min(size, file.size - o - 8) / byteRate;
+    o += 8 + size + (size & 1);
+  }
+  return NaN;
+}
+/* Best-effort metadata probe. The element is attached because some engines (WebKit) never
+   load media for detached elements. Resolves NaN, never hangs, when the engine will not say. */
 async function audioDuration(file) {
+  const wav = await wavDuration(file);
+  if (Number.isFinite(wav)) return wav;
   const probe = document.createElement("audio"),
     u = URL.createObjectURL(file);
   let timer;
+  probe.hidden = true;
+  probe.muted = true;
+  document.body.append(probe);
   try {
     return await abortable(
-      new Promise((resolve, reject) => {
+      new Promise((resolve) => {
         probe.onloadedmetadata = () => resolve(probe.duration);
-        probe.onerror = () =>
-          reject(Error("Browser cannot read this audio format."));
-        timer = setTimeout(
-          () =>
-            reject(
-              Error("Audio metadata could not be read within 15 seconds."),
-            ),
-          15000,
-        );
+        probe.onerror = () => resolve(NaN);
+        timer = setTimeout(() => resolve(NaN), 4000);
         probe.preload = "metadata";
         probe.src = u;
+        probe.load();
       }),
     );
   } finally {
@@ -183,6 +203,7 @@ async function audioDuration(file) {
     probe.pause();
     probe.removeAttribute("src");
     probe.load();
+    probe.remove();
     URL.revokeObjectURL(u);
   }
 }
@@ -709,9 +730,26 @@ function audioTool() {
       try {
         const file = selectFile("#file", 30),
           duration = await audioDuration(file);
-        if (!Number.isFinite(duration) || duration > 180)
-          throw Error("Use finite-duration audio of at most 180 seconds.");
-        const buffer = await ac.decodeAudioData(await file.arrayBuffer());
+        if (Number.isFinite(duration)) {
+          if (duration > 180)
+            throw Error("Use audio of at most 180 seconds.");
+        } else if (file.size > 12 * 1024 * 1024)
+          throw Error(
+            "This browser cannot report the duration of this audio file, so files over 12 MB are refused. Use a WAV file or a smaller file.",
+          );
+        const buffer = await abortable(
+          Promise.race([
+            ac.decodeAudioData(await file.arrayBuffer()),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("timeout")), 30000),
+            ),
+          ]).catch((e) => {
+            if (e?.name === "AbortError") throw e;
+            throw Error(
+              "This browser could not decode this audio file (unsupported format, damaged file, or decoding stalled). Try a WAV file, or MP3/AAC/Ogg if your browser supports them.",
+            );
+          }),
+        );
         check();
         if (buffer.duration > 180 || buffer.numberOfChannels > 2)
           throw Error("Use audio of at most 180 seconds and two channels.");
@@ -782,7 +820,9 @@ function trimmer() {
     $("#mediaPreview").replaceChildren();
     say("Load the selected media.");
   };
-  function event(target, name) {
+  const UNDECODABLE =
+    "This browser cannot decode this video (its codec or container is unsupported here, or the file is damaged). Try a WebM (VP8/VP9) or MP4 (H.264) file, use another browser, or trim an animated GIF, which needs no video decoder.";
+  function event(target, name, failure = "Browser cannot decode this media.") {
     return new Promise((res, rej) => {
       const done = () => {
         clearTimeout(timer);
@@ -796,7 +836,7 @@ function trimmer() {
         },
         err = () => {
           done();
-          rej(Error("Browser cannot decode this media."));
+          rej(Error(failure));
         },
         abort = () => {
           done();
@@ -857,7 +897,7 @@ function trimmer() {
         video.playsInline = true;
         video.preload = "auto";
         sourceURL = URL.createObjectURL(file);
-        const pending = event(video, "loadedmetadata");
+        const pending = event(video, "loadedmetadata", UNDECODABLE);
         video.src = sourceURL;
         $("#mediaPreview").replaceChildren(video);
         await pending;
@@ -1077,23 +1117,44 @@ $("#offline").onclick = async () => {
   const label = $("#offlineStatus");
   try {
     if (!("serviceWorker" in navigator))
-      throw Error("Service workers require HTTPS or localhost.");
+      throw Error(
+        "Offline use needs a service worker, which this browser or context does not provide (HTTPS or localhost is required).",
+      );
+    label.textContent = "Preparing offline assets…";
     const registration = await navigator.serviceWorker.register(
       "./offline-worker.js",
       { scope: "./" },
     );
     const worker =
       registration.installing || registration.waiting || registration.active;
-    if (worker?.state !== "activated")
+    if (!worker) throw Error("No service worker was created. Retry while online.");
+    if (worker.state !== "activated")
       await new Promise((resolve, reject) => {
-        worker.addEventListener("statechange", () => {
+        const settle = () => {
           if (worker.state === "activated") resolve();
           if (worker.state === "redundant")
             reject(Error("Asset caching failed. Retry while online."));
-        });
+        };
+        worker.addEventListener("statechange", settle);
+        settle();
       });
-    label.textContent =
-      "Offline assets cached. This tool directory can now reload offline; browser eviction can remove the cache.";
+    /* Activation alone does not control this page. Offline reload only works once this page is
+       controlled by the worker, so confirm that instead of claiming readiness early. */
+    if (!navigator.serviceWorker.controller)
+      await new Promise((resolve) => {
+        const timer = setTimeout(resolve, 5000);
+        navigator.serviceWorker.addEventListener(
+          "controllerchange",
+          () => {
+            clearTimeout(timer);
+            resolve();
+          },
+          { once: true },
+        );
+      });
+    label.textContent = navigator.serviceWorker.controller
+      ? "Offline assets cached. This tool directory can now reload offline; browser eviction can remove the cache."
+      : "Offline assets cached, but this page is not yet controlled by the offline worker. Reload this page once while online, then it can reload offline.";
   } catch (e) {
     label.textContent = e.message;
   }
