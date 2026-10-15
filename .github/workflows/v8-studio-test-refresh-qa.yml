@@ -1,0 +1,51 @@
+name: V8 Studio Test Refresh QA
+on:
+  push:
+    branches: [test/v8-retire-freelance-test-assumptions]
+  pull_request:
+    branches: [integration/v8-firefox-release-candidate]
+    paths:
+      - 'studios*.js'
+      - 'tests/**'
+      - 'docs/qa/**'
+      - '.github/workflows/v8-studio-test-refresh-qa.yml'
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false jsdom@26.1.0
+      - run: node --test tests/v8-studios.mjs tests/v8-studios-lifecycle.mjs tests/v8-studio-diagnostics.mjs
+      - run: node tests/v8-integration.mjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npm run build
+      - run: node tests/v8-studios-lifecycle-browser.mjs ${{ matrix.engine }}
+      - run: node tests/v8-integration-browser.mjs ${{ matrix.engine }}
+      - run: node tests/v8-combined-browser.mjs ${{ matrix.engine }}
+      - name: Verify failure event logs and trace capture
+        if: matrix.engine == 'firefox' && success()
+        run: |
+          set +e
+          GVT_STUDIO_DIAGNOSTIC_PROBE=1 STUDIO_QA_ARTIFACTS=artifacts/studios-diagnostics-probe-firefox node tests/v8-studios-lifecycle-browser.mjs firefox
+          code=$?
+          set -e
+          test "$code" -eq 1
+          node tests/v8-studio-diagnostics-artifacts.mjs artifacts/studios-diagnostics-probe-firefox

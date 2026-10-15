@@ -2,7 +2,7 @@
 
 Instrumentation is confined to the Playwright test harness; production Studio code is unchanged.
 
-`tests/helpers/studio-interaction-recorder.mjs` records document initialization/readiness, `pointerdown`, `pointerup`, capture-phase `click`, active-tab transitions, calculation requests, post-click calculation completion, and observed calculator-result changes. Records include document-local sequence/time, test-step label, pointer coordinates/type, target/button ID, hit-tested element, workspace readiness and selected tab. This distinguishes a pointer failing to reach a control, a click not reaching its handler, a tab not selecting, and a calculator not updating its result.
+`tests/helpers/studio-interaction-recorder.mjs` records document initialization/readiness, `pointerdown`, `pointerup`, capture-phase `click`, active-tab transitions, URL Studio analysis requests (Inspect & clean, Build UTM link), post-click analysis completion, and observed URL result changes (reduced to a coarse state and length, never the text, because the result echoes the analysed URL). Records include document-local sequence/time, test-step label, pointer coordinates/type, target/button ID, hit-tested element, workspace readiness and selected tab. This distinguishes a pointer failing to reach a control, a click not reaching its handler, a tab not selecting, and the URL Studio not updating its result.
 
 Input values, passwords, cookies, localStorage and URL query strings are omitted from the structured event log. Calculator output and Playwright DOM snapshots contain automated fixture data. The recorder runs only in automated local/CI test pages, never in the shipped site. Collection is bounded at 10,000 events per viewport and explicitly reports dropped events and collection errors.
 
@@ -24,7 +24,7 @@ npx playwright show-trace artifacts/studios-lifecycle-firefox/trace-375.zip
 
 ## Failure-path verification
 
-The dedicated Studio workflow first runs all normal assertions, then runs a separate Firefox artifact probe. `GVT_STUDIO_DIAGNOSTIC_PROBE=1` deliberately fails the initial calculation check after clicking the real button. Both viewport failures must produce a process exit code of 1. `tests/v8-studio-diagnostics-artifacts.mjs` requires exactly those two controlled failures, all requested event types, no dropped events, and valid trace ZIP archives containing trace and network data. Unexpected failures still fail CI. Probe artifacts are stored separately under `artifacts/studios-diagnostics-probe-firefox/`, so they cannot replace normal results.
+The dedicated Studio workflow first runs all normal assertions, then runs a separate Firefox artifact probe. `GVT_STUDIO_DIAGNOSTIC_PROBE=1` deliberately fails the initial URL Studio route check after clicking the real button. Both viewport failures must produce a process exit code of 1. `tests/v8-studio-diagnostics-artifacts.mjs` requires exactly those two controlled failures, all requested event types, no dropped events, and valid trace ZIP archives containing trace and network data. Unexpected failures still fail CI. Probe artifacts are stored separately under `artifacts/studios-diagnostics-probe-firefox/`, so they cannot replace normal results.
 
 ```sh
 GVT_STUDIO_DIAGNOSTIC_PROBE=1 \

@@ -92,7 +92,7 @@ try {
     });
 
     /* Studios and legacy IDs */
-    const routed = { 'url-cleaner': 'url', 'url-inspector': 'url', 'utm-builder': 'url', 'tracking-check': 'url', 'link-fingerprint': 'url', 'hourly-rate': 'freelance', 'qr-payload': 'qr', metadata: 'privacy' };
+    const routed = { 'url-cleaner': 'url', 'url-inspector': 'url', 'utm-builder': 'url', 'tracking-check': 'url', 'link-fingerprint': 'url', 'qr-payload': 'qr', metadata: 'privacy' };
     for (const [id, studio] of Object.entries(routed)) {
       await check(tag(`legacy deep link ?tool=${id} lands on the ${studio} studio`), async () => {
         await page.goto(base + '?tool=' + id);
@@ -141,24 +141,13 @@ try {
       await page.waitForFunction(() => /Credentials embedded/.test(document.querySelector('#urlResult')?.textContent || ''), null, { timeout: 5000 });
       const w = await page.locator('#urlResult').innerText(); assert.match(w, /Credentials embedded/); assert.match(w, /Punycode/); assert.match(w, /Unencrypted HTTP/);
     });
-    await check(tag('Freelance calculator: correct arithmetic and input validation'), async () => {
-      await page.click('[data-studio="freelance"]');
-      await page.fill('#target', '100000'); await page.fill('#overhead', '15000'); await page.fill('#hours', '40'); await page.fill('#weeks', '46'); await page.fill('#utilization', '65'); await page.fill('#tax', '0'); await page.fill('#margin', '15'); await page.fill('#quoteHours', '20');
-      await page.click('#calcRate');
-      await page.waitForFunction(() => /Estimated billable hours\/year: 1196\.0/.test(document.querySelector('#rateResult')?.textContent || ''), null, { timeout: 5000 });
-      const t = await page.locator('#rateResult').innerText();
-      assert.match(t, /Estimated billable hours\/year: 1196\.0/); assert.match(t, /Break-even hourly rate: 96\.15/); assert.match(t, /Suggested hourly rate: 113\.12/); assert.match(t, /Quote: 2262\./);
-      await page.fill('#utilization', '0'); await page.click('#calcRate');
-      assert.match(await page.locator('#rateResult').innerText(), /between|positive|valid/i);
-      await page.click('#calcEffective');
-      assert.match(await page.locator('#effectiveResult').innerText(), /90\.00/);
+    await check(tag('Percentage Change stays an independent tool with correct zero-base handling'), async () => {
       await page.goto(base+'?tool=percentage-change');await ready(page);
       await page.fill('#old', '0');await page.fill('#newv', '5');await page.evaluate(()=>pct());
       assert.match(await page.locator('#out').innerText(), /not defined when the starting value is zero/);
       await page.fill('#old', '100');await page.fill('#newv', '120');await page.evaluate(()=>pct());
       assert.match(await page.locator('#out').innerText(), /20\.00%/);
       await page.goto(base+'studios.html?studio=qr');
-
     });
     await check(tag('QR Studio v2: plain text valid, malformed URL warned, QR rendered'), async () => {
       await page.click('[data-studio="qr"]');
@@ -184,18 +173,22 @@ try {
     await check(tag('studios: tabs are keyboard operable and expose correct ARIA state'), async () => {
       await page.goto(base + 'studios.html'); await page.waitForSelector('#studio-url');
       await page.locator('[data-studio="url"]').focus();
-      await page.keyboard.press('ArrowRight'); assert.equal(await page.evaluate(() => document.activeElement.dataset.studio), 'freelance');
+      await page.keyboard.press('ArrowRight'); assert.equal(await page.evaluate(() => document.activeElement.dataset.studio), 'qr');
       await page.keyboard.press('Enter');
-      assert.equal(await page.locator('[data-studio="freelance"]').getAttribute('aria-selected'), 'true');
+      assert.equal(await page.locator('[data-studio="qr"]').getAttribute('aria-selected'), 'true');
       assert.equal(await page.locator('[data-studio="url"]').getAttribute('aria-selected'), 'false');
-      assert.ok(await page.locator('#studio-freelance').isVisible() && !(await page.locator('#studio-url').isVisible()));
+      assert.ok(await page.locator('#studio-qr').isVisible() && !(await page.locator('#studio-url').isVisible()));
+      await page.keyboard.press('End'); assert.equal(await page.evaluate(() => document.activeElement.dataset.studio), 'privacy');
+      await page.keyboard.press('ArrowRight'); assert.equal(await page.evaluate(() => document.activeElement.dataset.studio), 'url');
+      await page.keyboard.press('ArrowLeft'); assert.equal(await page.evaluate(() => document.activeElement.dataset.studio), 'privacy');
+      await page.keyboard.press('Home'); assert.equal(await page.evaluate(() => document.activeElement.dataset.studio), 'url');
       const roles = await page.evaluate(() => ({ tablist: !!document.querySelector('[role=tablist]'), tabs: document.querySelectorAll('[role=tab]').length, panels: document.querySelectorAll('[role=tabpanel]').length }));
-      assert.deepEqual(roles, { tablist: true, tabs: 4, panels: 4 });
+      assert.deepEqual(roles, { tablist: true, tabs: 3, panels: 3 });
       const unlabeled = await page.evaluate(() => [...document.querySelectorAll('input,textarea,select')].filter(e => !document.querySelector(`label[for="${e.id}"]`) && !e.closest('label') && !e.getAttribute('aria-label')).map(e => e.id));
       assert.deepEqual(unlabeled, []);
     });
     await check(tag('no horizontal overflow on home, a category, a new utility and studios'), async () => {
-      for (const u of ['', '?category=developer', '?tool=table-converter', 'studios.html', 'studios.html?studio=freelance']) {
+      for (const u of ['', '?category=developer', '?tool=table-converter', 'studios.html', 'studios.html?studio=privacy']) {
         await page.goto(base + u); await page.waitForLoadState('domcontentloaded'); await page.waitForTimeout(250);
         const o = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
         assert.ok(o <= 0, `overflow ${o}px at ${u || '/'}`);
@@ -205,12 +198,12 @@ try {
     /* Favourites + recents keep working for old, new and studio-routed IDs */
     await check(tag('favourites and recently used survive reload for legacy, new and studio IDs'), async () => {
       await page.goto(base); await ready(page);
-      await page.evaluate(() => { localStorage.setItem('it.discovery.favorites', JSON.stringify(['url-cleaner', 'regex-playground', 'hourly-rate', 'svg-sanitizer'])); localStorage.setItem('it.discovery.recent', JSON.stringify(['table-converter', 'qr-studio', 'json-formatter'])); });
+      await page.evaluate(() => { localStorage.setItem('it.discovery.favorites', JSON.stringify(['url-cleaner', 'regex-playground', 'pii-secret-redactor', 'svg-sanitizer'])); localStorage.setItem('it.discovery.recent', JSON.stringify(['table-converter', 'qr-studio', 'json-formatter'])); });
       await page.reload(); await ready(page);
       const shelf = await page.locator('#discoveryShelf').innerText();
-      for (const name of ['URL Cleaner', 'Regex', 'Effective Hourly Rate', 'SVG']) assert.ok(shelf.includes(name), 'favourites shelf missing ' + name);
+      for (const name of ['URL Cleaner', 'Regex', 'PII & Secret Redactor', 'SVG']) assert.ok(shelf.includes(name), 'favourites shelf missing ' + name);
       assert.ok(/Recent/i.test(shelf));
-      assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('it.discovery.favorites'))).sort(), ['hourly-rate', 'regex-playground', 'svg-sanitizer', 'url-cleaner']);
+      assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('it.discovery.favorites'))).sort(), ['pii-secret-redactor', 'regex-playground', 'svg-sanitizer', 'url-cleaner']);
     });
     await check(tag('no uncaught page errors during home, category and tool navigation'), async () => {
       assert.deepEqual(errs, [], `Uncaught browser errors: ${JSON.stringify(errs)}`);
