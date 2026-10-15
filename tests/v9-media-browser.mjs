@@ -2,16 +2,77 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 import http from "node:http";
 import path from "node:path";
+import { existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url),
   pw = await import(
     process.env.PLAYWRIGHT_PACKAGE || require.resolve("playwright")
   ),
-  { chromium } = pw.default || pw,
+  engines = pw.default || pw,
   { PDFDocument } = require("../vendor/pdf-lib.min.js"),
   M = require("../tools/v9-media/media-core.js");
 const G = await import("../tools/v9-media/vendor/gif.mjs");
+const engine = process.argv[2] || "chromium";
+if (!["chromium", "firefox", "webkit"].includes(engine))
+  throw Error("Choose chromium, firefox, or webkit.");
 const root = path.resolve(process.env.SITE_ROOT || ".");
+const target = process.env.SITE_ROOT ? "dist" : "source";
+const artifacts =
+  process.env.MEDIA_ARTIFACTS || `artifacts/v9-media/${engine}/${target}`;
+await fs.mkdir(artifacts, { recursive: true });
+const revision = execFileSync("git", ["rev-parse", "HEAD"], {
+  encoding: "utf8",
+}).trim();
+const worktreeDirty = !!execFileSync("git", ["status", "--porcelain"], {
+  encoding: "utf8",
+}).trim();
+const playwrightVersion = require(
+  path.join(
+    path.dirname(
+      require.resolve(process.env.PLAYWRIGHT_PACKAGE || "playwright"),
+    ),
+    "package.json",
+  ),
+).version;
+const cases = [],
+  started = new Date().toISOString();
+let browser;
+async function report(outcome, error) {
+  const evidence = {
+    revision,
+    worktreeDirty,
+    engine,
+    playwrightVersion,
+    browserVersion: browser?.version() || null,
+    target,
+    started,
+    completed: new Date().toISOString(),
+    outcome,
+    counts: Object.fromEntries(
+      ["passed", "failed", "capability-limited", "filtered"].map((status) => [
+        status,
+        cases.filter((c) => c.status === status).length,
+      ]),
+    ),
+    cases,
+    ...(error ? { error: String(error.stack || error) } : {}),
+  };
+  await fs.writeFile(
+    path.join(artifacts, "results.json"),
+    JSON.stringify(evidence, null, 2) + "\n",
+  );
+  console.log(
+    "RESULT",
+    JSON.stringify({
+      revision,
+      engine,
+      target,
+      outcome,
+      counts: evidence.counts,
+    }),
+  );
+}
 const types = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -42,11 +103,22 @@ const server = http.createServer(async (req, res) => {
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
 const base = `http://127.0.0.1:${server.address().port}`;
-const browser = await chromium.launch({
-  headless: true,
-  executablePath: process.env.BROWSER_EXECUTABLE || "/usr/bin/chromium",
-  args: ["--no-sandbox"],
-});
+try {
+  browser = await engines[engine].launch({
+    headless: true,
+    ...(process.env.BROWSER_EXECUTABLE
+      ? { executablePath: process.env.BROWSER_EXECUTABLE }
+      : engine === "chromium" && existsSync("/usr/bin/chromium")
+        ? { executablePath: "/usr/bin/chromium" }
+        : {}),
+    ...(engine === "chromium" ? { args: ["--no-sandbox"] } : {}),
+  });
+} catch (error) {
+  await report("blocked", error);
+  await new Promise((r) => server.close(r));
+  throw error;
+}
+console.log(`Testing ${engine} ${browser.version()} (${target}, ${revision})`);
 const context = await browser.newContext({
   viewport: { width: 390, height: 844 },
   acceptDownloads: true,
@@ -56,7 +128,7 @@ page.setDefaultTimeout(60000);
 const errors = [],
   external = [];
 page.on("pageerror", (e) => errors.push(e.message));
-page.on("request", (r) => {
+context.on("request", (r) => {
   if (/^https?:/.test(r.url()) && !r.url().startsWith(base))
     external.push(r.url());
 });
@@ -90,14 +162,71 @@ const download = async (selector) => {
   await page.locator(selector).click();
   return fs.readFile(await (await promise).path());
 };
-let passed = 0;
+async function loadVideoFixture() {
+  const ext = await page.evaluate(() => {
+    const video = document.createElement("video");
+    return video.canPlayType('video/webm;codecs="vp8,opus"')
+      ? "webm"
+      : video.canPlayType('video/mp4;codecs="avc1.42E01E,mp4a.40.2"')
+        ? "mp4"
+        : null;
+  });
+  assert.ok(
+    ext,
+    "Browser must decode at least one bundled video fixture codec",
+  );
+  const bytes = await fs.readFile(
+    new URL(`./fixtures/v9-media/video-tone.${ext}`, import.meta.url),
+  );
+  await upload(
+    `video.${ext}`,
+    ext === "webm" ? "video/webm" : "video/mp4",
+    bytes,
+  );
+  await page.click("#loadMedia");
+  await page.waitForFunction(() =>
+    /^(Loaded|Could not complete:)/.test(
+      document.querySelector("#status").textContent,
+    ),
+  );
+  assert.match(
+    await page.locator("#status").textContent(),
+    /^Loaded/,
+    `Fixture ${ext} decoding failed`,
+  );
+}
 const check = async (name, fn) => {
-  if (process.env.MEDIA_CHECK && !name.includes(process.env.MEDIA_CHECK))
+  if (process.env.MEDIA_CHECK && !name.includes(process.env.MEDIA_CHECK)) {
+    cases.push({ name, status: "filtered", reason: "MEDIA_CHECK selection" });
     return;
-  await fn();
-  passed++;
-  console.log("PASS", name);
+  }
+  const time = Date.now();
+  try {
+    const detail = await fn();
+    const status = detail?.limitation ? "capability-limited" : "passed";
+    cases.push({ name, status, elapsedMs: Date.now() - time, ...detail });
+    console.log(
+      status === "passed" ? "PASS" : "CAPABILITY LIMIT",
+      name,
+      detail || "",
+    );
+  } catch (error) {
+    cases.push({
+      name,
+      status: "failed",
+      elapsedMs: Date.now() - time,
+      error: String(error.stack || error),
+    });
+    console.error("FAIL", name, error);
+    await page
+      .screenshot({
+        path: path.join(artifacts, `failure-${cases.length}.png`),
+        fullPage: true,
+      })
+      .catch(() => {});
+  }
 };
+let suiteError;
 try {
   await check(
     "bezier numeric controls, sample solver, invalid controls, keyboard alternative",
@@ -242,50 +371,40 @@ try {
     assert.deepEqual(Array.from(frames[0].patch.subarray(0, 3)), [0, 255, 0]);
   });
   await check(
-    "browser video re-encodes bounded WebM with real frames",
+    "video WebM export captures audible audio or explains unavailable capture support",
     async () => {
-      const bytes = await page.evaluate(async () => {
-        const c = document.createElement("canvas");
-        c.width = 160;
-        c.height = 100;
-        const ac = new AudioContext();
-        await ac.resume();
-        const destination = ac.createMediaStreamDestination(),
-          osc = ac.createOscillator();
-        osc.frequency.value = 440;
-        osc.connect(destination);
-        osc.start();
-        const x = c.getContext("2d"),
-          stream = c.captureStream(15);
-        stream.addTrack(destination.stream.getAudioTracks()[0]);
-        const rec = new MediaRecorder(stream, { mimeType: "video/webm" }),
-          chunks = [];
-        rec.ondataavailable = (e) => chunks.push(e.data);
-        const done = new Promise((r) => (rec.onstop = r));
-        rec.start();
-        let count = 0;
-        const timer = setInterval(() => {
-          x.fillStyle = count++ % 2 ? "red" : "blue";
-          x.fillRect(0, 0, 160, 100);
-        }, 60);
-        await new Promise((r) => setTimeout(r, 2200));
-        rec.stop();
-        await done;
-        clearInterval(timer);
-        stream.getTracks().forEach((t) => t.stop());
-        osc.stop();
-        await ac.close();
-        return Array.from(new Uint8Array(await new Blob(chunks).arrayBuffer()));
-      });
       await open("video-gif-trimmer");
-      await upload("video.webm", "video/webm", bytes);
-      await page.click("#loadMedia");
-      await page.waitForFunction(() =>
-        document.querySelector("#status").textContent.startsWith("Loaded"),
+      await loadVideoFixture();
+      const supported = await page.evaluate(
+        () =>
+          typeof MediaRecorder !== "undefined" &&
+          typeof document.querySelector("video").captureStream === "function" &&
+          [
+            "video/webm;codecs=vp9,opus",
+            "video/webm;codecs=vp8,opus",
+            "video/webm",
+          ].some((type) => MediaRecorder.isTypeSupported(type)),
       );
       await page.fill("#start", ".2");
       await page.fill("#end", "1.2");
       await page.click("#trim");
+      if (!supported) {
+        await page.waitForFunction(() =>
+          document
+            .querySelector("#status")
+            .textContent.startsWith("Could not complete:"),
+        );
+        assert.match(
+          await page.locator("#status").textContent(),
+          /captureStream|WebM recording codec/,
+        );
+        assert.match(await page.locator("#status").textContent(), /GIF/);
+        assert.equal(await page.locator("#downloads a").count(), 0);
+        return {
+          limitation:
+            "Browser lacks captureStream or a WebM recording codec; explicit error and GIF alternative verified. WebM export did not execute.",
+        };
+      }
       await page.waitForSelector("#downloads a");
       const b = await download("#downloads a");
       assert.ok(b.length > 500);
@@ -309,7 +428,15 @@ try {
         JSON.stringify(measured),
       );
       assert.ok(measured.peak > 0.1, "captured audio is audible");
+    },
+  );
+  await check(
+    "video-to-GIF exports five real frames with 500 ms duration",
+    async () => {
+      await open("video-gif-trimmer");
+      await loadVideoFixture();
       await page.selectOption("#format", "gif");
+      await page.fill("#start", ".2");
       await page.fill("#end", ".7");
       await page.click("#trim");
       await page.waitForSelector("#downloads a");
@@ -335,6 +462,7 @@ try {
           document
             .querySelector("#offlineStatus")
             .textContent.startsWith("Offline assets cached"),
+        null,
         { timeout: 120000 },
       );
       await context.setOffline(true);
@@ -415,10 +543,8 @@ try {
       }
     },
   );
-  console.log(
-    `${passed} browser checks passed; no external tool requests; mobile 390px; offline OCR/PDF verified.`,
-  );
 } catch (e) {
+  suiteError = e;
   console.error(
     "UI state:",
     await page
@@ -432,8 +558,13 @@ try {
     "Errors:",
     errors,
   );
-  throw e;
 } finally {
+  const failed = suiteError || cases.some((c) => c.status === "failed");
+  await report(
+    failed ? "failed" : process.env.MEDIA_CHECK ? "partial" : "passed",
+    suiteError,
+  );
+  if (failed) process.exitCode = 1;
   await browser.close();
   await new Promise((r) => server.close(r));
 }
