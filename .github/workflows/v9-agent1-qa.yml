@@ -1,0 +1,49 @@
+name: V9 Lane 1 Utilities QA
+on:
+  pull_request:
+    branches: [feature/v9-browser-utilities]
+    paths:
+      - 'v9-*'
+      - 'tests/v9-*'
+      - 'index.html'
+      - 'sw.js'
+      - 'package.json'
+      - '.github/workflows/v9-agent1-qa.yml'
+permissions:
+  contents: read
+jobs:
+  unit-dist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: V9_BIG_GIB=1 npm run test:v9
+      - run: npm run test:v9:dist
+      - run: npm run verify:dist
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npm run build
+      - run: node tests/v9-agent1-browser.mjs ${{ matrix.engine }}
+        env:
+          SITE_ROOT: dist
+          V9_BIG_FILE_MIB: '300'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v9-agent1-${{ matrix.engine }}
+          path: artifacts/v9-agent1-${{ matrix.engine }}/
