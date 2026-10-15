@@ -303,5 +303,7 @@ function diff(nsA,nsB){
 
 /* ---------- CSS curve helper (unchanged API) ---------- */
 function bezier(x1,y1,x2,y2){const a=[x1,y1,x2,y2].map(Number);if(a.some(n=>!Number.isFinite(n))||a[0]<0||a[0]>1||a[2]<0||a[2]>1)throw Error("X coordinates must be between 0 and 1; all values must be finite.");return "cubic-bezier("+a.join(", ")+")";}
+// Solve x(t) before evaluating y(t): CSS progress is not the curve parameter.
+function bezierAt(progress,x1,y1,x2,y2){bezier(x1,y1,x2,y2);const x=Number(progress);if(!Number.isFinite(x)||x<0||x>1)throw Error("Progress must be between 0 and 1.");if(x===0||x===1)return x;const b=(t,a,c)=>3*(1-t)*(1-t)*t*a+3*(1-t)*t*t*c+t*t*t;let lo=0,hi=1;for(let i=0;i<48;i++){const t=(lo+hi)/2;if(b(t,Number(x1),Number(x2))<x)lo=t;else hi=t;}return b((lo+hi)/2,Number(y1),Number(y2));}
 
-return{epoch,bezier,findInLine,parseEpoch,parseInstant,fromText,describe,diff,formats,zoneList,localZone,offsetMinutes,isDst,detectUnit,wallToUtc,isoPrecise};});
+return{epoch,bezier,bezierAt,findInLine,parseEpoch,parseInstant,fromText,describe,diff,formats,zoneList,localZone,offsetMinutes,isDst,detectUnit,wallToUtc,isoPrecise};});
