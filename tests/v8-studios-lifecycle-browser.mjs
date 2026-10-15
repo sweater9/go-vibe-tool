@@ -10,11 +10,14 @@ const out=process.env.STUDIO_QA_ARTIFACTS||`artifacts/studios-lifecycle-${engine
 await fs.mkdir(out,{recursive:true});
 const results=[];let browser,currentRecorder,currentWidth;const failedWidths=new Set();
 async function check(label,run){currentRecorder?.mark(label,'start');try{await run();results.push({label,ok:true});currentRecorder?.mark(label,'passed');console.log('PASS',label);}catch(error){failedWidths.add(currentWidth);results.push({label,ok:false,error:error.message});currentRecorder?.mark(label,'failed');console.error('FAIL',label,error.message);}}
+/* reducedMotion: v2.css sets html{scroll-behavior:smooth}; in Firefox a press and release can straddle a scroll animation, so the
+   release lands on a different element and no click reaches the button (see docs/qa/V8-FIREFOX-INTERACTION-STABILITY.md).
+   Assertions are unchanged; V8_REDUCED_MOTION=0 restores default motion. */
 try{
  browser=await pw[engine].launch({headless:true});
  for(const width of [375,1280]){
   currentWidth=width;
-  const ctx=await browser.newContext({viewport:{width,height:900},...(process.env.V8_REDUCED_MOTION==='1'?{reducedMotion:'reduce'}:{})});let recorder;
+  const ctx=await browser.newContext({viewport:{width,height:900},reducedMotion:process.env.V8_REDUCED_MOTION==='0'?'no-preference':'reduce'});let recorder;
   try {
   if(engine==='firefox')await ctx.tracing.start({screenshots:true,snapshots:true,sources:true});
   const page=await ctx.newPage();page.setDefaultTimeout(15000);

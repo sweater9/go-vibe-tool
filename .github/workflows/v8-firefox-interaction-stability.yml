@@ -84,6 +84,38 @@ jobs:
         with:
           name: studio-x20-firefox
           path: artifacts/
+  firefox-developer-x20:
+    name: firefox developer suite x20 (shard ${{ matrix.shard }}, informational)
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps firefox
+      - run: npm run build
+      - name: 20 consecutive Firefox runs of v8-developer-browser
+        env:
+          SITE_ROOT: dist
+        run: |
+          set +e
+          bad=0; : > /tmp/agg.txt
+          for i in $(seq 1 20); do
+            node tests/v8-developer-browser.mjs firefox > /tmp/rep.log 2>&1
+            rc=$?
+            echo "run $i rc=$rc"
+            if [ $rc -ne 0 ]; then bad=$((bad+1)); { echo "== run $i rc=$rc"; grep -E '^FAIL' /tmp/rep.log | cut -c1-400; } >> /tmp/agg.txt; fi
+          done
+          echo "failing runs: $bad of 20"
+          echo "developer x20 shard ${{ matrix.shard }}: failing runs $bad of 20" | cat - /tmp/agg.txt > /tmp/agg-final.txt
+          node tests/diag/emit-annotation.mjs "$([ $bad -eq 0 ] && echo notice || echo error)" "firefox developer x20 shard ${{ matrix.shard }}" /tmp/agg-final.txt
+          [ $bad -eq 0 ]
   regression:
     name: regression (${{ matrix.engine }})
     runs-on: ubuntu-latest
