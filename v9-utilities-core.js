@@ -1,0 +1,5 @@
+/* V9 browser-first conversion engines. No API or network requests. */
+(function(root,factory){const api=factory();if(typeof module==="object"&&module.exports)module.exports=api;else root.GVTV9=api;})(typeof self!=="undefined"?self:globalThis,function(){"use strict";
+function epoch(value,unit="ms",zones=["UTC"]){const s=String(value).trim();if(!/^-?\d+$/.test(s))throw Error("Enter an integer epoch timestamp.");const div={s:1n,ms:1000n,us:1000000n,ns:1000000000n}[unit];if(!div)throw Error("Invalid epoch unit.");const ms=BigInt(s)*1000n/div;if(ms>8640000000000000n||ms< -8640000000000000n)throw Error("Timestamp outside supported Date range.");const date=new Date(Number(ms));return{iso:date.toISOString(),milliseconds:ms.toString(),zones:zones.map(zone=>({zone,value:new Intl.DateTimeFormat("en-GB",{timeZone:zone,dateStyle:"full",timeStyle:"long",hourCycle:"h23"}).format(date)}))};}
+function bezier(x1,y1,x2,y2){const a=[x1,y1,x2,y2].map(Number);if(a.some(n=>!Number.isFinite(n))||a[0]<0||a[0]>1||a[2]<0||a[2]>1)throw Error("X coordinates must be between 0 and 1; all values must be finite.");return "cubic-bezier("+a.join(", ")+")";}
+return{epoch,bezier};});
