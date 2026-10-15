@@ -168,12 +168,13 @@ if (process.env.MEDIA_TRACE) {
     console.log("REQUEST FAILED", r.url(), r.failure()),
   );
 }
-/* Only third-party requests are intercepted. Same-origin traffic is deliberately not routed so
-   Playwright cannot stand between the page and its service worker. */
-await context.route(
-  (url) => !url.href.startsWith(base),
-  (r) => r.abort(),
-);
+/* Only third-party http(s) requests are intercepted and blocked. Same-origin traffic is not routed
+   so Playwright cannot stand between the page and its service worker. blob:/data: URLs must never
+   be aborted: WebKit surfaces blob: media loads as intercepted requests, and aborting them made
+   every <video>/<audio> element report "cannot decode" (MEDIA_ERR_SRC_NOT_SUPPORTED) even though the
+   engine decodes the same files without interception (see tests/v9-media-probe.mjs). */
+const thirdParty = (url) => /^https?:/.test(url.protocol) && !url.href.startsWith(base);
+await context.route(thirdParty, (r) => r.abort());
 const open = async (id) => {
   await page.goto(`${base}/tools/v9-media/?tool=${id}`);
   await page.waitForSelector("#tool[data-ready]");
@@ -644,10 +645,7 @@ try {
         viewport: { width: 1280, height: 900 },
         serviceWorkers: "block",
       });
-      await ctx.route(
-        (url) => !url.href.startsWith(base),
-        (r) => r.abort(),
-      );
+      await ctx.route(thirdParty, (r) => r.abort());
       const home = await ctx.newPage();
       try {
         await home.goto(base + "/");

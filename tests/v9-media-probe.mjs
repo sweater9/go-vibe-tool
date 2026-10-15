@@ -24,7 +24,8 @@ const browser = await engines[engine].launch({
 });
 async function probe(label, contextOptions, route) {
 const context = await browser.newContext(contextOptions);
-if (route) await context.route((url) => !url.href.startsWith(base), (r) => r.abort());
+if (route === "external-all-schemes") await context.route((url) => !url.href.startsWith(base), (r) => r.abort());
+if (route === "external") await context.route((url) => /^https?:/.test(url.protocol) && !url.href.startsWith(base), (r) => r.abort());
 if (route === "all") await context.route("**/*", (r) => r.continue());
 const page = await context.newPage();
 await page.goto(base + "/tools/v9-media/index.html");
@@ -109,7 +110,8 @@ function compact(r) {
 }
 await probe("plain", {}, false);
 await probe("mobile-viewport+downloads", { viewport: { width: 390, height: 844 }, acceptDownloads: true }, false);
-await probe("with-external-route", { viewport: { width: 390, height: 844 }, acceptDownloads: true }, "external");
+await probe("route-aborts-all-non-origin-incl-blob (the old test setup)", { viewport: { width: 390, height: 844 }, acceptDownloads: true }, "external-all-schemes");
+await probe("route-aborts-third-party-http-only (the fixed test setup)", { viewport: { width: 390, height: 844 }, acceptDownloads: true }, "external");
 await probe("with-catch-all-route", { viewport: { width: 390, height: 844 }, acceptDownloads: true }, "all");
 await browser.close();
 server.close();
