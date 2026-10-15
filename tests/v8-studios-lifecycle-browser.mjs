@@ -14,7 +14,7 @@ try{
  browser=await pw[engine].launch({headless:true});
  for(const width of [375,1280]){
   currentWidth=width;
-  const ctx=await browser.newContext({viewport:{width,height:900}});let recorder;
+  const ctx=await browser.newContext({viewport:{width,height:900},...(process.env.V8_REDUCED_MOTION==='1'?{reducedMotion:'reduce'}:{})});let recorder;
   try {
   if(engine==='firefox')await ctx.tracing.start({screenshots:true,snapshots:true,sources:true});
   const page=await ctx.newPage();page.setDefaultTimeout(15000);
