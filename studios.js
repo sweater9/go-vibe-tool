@@ -35,19 +35,6 @@
       `<div class="actions">${B("urlAnalyze", "Inspect & clean")}${B("urlCopy", "Copy result")}</div><details><summary>Build a UTM campaign link</summary><div class="grid2">${F("utmSource", "UTM source", "newsletter")}${F("utmMedium", "UTM medium", "email")}${F("utmCampaign", "UTM campaign", "launch")}</div>${B("urlUtm", "Build UTM link")}</details><div id="urlResult" class="result" role="status" aria-live="polite">Enter a link to inspect.</div><p class="note">Known tracking keys are removed; other query data is retained. Redirects are never followed and a clean link is not a safety verdict.</p>`
     );
   }
-  function freelanceTemplate() {
-    const fields = [
-      ["target", "Annual target income", 100000],
-      ["overhead", "Annual overhead", 15000],
-      ["hours", "Working hours per week", 40],
-      ["weeks", "Working weeks per year", 46],
-      ["utilization", "Billable utilization (%)", 65],
-      ["tax", "User-estimated effective tax (%)", 0],
-      ["margin", "Desired profit margin (%)", 15],
-      ["quoteHours", "Quoted project hours", 20],
-    ];
-    return `<div class="grid2">${fields.map(([id, label, v]) => F(id, label, v, "number")).join("")}</div><p class="note">Use a consistent currency. Tax is your assumption; no jurisdiction-specific tax rate is supplied.</p>${B("calcRate", "Calculate & quote")}<div id="rateResult" class="result" role="status" aria-live="polite"></div><details open><summary>Effective hourly rate for a completed project (retained)</summary><div class="grid2">${F("hrRevenue", "Project revenue", 5000, "number")}${F("hrCosts", "Direct costs", 500, "number")}${F("hrBill", "Billable hours", 40, "number")}${F("hrUnpaid", "Unpaid/admin hours", 10, "number")}</div>${B("calcEffective", "Calculate effective rate")}<div id="effectiveResult" class="result" role="status" aria-live="polite"></div></details><a href="./?tool=percentage-change">Open independent Percentage Change calculator</a>`;
-  }
   function privacyTemplate() {
     return `<div class="field"><label for="piiMode">Mode</label><select id="piiMode"><option value="redact">Auto-Redact (preview)</option><option value="audit">Audit Only (unchanged input)</option></select></div><fieldset class="categories"><legend>Patterns to include</legend>${[
       ["email", "Email addresses"],
@@ -182,57 +169,6 @@
           "\nClipboard unavailable; select the displayed URL.";
       }
     };
-    N("calcRate").onclick = () => {
-      try {
-        const r = c.freelance(
-          Object.fromEntries(
-            [
-              "target",
-              "overhead",
-              "hours",
-              "weeks",
-              "utilization",
-              "tax",
-              "margin",
-              "quoteHours",
-            ].map((k) => [k, N(k).value]),
-          ),
-        );
-        N("rateResult").textContent = [
-          `Estimated billable hours/year: ${r.billable.toFixed(1)}`,
-          `Revenue requirement before margin: ${r.revenue.toFixed(2)}`,
-          `Break-even hourly rate: ${r.base.toFixed(2)}`,
-          `Suggested hourly rate: ${r.rate.toFixed(2)}`,
-          `Quote: ${r.quote.toFixed(2)}`,
-          "Assumptions: tax applied to target income; margin applied to revenue.",
-        ].join("\n");
-      } catch (e) {
-        N("rateResult").textContent = e.message;
-      }
-    };
-    N("calcEffective").onclick = () => {
-      try {
-        const r = c.effective({
-          revenue: N("hrRevenue").value,
-          costs: N("hrCosts").value,
-          billable: N("hrBill").value,
-          unpaid: N("hrUnpaid").value,
-        });
-        N("effectiveResult").textContent =
-          `Net income: ${r.net.toFixed(2)}\nEffective hourly rate: ${r.rate === null ? "Undefined from zero hours" : r.rate.toFixed(2)}\nBillable utilization: ${r.utilization === null ? "Undefined" : r.utilization.toFixed(1) + "%"}`;
-      } catch (e) {
-        N("effectiveResult").textContent = e.message;
-      }
-    };
-    // Results describe the assumptions used, never a subsequently edited form.
-    for (const id of ["target", "overhead", "hours", "weeks", "utilization", "tax", "margin", "quoteHours"])
-      N(id).addEventListener("input", () => {
-        N("rateResult").textContent = "Assumptions changed; calculate again.";
-      });
-    for (const id of ["hrRevenue", "hrCosts", "hrBill", "hrUnpaid"])
-      N(id).addEventListener("input", () => {
-        N("effectiveResult").textContent = "Project inputs changed; calculate again.";
-      });
     const invalidate = () => {
       piiPreview = null;
       N("redactOutput").textContent = "";
@@ -312,7 +248,6 @@
       )
       .join("")}</div>${[
       ["url", urlTemplate()],
-      ["freelance", freelanceTemplate()],
       [
         "qr",
         '<p id="qrValidation" class="note" role="status">Plain text and HTTP(S) links can be encoded. Wi-Fi, contact, image decoding and camera controls are retained.</p>' +
