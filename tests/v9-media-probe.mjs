@@ -22,7 +22,11 @@ const browser = await engines[engine].launch({
   ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}),
   ...(engine === "chromium" ? { args: ["--no-sandbox"] } : {}),
 });
-const page = await browser.newPage();
+async function probe(label, contextOptions, route) {
+const context = await browser.newContext(contextOptions);
+if (route) await context.route((url) => !url.href.startsWith(base), (r) => r.abort());
+if (route === "all") await context.route("**/*", (r) => r.continue());
+const page = await context.newPage();
 await page.goto(base + "/tools/v9-media/index.html");
 const fixtures = {};
 for (const name of ["video-tone.webm", "video-tone-vp9.webm", "video-tone.mp4", "video-tone.ogv"])
@@ -94,6 +98,18 @@ const result = await page.evaluate(async (fixtures) => {
   await ac.close().catch(() => {});
   return out;
 }, fixtures);
-console.log("PROBE", engine, (await browser.version?.()) || browser.version(), JSON.stringify(result, null, 1));
+console.log("PROBE", label, engine, browser.version(), JSON.stringify(compact(result)));
+await context.close();
+}
+function compact(r) {
+  return {
+    decodes: Object.fromEntries(Object.entries(r.fixtures).filter(([k]) => k.endsWith("/typed")).map(([k, v]) => [k.replace("/typed", ""), v.outcome + (v.code ? " code " + v.code : "") + (v.seek ? " " + v.seek : "")])),
+    api: r.api, audio: r.audio, canPlayType: r.canPlayType,
+  };
+}
+await probe("plain", {}, false);
+await probe("mobile-viewport+downloads", { viewport: { width: 390, height: 844 }, acceptDownloads: true }, false);
+await probe("with-external-route", { viewport: { width: 390, height: 844 }, acceptDownloads: true }, "external");
+await probe("with-catch-all-route", { viewport: { width: 390, height: 844 }, acceptDownloads: true }, "all");
 await browser.close();
 server.close();
