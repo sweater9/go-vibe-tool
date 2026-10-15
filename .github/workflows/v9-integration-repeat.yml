@@ -2,6 +2,10 @@ name: V9 Integration Repeat (manual)
 # Manual stability measurement only. Read-only, no secrets, no deployment.
 on:
   workflow_dispatch:
+  # Bootstrap: also runs when this file changes (so it registers and can be re-run manually).
+  push:
+    branches: [integration/v9-agent1-agent2]
+    paths: ['.github/workflows/v9-integration-repeat.yml']
 permissions:
   contents: read
 concurrency:
