@@ -157,9 +157,8 @@ try {
    await goto('/');await homeReady();await page.evaluate(()=>navigator.serviceWorker.ready);
    await page.reload({waitUntil:'networkidle',timeout:45000});await homeReady();assert.ok(await page.evaluate(()=>!!navigator.serviceWorker.controller));
    // The precache is filled asynchronously by the install event; poll for it (assertions below are unchanged).
-   const swCacheName=(await fs.readFile('sw.js','utf8')).match(/const CACHE="([^"]+)"/)[1];
-   await page.waitForFunction(async(name)=>{const c=await caches.open(name);const k=(await c.keys()).map(r=>new URL(r.url).pathname);return ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong/index.html','/play/word-logic/index.html'].every(x=>k.includes(x))},swCacheName,{timeout:30000}).catch(()=>{});
-   const cached=await page.evaluate(async(name)=>{const c=await caches.open(name);return (await c.keys()).map(r=>new URL(r.url).pathname)},swCacheName);
+   await page.waitForFunction(async()=>{const c=await caches.open('govibetool-v8-8');const k=(await c.keys()).map(r=>new URL(r.url).pathname);return ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong/index.html','/play/word-logic/index.html'].every(x=>k.includes(x))},null,{timeout:30000}).catch(()=>{});
+   const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v8-8');return (await c.keys()).map(r=>new URL(r.url).pathname)});
    for(const path of ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong/index.html','/play/word-logic/index.html']) assert.ok(cached.includes(path),`uncached ${path}`);
    if (!production) {
     await stopServer();
