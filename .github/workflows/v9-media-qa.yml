@@ -72,6 +72,10 @@ jobs:
       - name: Build static distribution
         id: build
         run: node scripts/build-static.mjs
+      - name: Browser capability probe (diagnostic, not a pass/fail gate)
+        run: |
+          mkdir -p artifacts/v9-media
+          node tests/v9-media-probe.mjs ${{ matrix.engine }} 2>&1 | tee artifacts/v9-media/probe.log
       - name: Test source checkout
         run: |
           mkdir -p artifacts/v9-media
