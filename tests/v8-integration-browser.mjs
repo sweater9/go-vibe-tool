@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
+import { createStudioRecorder } from './helpers/studio-interaction-recorder.mjs';
 const pw = await import(process.env.PLAYWRIGHT_PACKAGE || 'playwright');
 const engine = process.argv[2] || 'chromium';
 const rootDir = path.resolve(process.env.SITE_ROOT || ((await fs.stat('dist').catch(() => null)) ? 'dist' : '.'));
@@ -28,9 +29,31 @@ const startOrigin=()=>new Promise(resolve=>server.listen(port,'127.0.0.1',resolv
 const base = `http://127.0.0.1:${port}/`;
 const results = []; let browser;
 const watchdog = setTimeout(() => { console.error('FAIL watchdog: suite exceeded 240 s'); process.exit(1); }, 240000);
+/* Opt-in failure tracing (V8_STUDIO_EVENT_TRACE=1): records pointer/tab/calculation events and navigations and
+   prints them only when a check fails. Adds no assertions and does not alter any existing one. */
+const TRACE = process.env.V8_STUDIO_EVENT_TRACE === '1';
+let recorder = null, tracePage = null; const navLog = [];
+const compact = v => v ? ([v.id, v.buttonId, v.studio].filter(Boolean).join('/') || v.tag) : '-';
+async function dumpTrace(label) {
+  if (!TRACE || !recorder) return;
+  const out = line => console.error('FAIL-TRACE', line);
+  try {
+    const state = await tracePage.evaluate(() => ({ path: location.pathname + location.search, ready: document.readyState, origin: Math.round(performance.timeOrigin), now: Math.round(performance.now()), roots: document.querySelectorAll('#studioRoot').length, tab: document.querySelector('#studioRoot [role=tab][aria-selected=true]')?.getAttribute('data-studio') || null, rate: (document.getElementById('rateResult')?.textContent || '').slice(0, 60), util: document.getElementById('utilization')?.value ?? null, target: document.getElementById('target')?.value ?? null, ctl: !!navigator.serviceWorker?.controller })).catch(e => ({ evalError: String(e.message).slice(0, 80) }));
+    out(`${label} STATE ${JSON.stringify(state)}`);
+  } catch (e) { out(`${label} STATE-ERR ${String(e.message).slice(0, 80)}`); }
+  out(`${label} NAVS ${navLog.slice(-8).map(n => `${n.ms}ms ${n.kind} ${n.url}`).join(' | ')}`);
+  const { events, droppedEvents, collectionError } = await recorder.flush();
+  const mine = events.filter(e => e.check === label || (e.type === 'test-step' && e.label === label));
+  out(`${label} EVENTS ${mine.length} dropped=${droppedEvents} err=${collectionError}`);
+  for (const e of mine.slice(-30)) {
+    if (e.type === 'test-step') { out(`${label} step ${e.status}`); continue; }
+    out(`${label} #${e.sequence} ${e.type} t=${Math.round(e.time)} o=${Math.round(e.timeOrigin) % 100000} tgt=${compact(e.target)} hit=${compact(e.hit)} xy=${e.x ?? '-'},${e.y ?? '-'} tab=${e.selectedTab} ws=${e.workspaceActive} rs=${e.readyState}${e.control ? ' ctl=' + e.control : ''}${e.result ? ' res=' + JSON.stringify(String(e.result).slice(0, 30)) : ''}${e.reason ? ' why=' + e.reason : ''}`);
+  }
+}
 async function check(label, fn) {
-  try { await fn(); results.push({ label, ok: true }); console.log('PASS', label); }
-  catch (e) { results.push({ label, ok: false, error: e.message }); console.error('FAIL', label, '::', String(e.message).split('\n')[0].slice(0, 300)); }
+  recorder?.mark(label, 'start');
+  try { await fn(); recorder?.mark(label, 'passed'); results.push({ label, ok: true }); console.log('PASS', label); }
+  catch (e) { recorder?.mark(label, 'failed'); results.push({ label, ok: false, error: e.message }); console.error('FAIL', label, '::', String(e.message).split('\n')[0].slice(0, 300)); await dumpTrace(label); }
 }
 const NEW_TOOLS = { 'curl-snippets': /cURL/i, 'key-hash': /hash|token|uuid/i, 'regex-playground': /regex/i, 'tailwind-css': /tailwind/i, 'shadow-glass': /shadow|glass/i, 'svg-sanitizer': /svg/i, 'image-metadata-stripper': /metadata|exif/i, 'image-batch-compressor': /compress/i, 'table-converter': /table|markdown/i };
 const NINE = ['ai-prompts', 'productivity', 'files-pdf', 'images-design', 'privacy-security', 'developer', 'business-finance', 'writing-text', 'links-web'];
@@ -54,6 +77,12 @@ try {
     const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: mobile, isMobile: mobile && engine !== 'firefox' });
     await blockAds(ctx);
     const page = await ctx.newPage(); page.setDefaultTimeout(15000);
+    if (TRACE) {
+      tracePage = page; navLog.length = 0; const t0 = Date.now();
+      recorder = await createStudioRecorder(page);
+      page.on('framenavigated', f => { if (f === page.mainFrame()) navLog.push({ ms: Date.now() - t0, kind: 'nav', url: new URL(f.url()).pathname + new URL(f.url()).search }); });
+      page.on('load', () => navLog.push({ ms: Date.now() - t0, kind: 'load', url: new URL(page.url()).pathname }));
+    }
     const errs = []; watch(page, errs);
     await page.goto(base); await ready(page); await swReady(page);
     const tag = s => `${label} ${s}`;
@@ -213,6 +242,7 @@ try {
     await check(tag('no uncaught page errors during home, category and tool navigation'), async () => {
       assert.deepEqual(errs, [], `Uncaught browser errors: ${JSON.stringify(errs)}`);
     });
+    recorder = null; tracePage = null;
     await ctx.close();
   }
 
