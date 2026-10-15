@@ -21,6 +21,7 @@ jobs:
           node-version: '22'
       - run: npm install --no-save --package-lock=false jsdom@26.1.0
       - run: node --test tests/v8-studios.mjs tests/v8-studios-lifecycle.mjs tests/v8-studio-diagnostics.mjs
+      - run: npm run build
       - name: Static integration checks
         run: |
           set +e
