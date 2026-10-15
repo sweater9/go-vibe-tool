@@ -33,9 +33,12 @@ jobs:
       - run: npx playwright install --with-deps webkit
       - name: dist-browser on WebKit (${{ matrix.side }} #${{ matrix.n }})
         run: |
-          set +e
+          set -o pipefail
           node tests/dist-browser.mjs webkit 2>&1 | tee dist.log
-          echo "RESULT side=${{ matrix.side }} run=${{ matrix.n }} sha=$(git rev-parse HEAD) $(grep -E 'passed, [0-9]+ failed' dist.log) int64-lines=$(grep -c int64 dist.log)"
+          rc=$?
+          echo "RESULT side=${{ matrix.side }} run=${{ matrix.n }} sha=$(git rev-parse HEAD) rc=$rc $(grep -E 'passed, [0-9]+ failed' dist.log) int64-lines=$(grep -c int64 dist.log)"
+          echo "::notice title=${{ matrix.side }} #${{ matrix.n }}::rc=$rc $(grep -E 'passed, [0-9]+ failed' dist.log)"
+          exit $rc
   media-repeat:
     # Firefox and WebKit offline/media stability of the fixed Agent 2 suite, source and built distribution.
     runs-on: ubuntu-24.04
@@ -57,4 +60,5 @@ jobs:
       - name: media suite (${{ matrix.engine }} ${{ matrix.target }} #${{ matrix.n }})
         run: |
           if [ "${{ matrix.target }}" = "dist" ]; then export SITE_ROOT=dist; fi
+          set -o pipefail
           node tests/v9-media-browser.mjs ${{ matrix.engine }} 2>&1 | tee media.log
