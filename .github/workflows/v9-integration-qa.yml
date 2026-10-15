@@ -3,15 +3,11 @@ name: V9 Integration QA
 on:
   push:
     branches: [integration/v9-agent1-agent2]
+    paths-ignore: ['**/*.md', '.github/workflows/v9-integration-repeat.yml']
   pull_request:
     branches: [main]
     paths-ignore: ['**/*.md']
   workflow_dispatch:
-    inputs:
-      repeat:
-        description: Run only the WebKit dist-browser repeat (integration vs V8 baseline) instead of the full QA
-        type: boolean
-        default: false
 permissions:
   contents: read
 concurrency:
@@ -19,7 +15,6 @@ concurrency:
   cancel-in-progress: true
 jobs:
   unit-build:
-    if: ${{ !inputs.repeat }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -53,7 +48,6 @@ jobs:
             build.log
 
   browser-v9:
-    if: ${{ !inputs.repeat }}
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     strategy:
@@ -97,7 +91,6 @@ jobs:
           path: artifacts/
 
   browser-v8-regression:
-    if: ${{ !inputs.repeat }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
@@ -202,29 +195,3 @@ jobs:
         with:
           name: v8-regression-${{ matrix.engine }}-${{ github.sha }}
           path: artifacts/
-
-  webkit-dist-repeat:
-    # Manual only. Measures an intermittent WebKit page error ("int64" on /tools/password-generator, a V8 page V9 does not touch)
-    # on BOTH the integration branch and the accepted V8 baseline, so it can be classified with data instead of assumed.
-    if: ${{ inputs.repeat }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        side: [integration, baseline]
-        n: [1, 2, 3, 4, 5, 6]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ matrix.side == 'baseline' && 'db1d37540d92919f7b09612a91502dff0faf358c' || github.sha }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - run: npm install --no-save --package-lock=false playwright@1.56.0
-      - run: npx playwright install --with-deps webkit
-      - name: dist-browser on WebKit (${{ matrix.side }} #${{ matrix.n }})
-        run: |
-          set +e
-          node tests/dist-browser.mjs webkit 2>&1 | tee dist.log
-          echo "RESULT side=${{ matrix.side }} run=${{ matrix.n }} sha=$(git rev-parse HEAD) $(grep -E 'passed, [0-9]+ failed' dist.log) $(grep -c "int64" dist.log) int64-lines"
