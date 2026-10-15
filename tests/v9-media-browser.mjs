@@ -87,7 +87,7 @@ const types = {
 /* Source runs use a plain static server. Built-distribution runs use the same Cloudflare-style
    routing as production (extensionless URLs, folder redirects, 404 page) so redirects and
    caching of redirected responses are exercised, not just file reads. */
-const sourceServer = () => {
+const sourceServer = (fixedPort = 0) => {
   const server = http.createServer(async (req, res) => {
     try {
       let f = path.resolve(
@@ -109,9 +109,9 @@ const sourceServer = () => {
   const sockets = new Set();
   server.on("connection", (s) => (sockets.add(s), s.on("close", () => sockets.delete(s))));
   return {
-    start: (port = 0) =>
+    start: () =>
       new Promise((r) =>
-        server.listen(port, "127.0.0.1", () => r(server.address().port)),
+        server.listen(fixedPort, "127.0.0.1", () => r(server.address().port)),
       ),
     stop: () =>
       new Promise((r) => {
@@ -121,7 +121,7 @@ const sourceServer = () => {
   };
 };
 const makeServer = (port = 0) => {
-  if (target === "source") return sourceServer();
+  if (target === "source") return sourceServer(port);
   const dist = createDistServer(root, { port });
   return { start: async () => (await dist.start(), dist.port), stop: dist.stop };
 };
