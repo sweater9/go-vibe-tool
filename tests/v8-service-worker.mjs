@@ -165,6 +165,15 @@ await test('activate drops old caches, keeps the current one and claims clients'
   assert.equal(sw.state.claimed, true);
 });
 
+await test('activate keeps the scoped V9 media worker cache (offline OCR/PDF engines) but still drops unrelated old caches', async () => {
+  const sw = boot();
+  await sw.caches.open('gvt-v9-media-1'); await sw.caches.open('govibetool-old'); await sw.caches.open('gvt-other');
+  const current = source.match(/const CACHE="([^"]+)"/)[1];
+  await sw.caches.open(current);
+  await sw.activate();
+  assert.deepEqual([...sw.caches.stores.keys()].sort(), [current, 'gvt-v9-media-1'].sort());
+});
+
 await test('every browser-chrome icon the page declares is exempt, and nothing broader (no script/style/page bypass)', async () => {
   const exempt = source.match(/const BROWSER_ICONS=\/(.+)\/;/)[1];
   assert.match(exempt, /icon\\\.svg/); assert.match(exempt, /apple-touch-icon\\\.png/);

@@ -1,5 +1,7 @@
 const CACHE="govibetool-v8-8";
 const LEGACY_CACHE="govibetool-v2-7";
+// Owned by the scoped worker in /tools/v9-media/ (offline OCR/PDF engines). A global upgrade must not purge it.
+const MEDIA_CACHE_PREFIX="gvt-v9-media-";
 const ASSETS=[
   "./",
   "./index.html",
@@ -392,7 +394,7 @@ async function precache(){
  await Promise.all(Array.from({length:Math.min(PRECACHE_CONCURRENCY,queue.length)},worker));
 }
 self.addEventListener("install",event=>event.waitUntil(precache().then(()=>self.skipWaiting())));
-self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
+self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE&&!key.startsWith(MEDIA_CACHE_PREFIX)).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 /* Navigations with new query strings must reuse their own cached document, not the home fallback. */
 const lookupCached=async request=>{
  const direct=await caches.match(request);if(direct)return direct;
