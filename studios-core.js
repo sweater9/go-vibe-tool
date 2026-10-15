@@ -12,8 +12,6 @@
     "tracking-check": "url",
     "link-fingerprint": "url",
     "link-fingerprint-inspector": "url",
-    "hourly-rate": "freelance",
-    "effective-hourly-rate": "freelance",
     "qr-payload": "qr",
     "qr-studio": "qr",
     metadata: "privacy",
@@ -21,13 +19,11 @@
   };
   const canonical = {
     url: "link-fingerprint",
-    freelance: "hourly-rate",
     qr: "qr-studio",
     privacy: "pii-secret-redactor",
   };
   const titles = {
     url: "URL & Link Studio",
-    freelance: "Freelance & Hourly Rate Calculator",
     qr: "QR Studio v2",
     privacy: "PII & Secret Redactor",
   };
