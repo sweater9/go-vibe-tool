@@ -39,7 +39,7 @@ See `docs/v9-agent2-media.md` for the table. In short: the failures were in the 
 
 ## Test evidence (hosted GitHub Actions)
 
-Integration, commit `c0abf5da8ceab022ab8c46b28efbc1983a894cbc`: [run 38795262845](https://github.com/sweater9/go-vibe-tool/actions/runs/38795262845), all 7 jobs green.
+Integration, tested at commit `42555d6a6c1347eead1cd836a55ed6f8452b7c68`: [run 38798983694](https://github.com/sweater9/go-vibe-tool/actions/runs/38798983694), all 7 jobs green (an earlier identical-code run on `c0abf5d`: [38795262845](https://github.com/sweater9/go-vibe-tool/actions/runs/38795262845)). Commits after `42555d6` change only documentation.
 
 | Gate | Result |
 | --- | --- |
@@ -58,7 +58,7 @@ Agent 2 branch, commit `b38998f055f682f1431174739872ff0085f35c19`: [run 38792811
 ## Regression findings (reproduced on the baseline, not assumed)
 
 - `v5-maintenance-browser` reports `console: Failed to load resource: net::ERR_CONNECTION_REFUSED` (4 widths) on Chromium and WebKit. **Reproduced identically on the V8 baseline `db1d375`** (local Chromium and CI). Cause: with the origin stopped but `navigator.onLine` still true, the worker deliberately leaves the browser-owned favicon request to the browser (PR #19 trade-off). Unchanged by V9; the CI step fails only on issues absent from the baseline.
-- `dist-browser` on WebKit failed once with `pageerror: int64` on `/tools/password-generator` (mobile, run 38792814186) and passed on both baseline and integration in the next run. The page and `tools.js` are byte-identical to the baseline. It is **intermittent and not yet classified**; see "Remaining risks" for the repeat measurement.
+- `dist-browser` on WebKit intermittently fails with `pageerror: int64` (seen on `/tools/password-generator` on this branch, run 38792814186, and on `/terms` on the **V8 baseline** `db1d375`). Measured by [repeat run 38798971076](https://github.com/sweater9/go-vibe-tool/actions/runs/38798971076): WebKit `dist-browser` x6 on the baseline = 1 failure (`/terms`), x6 on this branch = 0 failures. Pages and `tools.js` are unchanged by V9. **Pre-existing, intermittent, WebKit-only, unrelated to V9**; the same run repeated the Agent 2 media suite on Firefox and WebKit (source and `dist`, 5 each) with no failures.
 - An unknown `?tool=<id>` throws in `tools.js` `shell()` on the baseline too (reproduced). Not changed.
 - Agent 1's PR listed `v8-studios`, `v8-integration` and `v8-integration-browser` as failing on its (older) base. On the accepted V8 baseline they pass (`v8-integration` 11 checks, `v8-integration-browser` 66 on Chromium).
 
@@ -75,6 +75,13 @@ Agent 2 branch, commit `b38998f055f682f1431174739872ff0085f35c19`: [run 38792811
 - WebM export needs `HTMLMediaElement.captureStream` and `MediaRecorder`: unavailable in WebKit (no `MediaRecorder`) and in Firefox (no `captureStream`; `mozCaptureStream` is intentionally not used in V9). The tool says so, offers the GIF alternative and never reports a successful export; CI records this as `capability-limited`. Video-to-GIF, GIF trimming, audio, PDF, OCR, screenshot and Bézier pass in all three engines.
 - A deep link to a media tool opened offline works from the global cache only for the shell visited online before; PDF and OCR engines need the in-tool "Prepare offline use" step (about 22 MB).
 - Output is limited to what browsers can decode; MP4 is not decodable in Firefox, and Chromium (open-source build) cannot decode H.264.
+
+## Remaining risks
+
+- The WebKit `int64` page error above is intermittent in the existing V8 site (about 1 in 6 mobile `dist-browser` runs on the baseline). Not fixed here (out of scope, V8 preserved); a release owner may want to track it.
+- `v5-maintenance-browser` flags the favicon request while the origin is stopped (baseline behaviour). The repository's existing "V5/V8 Cross-Browser PR Gate" runs that suite without an A/B and will show red on Chromium and WebKit for this reason (it reports `failed suites = v5-maintenance-browser` only); the V9 workflow's A/B comparison shows no new issues.
+- Firefox and WebKit cannot export WebM (see limitations); users get an accurate message and a GIF alternative.
+- Local verification covered Chromium only; Firefox and WebKit evidence is hosted CI.
 
 ## Decision for the release owner
 
