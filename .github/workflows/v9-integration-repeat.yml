@@ -62,3 +62,34 @@ jobs:
           if [ "${{ matrix.target }}" = "dist" ]; then export SITE_ROOT=dist; fi
           set -o pipefail
           node tests/v9-media-browser.mjs ${{ matrix.engine }} 2>&1 | tee media.log
+  firefox-v8-browser-repeat:
+    # v8-browser on Firefox failed once (1 of 126 checks: a 10 s wait for category tool cards at 1440 px) in a full QA run
+    # after passing on three earlier runs of identical code. Measure it on integration AND the V8 baseline.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        side: [integration, baseline]
+        n: [1, 2, 3, 4, 5, 6]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.side == 'baseline' && 'db1d37540d92919f7b09612a91502dff0faf358c' || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps firefox
+      - run: npm run build
+      - name: v8-browser on Firefox (${{ matrix.side }} #${{ matrix.n }})
+        env:
+          SITE_ROOT: dist
+        run: |
+          set -o pipefail
+          node tests/v8-browser.mjs firefox 2>&1 | tee v8.log
+          rc=$?
+          echo "RESULT side=${{ matrix.side }} run=${{ matrix.n }} sha=$(git rev-parse HEAD) rc=$rc $(grep -E 'firefox: [0-9]+ passed' v8.log)"
+          grep -E '^FAIL' v8.log | cut -c1-300 || true
+          exit $rc
+
