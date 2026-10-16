@@ -1,0 +1,60 @@
+name: v8-developer Firefox repeat (manual measurement)
+# Measurement only. Read-only, no secrets, no deployment, never touches the release pin.
+# Classifies the Firefox failure of tests/v8-developer-browser.mjs seen in V9 Integration QA for PR #35 by running it
+# repeatedly on the built distribution (SITE_ROOT=dist) on: the accepted V8 baseline, the immutable Mahjong V9 release SHA,
+# and the Image Compressor fix commit (which does not touch any developer-tool code).
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/file-media-webkit-verify]
+    paths: ['.github/workflows/v8-developer-firefox-repeat.yml']
+permissions:
+  contents: read
+concurrency:
+  group: v8-developer-firefox-repeat-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  repeat:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        side: [baseline, release, fixed]
+        n: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.side == 'baseline' && 'db1d37540d92919f7b09612a91502dff0faf358c' || matrix.side == 'release' && 'a85e4695a139c56456c743d607a79f76ff8abda8' || '17d1bbbe8c8e212ceaa3717bad292e110fd19cd8' }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - name: Install browser (retry; the download occasionally hangs)
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            timeout -k 10 240 npx playwright install --with-deps firefox && exit 0
+            sudo pkill -f 'apt-get|dpkg' || true
+            sleep 5
+          done
+          exit 1
+      - run: npm run build
+      - name: v8-developer-browser on Firefox (${{ matrix.side }} #${{ matrix.n }})
+        env:
+          SITE_ROOT: dist
+        run: |
+          set +e
+          mkdir -p artifacts
+          node tests/v8-developer-browser.mjs firefox > artifacts/dev.log 2>&1
+          rc=$?
+          sha=$(git rev-parse --short HEAD)
+          fails=$(grep -n -i -E "fail|timeout|not ok|✗|✘|error" artifacts/dev.log | cut -c1-260 | head -6 | tr '\n' '|' | cut -c1-900)
+          echo "RESULT side=${{ matrix.side }} run=${{ matrix.n }} sha=$sha rc=$rc"
+          echo "::notice title=${{ matrix.side }} #${{ matrix.n }} sha=$sha rc=$rc::$fails"
+          exit $rc
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v8-developer-firefox-${{ matrix.side }}-${{ matrix.n }}
+          path: artifacts/
