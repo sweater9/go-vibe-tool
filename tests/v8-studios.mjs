@@ -6,7 +6,9 @@ import { spawnSync } from "node:child_process";
 const c = createRequire(import.meta.url)("../studios-core.js");
 test("legacy aliases match real IDs; Percentage Change is independent", () => {
   assert.equal(c.aliases["link-fingerprint"], "url");
-  assert.equal(c.aliases["hourly-rate"], "freelance");
+  for (const retired of ["hourly-rate", "effective-hourly-rate"])
+    assert.equal(c.aliases[retired], undefined, retired + " remains retired by the V9 base");
+  assert.equal(c.titles.freelance, undefined);
   assert.equal(c.aliases["percentage-change"], undefined);
   for (const id of [
     "url-cleaner",

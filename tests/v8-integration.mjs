@@ -32,8 +32,8 @@ ok('index.html has no literal "\\n" text nodes between tags', () => {
 });
 
 ok('service-worker cache name is numeric, and a single version is used everywhere', () => {
-  const name = sw.match(/const CACHE="(govibetool-v8-\d+)"/);
-  assert.ok(name, 'cache name matches govibetool-v8-<n>');
+  const name = sw.match(/const CACHE="(govibetool-v9-1)"/);
+  assert.ok(name, 'cache name matches the combined V9 candidate');
   for (const f of ['tests/v8-discovery.mjs', 'tests/v5-maintenance-browser.mjs']) assert.ok(read(f).includes(name[1]), f + ' pins ' + name[1]);
 });
 
@@ -68,10 +68,11 @@ ok('script order: catalogue scripts register tools before discovery boots, routi
   assert.ok(at('studios-routing.js') > at('tools/file-media/file-media-tools.js') && at('studios-routing.js') < at('v8-discovery.js'), 'studios-routing.js loads after every openTool wrapper');
 });
 
-ok('studio route table: routing script and studio page agree, targets are the four studios', () => {
+ok('studio route table: routing script and studio page agree, targets are the three retained studios', () => {
   const a = routeTable(routing), b = routeTable(studios);
   assert.deepEqual(a, b);
-  assert.deepEqual([...new Set(Object.values(a))].sort(), ['freelance', 'privacy', 'qr', 'url']);
+  assert.deepEqual([...new Set(Object.values(a))].sort(), ['privacy', 'qr', 'url']);
+  for (const id of ['hourly-rate', 'effective-hourly-rate']) assert.equal(a[id], undefined, id + ' remains retired');
 });
 
 ok('studio route table only uses real catalogue IDs and never captures a richer in-app tool', () => {
@@ -80,7 +81,7 @@ ok('studio route table only uses real catalogue IDs and never captures a richer 
   const table = routeTable(routing);
   for (const id of Object.keys(table)) assert.ok(ids.has(id) || ['link-fingerprint-inspector','effective-hourly-rate'].includes(id), 'unknown tool id in routes: ' + id);
   assert.ok(!('percentage-change' in table), 'Percentage Change remains independent'); assert.equal(table['qr-studio'], 'qr'); assert.equal(table['pii-secret-redactor'], 'privacy'); for (const retained of ['qrTemplate()', 'redactorTemplate()', 'originalGenerate()', 'originalRedact()']) assert.ok(studios.includes(retained), retained + ' retains richer shared engine');
-  for (const real of ['url-cleaner', 'utm-builder', 'link-fingerprint', 'hourly-rate']) assert.ok(real in table, real + ' routes to a studio');
+  for (const real of ['url-cleaner', 'utm-builder', 'link-fingerprint']) assert.ok(real in table, real + ' routes to a studio');
 });
 
 ok('package.json test script runs the integration and studio checks; nine categories are not changed here', () => {

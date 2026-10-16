@@ -31,9 +31,14 @@ for (const [i, command] of commands.entries()) {
   fs.closeSync(fd);
   results.push({ command, ...result, elapsedMs: Date.now() - started, log: path.relative(process.cwd(), log) });
   console.log(`${result.exitCode ? 'FAIL' : 'PASS'} ${command} (${Date.now() - started} ms)`);
+  const escape = value => String(value).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
   if (result.exitCode) {
-    console.error(fs.readFileSync(log, 'utf8').slice(-5000));
-    if (process.env.GITHUB_ACTIONS) console.error(`::error::${command} failed; see ${path.basename(log)} in v9-release artifacts`);
+    const content = fs.readFileSync(log, 'utf8');
+    console.error(content.slice(-5000));
+    const detail = content.split('\n').filter(line => /^(FAIL|✖|Error|AssertionError)/.test(line)).join('\n').slice(0, 3500);
+    if (process.env.GITHUB_ACTIONS) console.error(`::error::${escape(command + ' failed: ' + detail)}; see ${path.basename(log)} in v9-release artifacts`);
+  } else if (process.env.GITHUB_ACTIONS) {
+    console.log(`::notice::PASS ${escape(command)}`);
   }
   fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify({ revision, dirty, mode, engine, target, results }, null, 2));
 }

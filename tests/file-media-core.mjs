@@ -220,7 +220,7 @@ const read = f => readFileSync(new URL('../' + f, import.meta.url), 'utf8');
 ok('registered: index.html loads the tools after v6-tools.js; sw.js precaches the files and the cache name was bumped', () => {
   const html = read('index.html'); assert.ok(html.indexOf('v6-tools.js') < html.indexOf('tools/file-media/file-media-tools.js') && html.indexOf('tools/file-media/file-media-tools.js') < html.indexOf('discovery.js'));
   const sw = read('sw.js'); for (const f of ['file-media-tools.js', 'file-media.css', 'fm-svg.js', 'fm-image.js', 'fm-table.js']) assert.ok(sw.includes('./tools/file-media/' + f), f);
-  assert.ok(sw.includes('./vendor/svgo.browser.js')); assert.match(sw, /const CACHE="govibetool-v8-\d+"/);
+  assert.ok(sw.includes('./vendor/svgo.browser.js')); assert.match(sw, /const CACHE="govibetool-v9-1"/);
   for (const f of ['tools/file-media/file-media-tools.js', 'tools/file-media/fm-svg.js', 'tools/file-media/fm-image.js', 'tools/file-media/fm-table.js', 'tools/file-media/fm-avif-worker.js', 'vendor/svgo.browser.js', 'vendor/avif/avif_enc.js', 'vendor/avif/avif_enc.wasm']) assert.ok(existsSync(new URL('../' + f, import.meta.url)), f + ' exists');
 });
 ok('registry: four tools, unique ids, each in one of the existing catalogue categories', () => {

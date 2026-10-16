@@ -22,9 +22,11 @@ Branch: `integration/v9-combined-qa`. No PR merge or deployment is authorized.
 
 `.github/workflows/v9-combined-qa.yml` runs the static gate and six browser/target jobs on this isolated branch. Logs and exact revision/dirty-worktree metadata are retained under `artifacts/v9-release/`. A successful job does not imply unavailable browser exports ran: media reports retain `capability-limited` outcomes.
 
-## Known baseline mismatch to investigate
+## Baseline test reconciliation
 
-The V9 base includes `2fcde74` and earlier commits explicitly retiring Freelance Studio. Several legacy V8 acceptance tests still require that studio (`hourly-rate`, `studio-freelance`, the fourth keyboard tab). Initial full `npm test` fails at `tests/v8-studios.mjs:9` for this reason. These assertions have not been removed, skipped or weakened. The combined gate records their results rather than hiding the mismatch. Deployment readiness requires reconciling the approved retirement contract and its legacy regression coverage.
+The V9 base includes `2fcde74` and earlier commits explicitly retiring Freelance Studio. Legacy V8 acceptance tests still required that studio (`hourly-rate`, `studio-freelance`, the fourth keyboard tab). The initial full run reproduced the mismatch. Regression expectations now follow that explicit retirement: three retained tabs, no retired alias/UI/catalogue/favourite link, preserved stored favourite IDs, and unchanged arithmetic/input-validation coverage through the retained engine. Independent percentage calculations still run in the browser. No production functionality was restored or removed for these test updates.
+
+The combined catalogue is 69 listed tools (59 retained plus ten V9 additions), still exactly nine categories. Cache assertions now pin the new V9 cache generation consistently. The extra local Cloudflare-runtime unit suite needs Miniflare `4.20260730.0`, matching its existing review workflow; the combined CI installs it explicitly. No Cloudflare service is contacted or deployed by those local runtime tests.
 
 ## Limitations retained
 

@@ -16,15 +16,22 @@ for(const width of [375,1280]){
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(server.base);
  await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(r=>navigator.serviceWorker.addEventListener('controllerchange',r,{once:true}));});
- await check(`${width}: nine categories and 60 listed tools`,async()=>{assert.equal(await page.locator('.cat-tile').count(),9);assert.equal(await page.evaluate(()=>tools.filter(isListed).length),60);});
+ await check(`${width}: nine categories and 69 listed tools`,async()=>{assert.equal(await page.locator('.cat-tile').count(),9);assert.equal(await page.evaluate(()=>tools.filter(isListed).length),69);});
  for(const id of ['curl-snippets','key-hash','regex-playground','tailwind-css','shadow-glass','svg-sanitizer','image-metadata-stripper','image-batch-compressor','table-converter']){
  await check(`${width}: ${id} deep link`,async()=>{await page.goto(server.base+'?tool='+id);await page.waitForSelector('#workspace.active');assert.ok((await page.locator('#workspace').innerText()).length>100);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));});
  }
  for(const [id,key] of [['link-fingerprint','url'],['hourly-rate','freelance'],['qr-studio','qr'],['pii-secret-redactor','privacy']]){
- await check(`${width}: ${key} studio and retained functionality`,async()=>{
- await page.goto(server.base+'?tool='+id);await page.waitForSelector('#studio-'+key+':not([hidden])');
+ await check(`${width}: ${key === 'freelance' ? 'retired freelance UI absent; arithmetic retained' : key + ' studio and retained functionality'}`,async()=>{
+ await page.goto(server.base+'?tool='+id);
+ if(key==='freelance'){
+   assert.equal(await page.locator('#studio-freelance, [data-studio="freelance"]').count(),0);
+   assert.equal(await page.evaluate(()=>tools.some(t=>['hourly-rate','effective-hourly-rate'].includes(t[0]))),false);
+   assert.equal(await page.evaluate(()=>GVTStudios.effective({revenue:5000,costs:500,billable:40,unpaid:10}).rate),90);
+   return;
+ }
+ await page.waitForSelector('#studio-'+key+':not([hidden])');
  if(key==='url'){await page.fill('#urlInput','https://example.com/?ref=keep&utm_source=test');await page.click('#urlAnalyze');assert.match(await page.locator('#urlResult').innerText(),/ref=keep/);}
- if(key==='freelance'){await page.click('#calcEffective');assert.match(await page.locator('#effectiveResult').innerText(),/90/);}
+ 
  if(key==='qr'){assert.ok(await page.locator('#qrUrl').count());await page.evaluate(()=>generateQR());assert.ok(await page.locator('#qrOutput canvas').count());}
  if(key==='privacy'){await page.fill('#redactInput','Contact test@example.com Bearer abc.def.ghi');await page.evaluate(()=>runRedactor());assert.match(await page.locator('#redactOutput').innerText(),/REDACTED/i);}
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

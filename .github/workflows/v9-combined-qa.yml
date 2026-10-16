@@ -17,6 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - run: npm install --no-save --package-lock=false miniflare@4.20260730.0
       - run: node scripts/test-v9-release.mjs static
       - uses: actions/upload-artifact@v4
         if: always()
