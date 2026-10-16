@@ -14,6 +14,7 @@ const NEW_PAGES = [
   'labs/finance/index.html',
   'play/index.html',
   'play/mahjong/index.html',
+  'play/mahjong-solitaire/index.html',
   'play/word-logic/index.html',
   'play/2048/index.html',
   'play/daily-word/index.html'
@@ -76,6 +77,7 @@ const EXPECTED_SITEMAP_URLS = [
   'https://govibetool.com/labs/finance/',
   'https://govibetool.com/play/',
   'https://govibetool.com/play/mahjong/',
+  'https://govibetool.com/play/mahjong-solitaire/',
   'https://govibetool.com/play/word-logic/',
   'https://govibetool.com/play/2048/',
   'https://govibetool.com/play/daily-word/'
