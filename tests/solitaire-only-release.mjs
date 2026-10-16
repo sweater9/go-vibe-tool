@@ -123,11 +123,17 @@ try {
 
   for (const [label, width] of [['desktop', 1280], ['mobile', 375]]) {
     await check(`${label}: Mahjong Solitaire plays from dist (match a pair, undo) with no four-player request, no WebSocket, no error`, async () => {
-      const c = await open(width); await c.page.goto(base + '/play/mahjong-solitaire/', { waitUntil: 'networkidle' }); await boardReady(c.page);
-      const before = await c.page.locator('.sol-tile').count(); assert.ok(before >= 100, `tiles ${before}`);
-      const pair = await freePair(c.page); assert.ok(pair, 'a free matching pair exists at the start');
-      for (const id of pair) await c.page.locator(`.sol-tile[data-id="${id}"]`).click();
-      await c.page.waitForFunction(n => document.querySelectorAll('.sol-tile').length === n, before - 2);
+      const c = await open(width); let stage = 'start';
+      try {
+        stage = 'goto'; await c.page.goto(base + '/play/mahjong-solitaire/', { waitUntil: 'load' });
+        stage = 'board'; await boardReady(c.page);
+        stage = 'settle'; await c.page.waitForTimeout(500); // let the first paint and the service-worker registration finish before interacting
+        const before = await c.page.locator('.sol-tile').count(); assert.ok(before >= 100, `tiles ${before}`);
+        stage = 'pair'; const pair = await freePair(c.page); assert.ok(pair, 'a free matching pair exists at the start');
+        stage = 'click'; for (const id of pair) await c.page.locator(`.sol-tile[data-id="${id}"]`).click();
+        stage = 'removed'; await c.page.waitForFunction(n => document.querySelectorAll('.sol-tile').length === n, before - 2);
+        stage = 'checks';
+      } catch (e) { e.message = `[stage ${stage}; tiles now ${await c.page.locator('.sol-tile').count().catch(() => '?')}; errors ${JSON.stringify(c.errs).slice(0, 200)}] ${e.message}`; throw e; }
       assert.deepEqual(c.errs, []); assert.deepEqual(c.sockets, []);
       assert.deepEqual(c.reqs.filter(u => FOUR_PLAYER_REF.test(new URL(u).pathname) || /\/(?:api|ws|rooms)(\/|$)/.test(new URL(u).pathname)), []);
       assert.deepEqual(c.reqs.filter(u => new URL(u).origin !== base), []);
