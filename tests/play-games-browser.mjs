@@ -1,4 +1,4 @@
-/* Browser tests for 2048 Challenge and Daily Word Challenge.
+/* Browser tests for 2048 Challenge, Daily Word Challenge and the Play hub (incl. Mahjong Solitaire).
    node tests/play-games-browser.mjs [chromium|firefox|webkit]   env: PLAY_BASE_URL (test a deployed site; skips offline checks), PLAYWRIGHT_PACKAGE, PLAY_ARTIFACTS */
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -61,14 +61,16 @@ const expectBoard = (start, dirs, r) => { let s = fromValues(start); for (const 
 try {
   for (const [label, w, h, touch] of [['desktop', 1280, 900, false], ['mobile', 390, 844, true]]) {
     // ---------------- Play hub ----------------
-    await check(`${label}: Play hub lists 3 active solo games plus the Mahjong preview`, async () => {
+    await check(`${label}: Play hub lists 4 solo games (Mahjong Solitaire, Logic Crypt, 2048, Daily Word) plus the Mahjong with Friends preview`, async () => {
       const c = await ctxFor({ w, h, touch }); const p = c.page;
       await p.goto(base + 'play/', { waitUntil: 'networkidle' });
-      assert.equal(await p.locator('.hero-stats strong').first().innerText(), '3');
-      assert.match(await p.locator('.hero-stats span').first().innerText(), /3\s*Active Games/i);
+      assert.equal(await p.locator('.hero-stats strong').first().innerText(), '4');
+      assert.match(await p.locator('.hero-stats span').first().innerText(), /4\s*Solo Games/i);
       const hrefs = await p.locator('.v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href')));
-      assert.deepEqual(hrefs, ['mahjong/', 'word-logic/', '2048/', 'daily-word/']);
-      assert.equal(await p.locator('.v5-card').count(), 4); assert.ok((await overflow(p)) <= 0, 'overflow');
+      assert.deepEqual(hrefs, ['mahjong-solitaire/', 'mahjong/', 'word-logic/', '2048/', 'daily-word/']);
+      assert.equal(await p.locator('.v5-card').count(), 5); assert.ok((await overflow(p)) <= 0, 'overflow');
+      const sol = p.locator('.v5-card', { has: p.locator('a[href="mahjong-solitaire/"]') }); assert.match(await sol.locator('h3').innerText(), /Mahjong Solitaire/i); assert.match(await sol.innerText(), /Offline Play/i);
+      await sol.locator('a.btn').click(); await p.waitForURL(/\/play\/mahjong-solitaire\/$/); await p.waitForFunction(() => document.querySelectorAll('.sol-tile').length > 0);
       assert.deepEqual(c.errs, []); await p.screenshot({ path: `${dir}/hub-${label}.png`, fullPage: true }); await closeCtx(c);
     });
     // ---------------- 2048 ----------------
@@ -259,21 +261,27 @@ try {
     const c = await ctxFor({ w: 390, h: 844, touch: true, init: [fixDate(noon(2026, 10, 12))] }); const p = c.page;
     await p.goto(base + 'play/2048/', { waitUntil: 'networkidle' });
     await p.evaluate(async () => { await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }); setTimeout(r, 8000); }); });
-    await p.waitForFunction(async () => { const names = await caches.keys(); for (const n of names) { const c = await caches.open(n); const k = (await c.keys()).map(r => new URL(r.url).pathname); if (['/play/2048/index.html', '/play/daily-word/words.js', '/play/daily-word/app.js', '/play/games.css'].every(x => k.includes(x))) return true; } return false; }, null, { timeout: 30000 });
+    await p.waitForFunction(async () => { const names = await caches.keys(); for (const n of names) { const c = await caches.open(n); const k = (await c.keys()).map(r => new URL(r.url).pathname); if (['/play/2048/index.html', '/play/daily-word/words.js', '/play/daily-word/app.js', '/play/games.css', '/play/mahjong-solitaire/index.html', '/play/mahjong-solitaire/solitaire.css', '/play/mahjong-solitaire/solitaire.js', '/play/mahjong-solitaire/engine.js'].every(x => k.includes(x))) return true; } return false; }, null, { timeout: 30000 });
     await stopServer();
     try {
       await p.goto(base + 'play/2048/', { waitUntil: 'domcontentloaded' }); await p.waitForSelector('.g2048-tile'); await p.keyboard.press('ArrowLeft'); assert.ok(await p.locator('#score').isVisible());
       await p.goto(base + 'play/daily-word/', { waitUntil: 'domcontentloaded' }); await p.waitForSelector('.gw-tile');
       for (const ch of 'crane') await p.keyboard.press(ch); await p.keyboard.press('Enter'); await p.waitForFunction(() => document.querySelectorAll('.gw-tile.absent,.gw-tile.present,.gw-tile.correct').length >= 5);
-      await p.goto(base + 'play/', { waitUntil: 'domcontentloaded' }); assert.equal(await p.locator('.v5-card').count(), 4);
+      await p.goto(base + 'play/mahjong-solitaire/', { waitUntil: 'domcontentloaded' }); await p.waitForFunction(() => document.querySelectorAll('.sol-tile').length > 0);
+      const left = await p.locator('.sol-tile').count();
+      const pair = await p.evaluate(() => { const by = new Map(); for (const t of document.querySelectorAll('.sol-tile')) { const a = t.getAttribute('aria-label') || ''; if (!/available/.test(a)) continue; const k = a.split(', layer')[0]; (by.get(k) || by.set(k, []).get(k)).push(t.dataset.id); } for (const ids of by.values()) if (ids.length >= 2) return ids.slice(0, 2); return null; });
+      assert.ok(pair, 'a free matching Mahjong Solitaire pair is available offline');
+      for (const id of pair) await p.locator(`.sol-tile[data-id="${id}"]`).click();
+      await p.waitForFunction(n => document.querySelectorAll('.sol-tile').length === n, left - 2);
+      await p.goto(base + 'play/', { waitUntil: 'domcontentloaded' }); assert.equal(await p.locator('.v5-card').count(), 5);
     } finally { await startServer(); }
     await closeCtx(c);
   });
   // the games must make no network requests beyond their own origin
-  await check('privacy: no third-party requests from either game', async () => {
+  await check('privacy: no third-party requests from any solo game', async () => {
     const c = await ctxFor({ w: 1280, h: 900, init: [fixDate(noon(2026, 10, 12))] }); const p = c.page; const external = [];
     const origin = new URL(base).origin; p.on('request', r => { const u = new URL(r.url()); if (u.origin !== origin && /^https?:/.test(r.url()) && !/pagead|googlesyndication/.test(r.url())) external.push(r.url()); });
-    for (const g of ['play/2048/', 'play/daily-word/']) { await p.goto(base + g, { waitUntil: 'networkidle' }); await p.keyboard.press('ArrowLeft'); await p.keyboard.press('a'); }
+    for (const g of ['play/2048/', 'play/daily-word/', 'play/mahjong-solitaire/']) { await p.goto(base + g, { waitUntil: 'networkidle' }); await p.keyboard.press('ArrowLeft'); await p.keyboard.press('a'); }
     assert.deepEqual(external, []); await closeCtx(c);
   });
 } finally { await browser.close(); if (server) server.close(); }
