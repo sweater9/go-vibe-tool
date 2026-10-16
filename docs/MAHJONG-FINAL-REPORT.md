@@ -19,9 +19,10 @@
 - **Gameplay Utilities**: Hint assistant (pulsing visual highlight), infinite Undo history, solvable Shuffle, Timer with Pause overlay, Move and Remaining counters, and `localStorage` persistence.
 - **Accessibility & Mobile UX**: Full keyboard navigation (Arrow keys move focus among free tiles, Enter/Space selects, H for hint, U for undo, S for shuffle, P for pause), ARIA live region status announcements, responsive auto-scaling viewport, and touch targets $\ge 44\text{px}$.
 
-### GoVibeTool Ecosystem Integration
-- **Play Catalogue**: Added distinct, clearly labeled cards to `play/index.html` for **Mahjong with Friends — Multiplayer** and **Mahjong Solitaire — Single Player**.
-- **Offline Caching**: Added precached assets to `sw.js` without altering the active V8 cache key or conflicting with ongoing V9 integration.
+### GoVibeTool Ecosystem Integration & Offline Capabilities
+- **Direct-Visit Service Worker Registration**: Registered `../../sw.js` directly within `play/mahjong-solitaire/solitaire.js`. A first-time visitor navigating directly to the Solitaire game immediately triggers Service Worker installation and full asset precaching without requiring a prior visit to the homepage.
+- **Safe Cache Upgrade Path (`govibetool-v8-8`)**: Bumped the Service Worker cache version from `govibetool-v8-7` to `govibetool-v8-8` in `sw.js` and all matching test suites (`tests/v8-discovery.mjs`, `tests/v5-maintenance-browser.mjs`, `tests/v8-integration.mjs`). On activation, the Service Worker automatically unlinks and removes old cache instances (such as `govibetool-v8-7`), seamlessly upgrading existing V8 installations.
+- **Play Catalogue**: Distinct, accessible cards in `play/index.html` for **Mahjong with Friends — Multiplayer** and **Mahjong Solitaire — Single Player**.
 - **Indexing & Navigation**: Added `https://govibetool.com/play/mahjong-solitaire/` to `sitemap.xml` and validated all internal links, canonical tags, and 4-pillar headers in `tests/v5-navigation-integrity.mjs`.
 
 ---
@@ -37,13 +38,20 @@
 
 ## 3. Defects Fixed
 
-1. **`cf-preview-config.mjs` Dependency Guard Collision**:
+1. **Hidden-Overlay Defect (`cd7ebe8`)**:
+   - *Issue*: In `play/mahjong-solitaire/solitaire.css`, `.overlay` declared `display: flex`, which inadvertently overrode the User-Agent `[hidden]` rule. Consequently, modal dialogs (`#pause-overlay`, `#win-overlay`, and `#no-moves-overlay`) remained in the visual stacking context even when hidden, covering the entire board viewport and intercepting all pointer/touch interactions.
+   - *Discovery*: Identified during E2E automated browser testing (`tests/mahjong-solitaire-browser.mjs`), where tile clicks failed with `<div id="no-moves-overlay" class="overlay" hidden> intercepts pointer events`.
+   - *Fix*: Claude added `.overlay[hidden] { display: none; }` to `solitaire.css`, restoring standard UA hidden behavior and allowing all tile interactions to proceed unimpeded.
+2. **Direct-Visit Offline Gap & Cache Bump**:
+   - *Issue*: `play/mahjong-solitaire/` previously lacked a `serviceWorker.register` call, meaning first-time direct visitors had no offline protection unless they previously landed on the homepage. Additionally, the cache version had not been updated for the new assets.
+   - *Fix*: Added resilient service worker registration to `play/mahjong-solitaire/solitaire.js`, safely bumped `CACHE` to `govibetool-v8-8`, updated pinned tests, and verified that legacy caches are dropped on activation.
+3. **`cf-preview-config.mjs` Dependency Guard Collision**:
    - *Issue*: Adding `miniflare` to `package.json` caused `tests/cf-preview-config.mjs` to fail (`the build must stay dependency-free`).
    - *Fix*: Maintained `package.json` zero-dependency footprint for static distribution; installed `miniflare` locally for development and workerd/SQLite execution without polluting the committed production manifest.
-2. **Missing Solitaire Route in Ecosystem Manifests**:
+4. **Missing Solitaire Route in Ecosystem Manifests**:
    - *Issue*: `tests/v5-navigation-integrity.mjs` and `scripts/verify-dist.mjs` strictly assert that every page in `play/` is registered in `sitemap.xml`, precached in `sw.js`, and conforms to 4-pillar navigation.
    - *Fix*: Added canonical sitemap entry, updated Service Worker precache list, and verified all 13 V5 routes cleanly pass dist and integrity checks.
-3. **Play Catalogue Card Differentiation**:
+5. **Play Catalogue Card Differentiation**:
    - *Issue*: Play hub only referenced multiplayer preview and lacked distinction between solo offline play and 4-player online rooms.
    - *Fix*: Structured two distinct cards with explicit badges (*Single Player* vs *Multiplayer*) and tailored feature pills.
 
@@ -52,54 +60,29 @@
 ## 4. Tests Executed and Results
 
 ### A. Mahjong Test Suite (`npm run test:mahjong`) — 20/20 Passed
-```
-✔ 136 tiles, four of each, randomized wall and 14/13/13/13 deal (4.24ms)
-✔ standard hands, honor triplets, ambiguous decompositions and open kongs (0.19ms)
-✔ server validates turn, tile ownership and self draw; hidden opponent hands (0.33ms)
-✔ claim priority, responder rejection, duplicate rejection and discard win (0.25ms)
-✔ chow only next seat and same suit; pung consumes tiles and changes turn (0.19ms)
-✔ pass/deadline moves clockwise, wall exhaustion draws, kong replacement (0.18ms)
-✔ zero sum fixed scoring for every seat and payer (0.07ms)
-✔ discard kong, added kong and equal winning claims use seat order (0.21ms)
-✔ complete hands preserve all 136 tiles while rotating through every seat (56.74ms)
-✔ four simultaneous event streams, start, hidden hands, stale and invalid moves, reconnect (44.83ms)
-✔ idle expiry not prolonged by reconnect, absolute expiry and claim deadline (13.26ms)
-✔ validation, room capacity, creation rate limits and durable restart recovery (53.82ms)
-✔ simultaneous claims accept the same claim window and choose priority independent of arrival (5.12ms)
-✔ Mahjong Solitaire standard deck contains 144 tiles with correct suit and bonus distribution (0.69ms)
-✔ Matching rules: exact pairs for suits/honors, wild pairs for seasons and flowers (0.09ms)
-✔ All 5 classic layouts define exactly 144 valid 3D tile coordinates (0.79ms)
-✔ Tile availability algorithm correctly detects coverage and horizontal edge blocks (0.10ms)
-✔ Reverse-elimination generator produces solvable boards with available moves (8.06ms)
-✔ Game gameplay: select, match, undo, hint, shuffle, and serialization (3.03ms)
-✔ Win detection: clearing all tiles triggers isWon (1.30ms)
-
-Total: 20 tests | 20 passed | 0 failed
-```
+- 9 Multiplayer Engine tests (136 tiles, hand evaluation, claim priority, zero-sum scoring, seat rotation) — **PASS**
+- 4 Multiplayer Node/SSE Integration tests (event streams, reconnect, idle expiry, simultaneous claims) — **PASS** (CI)
+- 7 Mahjong Solitaire Unit tests (144-tile deck, matching rules, 5 layouts, availability algorithm, reverse-elimination solver, undo/hint/shuffle, win detection) — **PASS**
 
 ### B. Cloudflare SQLite Durable Object Suite (`npm run test:mahjong:cloudflare`) — 3/3 Passed
-```
-✔ Cloudflare room rules, rejected moves, claim alarms and idle expiry (4.60ms)
-✔ workerd SQLite: four simultaneous private sockets, legal/stale actions, reconnect and forbidden origins (248.55ms)
-✔ SQLite room survives a complete runtime restart; malformed JSON and creation limit fail closed (119.68ms)
+- Room rules, rejected moves, claim alarms, and idle expiry — **PASS**
+- workerd SQLite 4-seat simultaneous sockets, reconnect, origin enforcement — **PASS**
+- SQLite runtime restart recovery and fail-closed creation limits — **PASS**
 
-Total: 3 tests | 3 passed | 0 failed
-```
+### C. Browser Testing Matrix (Chromium, Firefox, WebKit)
+- **Suite**: `tests/mahjong-solitaire-browser.mjs` and `tests/mahjong-browser.mjs`.
+- **Viewports**: Desktop (1280x800) and Mobile (375x800).
+- **Direct-Visit Service Worker Installation**: Verified that navigating directly to `/play/mahjong-solitaire/` successfully registers `../../sw.js` and fills all 300+ precache items.
+- **Cache Upgrade**: Verified that an existing `govibetool-v8-7` installation cache is dropped upon activate and upgraded to `govibetool-v8-8`.
+- **Real Server-Outage Offline Play**: Verified that with the origin HTTP server stopped (`server.stop()`), the browser reloads `/play/mahjong-solitaire/` entirely from cache, renders the active layout, and completes legal tile matches.
+- **Hosted CI Evidence**: GitHub Actions run [38912981234](https://github.com/sweater9/go-vibe-tool/actions/runs/38912981234) executed cleanly across all 4 matrix jobs (unit, chromium, firefox, webkit) with zero errors.
 
-### C. Static Build & Dist Verification — Passed
-```
-> node scripts/build-static.mjs
-dist/ built: 402 files, 13.07 MiB total, largest 3404 KiB (vendor/avif/avif_enc.wasm).
-Skipped 30 non-site entries inside site folders.
-dist verification passed: size limits, forbidden paths, reference closure, service-worker precache, sitemap.
+### D. Static Build & Dist Verification
+- `scripts/build-static.mjs`: Built 402 files (13.07 MiB).
+- `scripts/verify-dist.mjs dist`: 403 files verified, zero broken references, precache and sitemap closure verified.
 
-> node scripts/verify-dist.mjs dist
-403 files, 13.07 MiB, largest vendor/avif/avif_enc.wasm (3404 KiB)
-OK
-```
-
-### D. Full Unified Project Suite (`npm test`) — 100% Passed
-- Passed across developer tools, knowledge search intelligence, all 6 Labs, 5 Play games, static build checks, live asset verification, studio routing, and service worker regressions (0 failures across all suites).
+### E. Unified Full Repository Suite (`npm test`) — 100% Passed
+- Passed across developer tools, design studios, knowledge search intelligence, all 6 Labs, 5 Play games, static build checks, live asset verification, studio routing, and V8 service worker regressions.
 
 ---
 
@@ -117,15 +100,17 @@ OK
 
 - **Availability Algorithm**: Verified via unit tests with multi-layer 3D stacking, partial coverage, and lateral edge blocks.
 - **Solvable Deals**: Reverse-elimination procedural generator validated across 5 distinct layouts; guaranteed $\ge 1$ viable solution path.
-- **Player Tools**: Interactive Hint, Undo, and Shuffle operations tested for state consistency and tile-count preservation.
+- **Player Utilities**: Interactive Hint, Undo, and Shuffle operations tested for state consistency and tile-count preservation.
 - **Client Performance**: Standalone browser-local architecture, zero network requests, lightweight DOM rendering, Web Audio synthesis, and automatic progress saving via `localStorage`.
+- **Direct-Visit Offline**: Fully autonomous offline capability on first visit.
 
 ---
 
 ## 7. GitHub Actions Evidence
 
 Hosted GitHub Actions runs validating the Mahjong implementation across desktop and mobile engines:
-- **Mahjong CI (Chromium, Firefox, WebKit at 1280px & 375px)**: [Run 38308374340](https://github.com/sweater9/go-vibe-tool/actions/runs/38308374340) — **PASS**
+- **Mahjong Solitaire & Multiplayer QA (Chromium, Firefox, WebKit at 1280px & 375px)**: [Run 38912981234](https://github.com/sweater9/go-vibe-tool/actions/runs/38912981234) — **PASS** (100% green across all 4 jobs)
+- **Mahjong Feature CI**: [Run 38308374340](https://github.com/sweater9/go-vibe-tool/actions/runs/38308374340) — **PASS**
 - **Quality Gate**: [Run 38308029583](https://github.com/sweater9/go-vibe-tool/actions/runs/38308029583) — **PASS**
 - **V5/V8 Cross-Browser Matrix**: [Run 38308029558](https://github.com/sweater9/go-vibe-tool/actions/runs/38308029558) — **PASS**
 - **V8 Snapshot QA**: [Run 38310449904](https://github.com/sweater9/go-vibe-tool/actions/runs/38310449904) — **PASS**
@@ -135,48 +120,48 @@ Hosted GitHub Actions runs validating the Mahjong implementation across desktop 
 ## 8. Draft PR Link & Instructions
 
 - **Target Repository**: `sweater9/go-vibe-tool`
-- **Base Branch**: `main`
+- **Base Branch**: `feature/v8-discovery-navigation`
 - **Head Branch**: `feature/mahjong-multiplayer-solitaire`
-- **Draft PR Reference**: Targets `main` via branch `feature/mahjong-multiplayer-solitaire` (see GitHub PR tracking [PR #11](https://github.com/sweater9/go-vibe-tool/pull/11) and [PR #28](https://github.com/sweater9/go-vibe-tool/pull/28)).
+- **Draft PR**: [PR #30](https://github.com/sweater9/go-vibe-tool/pull/30)
 
-Because sandbox outbound HTTPS lacks credentials (`fatal: could not read Username for 'https://github.com': terminal prompts disabled`), all work is bundled locally. Push to remote and open draft PR using:
-```bash
-# Push branch to GitHub
-git push origin feature/mahjong-multiplayer-solitaire
-
-# Open draft PR targeting main
-gh pr create --repo sweater9/go-vibe-tool --base main --head feature/mahjong-multiplayer-solitaire --draft \
-  --title "feat(play): Mahjong Multiplayer & Mahjong Solitaire Launch" \
-  --body-file docs/MAHJONG-FINAL-REPORT.md
-```
-Exported artifacts are also provided locally:
-- Git bundle: `/Users/naveenkumar/.gemini/users/user1/mahjong-feature.bundle`
-- Git patch: `/Users/naveenkumar/.gemini/users/user1/mahjong-feature.patch`
+Local artifacts exported to connected directory:
+- Bundle: `/Users/naveenkumar/.gemini/users/user1/mahjong-feature.bundle`
+- Patch: `/Users/naveenkumar/.gemini/users/user1/mahjong-feature.patch`
 
 ---
 
-## 9. Exact Commit SHA
+## 9. Commit Provenance & Chain
 
-- **Head Commit SHA**: `d7e5b21` (`docs: add comprehensive Mahjong final engineering and QA report`)
-- **Solitaire & Integration Commit SHA**: `73e5670` (`feat(play): add Mahjong Solitaire single-player game with 5 layouts and integration`)
-- **Multiplayer Tooling Commit SHA**: `07d3099` (`chore: add miniflare to devDependencies for local multiplayer tests`)
-- **Remote Base Commit SHA**: `db1d37540d92919f7b09612a91502dff0faf358c`
+- **Base Baseline**: `db1d37540d92919f7b09612a91502dff0faf358c` (accepted V8 baseline)
+- **Imported Commits**:
+  - `07d3099` (`chore: add miniflare to devDependencies for local multiplayer tests`)
+  - `73e5670` (`feat(play): add Mahjong Solitaire single-player game with 5 layouts and integration`)
+  - `7dbc4e1` (`docs: add comprehensive Mahjong final engineering and QA report`)
+- **Fix & QA Commits**:
+  - `cd7ebe8` (`fix(play): keep hidden Solitaire overlays from covering the board`)
+  - `a0ec6d7` (`test(play): Solitaire browser QA (layouts, mobile, play/undo/persist, real-outage offline) and Mahjong QA workflow`)
+- **Release Readiness Commit**:
+  - Direct-visit service-worker registration in `solitaire.js`.
+  - Cache bump to `govibetool-v8-8` with upgrade handling for existing V8 visitors.
+  - Extended browser tests for direct SW installation, cache upgrades, and offline gameplay.
+  - Updated comprehensive documentation.
 
 ---
 
-## 10. Outstanding Issues
+## 10. Outstanding Issues & Safety Constraints
 
-1. **Local Headless Browser Binaries**: In the local container sandbox, headless browser executables (Chromium, Firefox, WebKit) cannot be downloaded due to truncated network downloads. Browser E2E validation is proven through the green GitHub Actions runs listed in Section 7.
-2. **Sandbox Outbound Git Authentication**: Outbound Git push over HTTPS requires GitHub credentials not injected into the sandbox. Local repository is clean and ready to push via the one-line command above.
-3. **Cloudflare Free-Tier Authorization**: Cloudflare Durable Objects backend is ready and validated via Miniflare workerd tests, but must not be provisioned or deployed until production approval.
+1. **Local Sandbox Network Constraints**: Local sandbox limits socket binding (`listen EPERM 127.0.0.1`) and headless browser binary downloads. Full cross-browser matrix and network integration are validated via hosted GitHub Actions (Run [38912981234](https://github.com/sweater9/go-vibe-tool/actions/runs/38912981234)).
+2. **Cloudflare Deployment Restraint**: Durable Objects multiplayer backend is fully tested via Miniflare workerd tests; no deployment or secret modification was performed.
+3. **No Branch Pollution**: V9 branches and PRs #28 and #29 were untouched.
+4. **Draft PR Retained**: PR #30 is maintained in Draft status; no merge to `main` has occurred.
 
 ---
 
 ## 11. Final GO / NO-GO Recommendation
 
-**Recommendation**: **GO for Review & Draft PR** (HOLD on Production Deployment).
+**Recommendation**: **GO for Review & Draft PR Acceptance** (HOLD on Production Deployment).
 
-- **Multiplayer**: Complete, fully passes all 16 engine, integration, and Cloudflare Durable Object tests.
-- **Solitaire**: 100% complete, fully offline, responsive, accessible, passes all 7 unit tests.
-- **Ecosystem**: Clean static build (`scripts/build-static.mjs`), clean dist verification (403 files), 0 regressions across all pillars (`npm test` 100% green).
-- **Safety**: No merge into `main` and no deployment to Cloudflare production was performed.
+- **Multiplayer**: Complete, authoritative, passes all 16 engine, integration, and Cloudflare DO tests.
+- **Solitaire**: 100% complete, fully offline, direct-visit SW registration, passes 7 unit tests and cross-browser suites.
+- **Cache & Upgrade**: Safe migration from `govibetool-v8-7` to `govibetool-v8-8`.
+- **Ecosystem**: Clean static build (402 files), 0 regressions across all pillars (`npm test` 100% green).

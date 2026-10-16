@@ -47,8 +47,8 @@ async function freePair(page) {
     return null;
   });
 }
-/* NOTE (finding): play/mahjong-solitaire/ has no serviceWorker.register call, unlike play/2048 and play/daily-word;
-   offline play needs the site worker to be installed from another page first. */
+/* Direct visit to play/mahjong-solitaire/ registers ../../sw.js, precaches all assets,
+   upgrades legacy caches (e.g. govibetool-v8-7), and enables immediate offline play. */
 const cacheName = fs.readFileSync(path.join(root, 'sw.js'), 'utf8').match(/const CACHE="([^"]+)"/)[1];
 
 try {
@@ -100,22 +100,65 @@ try {
     await A.ctx.close();
   }
 
-  await check('offline: with the origin server stopped, the installed game reloads from the service worker and is playable', async () => {
+  await check('service-worker: direct visit to Solitaire installs worker, upgrades legacy cache, and precaches assets', async () => {
+    const S = await open(375);
+    const { page } = S;
+    // Direct first-time visit without visiting home page first
+    await page.goto(origin + URL_PATH);
+    await boardReady(page);
+
+    // Simulate an existing V8 installation cache to verify upgrade cleanup
+    await page.evaluate(async () => {
+      const oldCache = await caches.open('govibetool-v8-7');
+      await oldCache.put(location.origin + '/legacy-test.txt', new Response('old-v8-7'));
+    });
+
+    // Verify service worker becomes ready and precaches all assets directly from Solitaire page
+    await Promise.race([
+      page.evaluate(async () => { await navigator.serviceWorker.ready; }),
+      new Promise((_, r) => setTimeout(() => r(new Error('direct-visit service worker never became ready')), 30000))
+    ]);
+    await page.waitForFunction(async (n) => (await (await caches.open(n)).keys()).length > 300, cacheName, { timeout: 90000 });
+
+    // Verify cache upgrade: old cache dropped upon activation, new cache active
+    await page.waitForFunction(async (n) => {
+      const keys = await caches.keys();
+      return keys.includes(n) && !keys.includes('govibetool-v8-7');
+    }, cacheName, { timeout: 30000 });
+
+    const hasCurrent = await page.evaluate(async (n) => await caches.has(n), cacheName);
+    assert.ok(hasCurrent, `current cache ${cacheName} should exist`);
+    const hasLegacy = await page.evaluate(async () => await caches.has('govibetool-v8-7'));
+    assert.equal(hasLegacy, false, 'legacy cache govibetool-v8-7 should be dropped on upgrade');
+
+    // Verify Solitaire assets are in the active cache
+    const cached = await page.evaluate(async (n) => (await (await caches.open(n)).keys()).map((r) => new URL(r.url).pathname), cacheName);
+    for (const f of ['index.html', 'solitaire.css', 'solitaire.js', 'engine.js']) {
+      assert.ok(cached.includes(URL_PATH + f) || (f === 'index.html' && cached.includes(URL_PATH)), 'not precached: ' + f);
+    }
+    assert.deepEqual(S.errs, []);
+    await S.ctx.close();
+  });
+
+  await check('offline: with the origin server stopped, direct-visit installed game reloads from the service worker and is playable', async () => {
     const O = await open(375);
     const { page } = O;
-    // Realistic path: the site worker is installed from the home page (the Solitaire page does not register one itself,
-    // see docs), then the player opens Solitaire. A direct first visit is recorded as a note, not asserted.
-    await page.goto(origin + '/');
-    await Promise.race([page.evaluate(async () => { await navigator.serviceWorker.ready; }), new Promise((_, r) => setTimeout(() => r(new Error('site service worker never became ready')), 30000))]);
+    // Direct visit: player navigates straight to Solitaire
+    await page.goto(origin + URL_PATH);
+    await boardReady(page);
+    await Promise.race([
+      page.evaluate(async () => { await navigator.serviceWorker.ready; }),
+      new Promise((_, r) => setTimeout(() => r(new Error('service worker never became ready')), 30000))
+    ]);
     await page.waitForFunction(async (n) => (await (await caches.open(n)).keys()).length > 300, cacheName, { timeout: 90000 });
-    await page.goto(origin + URL_PATH); await boardReady(page);
-    await page.reload(); await boardReady(page);
+    await page.reload();
+    await boardReady(page);
     assert.ok(await page.evaluate(() => !!navigator.serviceWorker.controller), 'page must be controlled by the worker before going offline');
-    const cached = await page.evaluate(async (n) => (await (await caches.open(n)).keys()).map((r) => new URL(r.url).pathname), cacheName);
-    for (const f of ['index.html', 'solitaire.css', 'solitaire.js', 'engine.js']) assert.ok(cached.includes(URL_PATH + f) || (f === 'index.html' && cached.includes(URL_PATH)), 'not precached: ' + f);
+
     await server.stop();
     try {
-      await page.goto(origin + URL_PATH); await boardReady(page);
+      await page.goto(origin + URL_PATH);
+      await boardReady(page);
       const before = await remaining(page);
       const pair = await freePair(page);
       assert.ok(pair, 'no free pair offline');
@@ -123,7 +166,10 @@ try {
       await page.waitForFunction((n) => document.querySelectorAll('.sol-tile').length === n, before - 2);
       assert.ok(await fits(page));
       assert.deepEqual(O.errs, []);
-    } finally { server = createDistServer(root, { port }); await server.start(); }
+    } finally {
+      server = createDistServer(root, { port });
+      await server.start();
+    }
     await O.ctx.close();
   });
 } finally {
