@@ -1,0 +1,85 @@
+name: File-media WebKit verify (manual measurement)
+# Measurement only. Read-only, no secrets, no deployment, never touches the release pin.
+# Verifies the Image Compressor run-ending fix on WebKit, on the built distribution (SITE_ROOT=dist):
+#   control = the immutable Mahjong V9 release SHA (unfixed app code) running the NEW test file
+#             (expected: the new deterministic check fails every run; the old poll check fails intermittently)
+#   fixed   = the fix commit (expected: every run passes)
+on:
+  workflow_dispatch:
+  push:
+    branches: [ci/file-media-webkit-verify]
+    paths: ['.github/workflows/file-media-webkit-verify.yml']
+permissions:
+  contents: read
+concurrency:
+  group: file-media-webkit-verify-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        side: [control, fixed]
+        n: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+        exclude:
+          - { side: control, n: 21 }
+          - { side: control, n: 22 }
+          - { side: control, n: 23 }
+          - { side: control, n: 24 }
+          - { side: control, n: 25 }
+          - { side: control, n: 26 }
+          - { side: control, n: 27 }
+          - { side: control, n: 28 }
+          - { side: control, n: 29 }
+          - { side: control, n: 30 }
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.side == 'control' && 'a85e4695a139c56456c743d607a79f76ff8abda8' || '17d1bbbe8c8e212ceaa3717bad292e110fd19cd8' }}
+      - name: Control only - overlay the new test file onto the unfixed release code
+        if: matrix.side == 'control'
+        uses: actions/checkout@v4
+        with:
+          ref: 17d1bbbe8c8e212ceaa3717bad292e110fd19cd8
+          path: fixed-src
+      - name: Control only - use the fix commit's test file
+        if: matrix.side == 'control'
+        run: |
+          cp fixed-src/tests/file-media-browser.mjs tests/file-media-browser.mjs
+          git status --short | head -3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - name: Install browser (retry; the download occasionally hangs)
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            timeout -k 10 240 npx playwright install --with-deps webkit && exit 0
+            sudo pkill -f 'apt-get|dpkg' || true
+            sleep 5
+          done
+          exit 1
+      - run: npm run build
+      - name: file-media-browser on WebKit (${{ matrix.side }} #${{ matrix.n }})
+        env:
+          SITE_ROOT: dist
+          FM_ARTIFACTS: artifacts/file-media-webkit
+        run: |
+          set +e
+          mkdir -p artifacts
+          node tests/file-media-browser.mjs webkit > artifacts/fm.log 2>&1
+          rc=$?
+          sha=$(git rev-parse --short HEAD)
+          summary=$(grep -E "^webkit: [0-9]+ passed" artifacts/fm.log | tail -1)
+          fails=$(grep -A5 -E "^FAIL " artifacts/fm.log | cut -c1-300 | tr '\n' '|' | cut -c1-900)
+          echo "RESULT side=${{ matrix.side }} run=${{ matrix.n }} sha=$sha rc=$rc $summary"
+          echo "::notice title=${{ matrix.side }} #${{ matrix.n }} sha=$sha rc=$rc::$summary $fails"
+          exit $rc
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: file-media-webkit-verify-${{ matrix.side }}-${{ matrix.n }}
+          path: artifacts/
