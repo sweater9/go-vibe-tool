@@ -385,7 +385,8 @@ async function precache(){
  await Promise.all(Array.from({length:Math.min(PRECACHE_CONCURRENCY,queue.length)},worker));
 }
 self.addEventListener("install",event=>event.waitUntil(precache().then(()=>self.skipWaiting())));
-self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
+// Other scoped tools own their caches; root updates must not erase their offline assets.
+self.addEventListener("activate",event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith("govibetool-")&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 /* Navigations with new query strings must reuse their own cached document, not the home fallback. */
 const lookupCached=async request=>{
  const direct=await caches.match(request);if(direct)return direct;

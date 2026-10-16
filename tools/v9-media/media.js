@@ -38,8 +38,9 @@ function field(name, label, type = "number", value = "", extra = "") {
   return `<label for="${name}">${label}<input id="${name}" type="${type}" value="${value}" ${extra}></label>`;
 }
 function number(name, min, max) {
-  const n = Number($("#" + name).value);
-  if (!Number.isFinite(n) || n < min || n > max)
+  const value = $("#" + name).value.trim(),
+    n = Number(value);
+  if (!value || !Number.isFinite(n) || n < min || n > max)
     throw Error(`${name}: choose a value from ${min} to ${max}.`);
   return n;
 }
@@ -110,7 +111,13 @@ $("#cancel").onclick = () => {
 };
 window.addEventListener("pagehide", () => {
   controller?.abort();
-  for (const fn of cleanups) fn();
+  for (const fn of [...cleanups].reverse()) {
+    try {
+      fn();
+    } catch {
+      /* Continue releasing independent resources. */
+    }
+  }
   release();
 });
 for (const [key, title] of Object.entries(titles)) {
@@ -606,14 +613,12 @@ function pdfTool() {
           throw Error("Document exceeds the 40 million rendered pixel limit.");
         if (i === selected) stamp(c);
         const png = await out.embedPng(await (await blob(c)).arrayBuffer());
-        out
-          .addPage([vp.width / 1.5, vp.height / 1.5])
-          .drawImage(png, {
-            x: 0,
-            y: 0,
-            width: vp.width / 1.5,
-            height: vp.height / 1.5,
-          });
+        out.addPage([vp.width / 1.5, vp.height / 1.5]).drawImage(png, {
+          x: 0,
+          y: 0,
+          width: vp.width / 1.5,
+          height: vp.height / 1.5,
+        });
         c.width = c.height = 1;
         await pause();
       }
@@ -650,10 +655,10 @@ function ocr() {
       await script("./vendor/ocr/tesseract.min.js");
       const im = await image(selectFile("#file", 12));
       let worker;
+      const terminate = () => worker?.terminate();
       try {
         const c = canvas(im.width, im.height);
         c.getContext("2d").drawImage(im, 0, 0);
-        const terminate = () => worker?.terminate();
         cleanups.push(terminate);
         worker = await Tesseract.createWorker("eng", 1, {
           workerPath: new URL("./vendor/ocr/worker.min.js", import.meta.url)
@@ -683,8 +688,9 @@ function ocr() {
           "recognized-text.txt",
         );
         say("Recognition complete. Review the result before using it.");
-        cleanups = cleanups.filter((fn) => fn !== terminate);
       } finally {
+        cleanups = cleanups.filter((fn) => fn !== terminate);
+        controller.signal.removeEventListener("abort", terminate);
         im.close();
         await worker?.terminate();
       }
@@ -862,56 +868,65 @@ function trimmer() {
   $("#loadMedia").onclick = () =>
     task(async () => {
       reset();
-      const file = selectFile("#file", 30),
-        header = new Uint8Array(await file.slice(0, 6).arrayBuffer());
-      if (String.fromCharCode(...header).startsWith("GIF8")) {
-        const G = await import("./vendor/gif.mjs");
-        gif = G.parseGIF(await file.arrayBuffer());
-        const list = gif.frames.filter((f) => f.image);
-        if (
-          list.length > 300 ||
-          list.reduce(
-            (n, f) => n + f.image.descriptor.width * f.image.descriptor.height,
+      $("#mediaPreview").replaceChildren();
+      try {
+        const file = selectFile("#file", 30),
+          header = new Uint8Array(await file.slice(0, 6).arrayBuffer());
+        if (String.fromCharCode(...header).startsWith("GIF8")) {
+          const G = await import("./vendor/gif.mjs");
+          gif = G.parseGIF(await file.arrayBuffer());
+          const list = gif.frames.filter((f) => f.image);
+          if (
+            !list.length ||
+            list.length > 300 ||
+            list.reduce(
+              (n, f) =>
+                n + f.image.descriptor.width * f.image.descriptor.height,
+              0,
+            ) > 40000000 ||
+            gif.lsd.width * gif.lsd.height > 4000000
+          )
+            throw Error("GIF exceeds frame or pixel limits.");
+          frames = G.decompressFrames(gif, true);
+          frames.forEach((frame, i) => {
+            frame.delay = Math.max(10, (list[i].gce?.delay ?? 10) * 10);
+          });
+          duration = frames.reduce(
+            (s, f) => s + Math.max(10, f.delay || 100) / 1000,
             0,
-          ) > 40000000 ||
-          gif.lsd.width * gif.lsd.height > 4000000
-        )
-          throw Error("GIF exceeds frame or pixel limits.");
-        frames = G.decompressFrames(gif, true);
-        frames.forEach((frame, i) => {
-          frame.delay = Math.max(10, (list[i].gce?.delay ?? 10) * 10);
-        });
-        duration = frames.reduce(
-          (s, f) => s + Math.max(10, f.delay || 100) / 1000,
-          0,
+          );
+          $("#format").value = "gif";
+          const im = document.createElement("img");
+          im.alt = "Source animated GIF";
+          sourceURL = URL.createObjectURL(file);
+          im.src = sourceURL;
+          $("#mediaPreview").replaceChildren(im);
+        } else {
+          video = document.createElement("video");
+          video.controls = true;
+          video.playsInline = true;
+          video.preload = "auto";
+          sourceURL = URL.createObjectURL(file);
+          const pending = event(video, "loadedmetadata", UNDECODABLE);
+          video.src = sourceURL;
+          $("#mediaPreview").replaceChildren(video);
+          await pending;
+          duration = video.duration;
+          if (!Number.isFinite(duration) || duration <= 0)
+            throw Error("This video has no finite duration.");
+          if (video.videoWidth * video.videoHeight > 8294400)
+            throw Error("Video exceeds the 8 megapixel limit.");
+        }
+        check();
+        $("#end").value = Math.min(duration, 10).toFixed(2);
+        say(
+          `Loaded ${duration.toFixed(2)} seconds. Choose an interval and format.`,
         );
-        $("#format").value = "gif";
-        const im = document.createElement("img");
-        im.alt = "Source animated GIF";
-        sourceURL = URL.createObjectURL(file);
-        im.src = sourceURL;
-        $("#mediaPreview").replaceChildren(im);
-      } else {
-        video = document.createElement("video");
-        video.controls = true;
-        video.playsInline = true;
-        video.preload = "auto";
-        sourceURL = URL.createObjectURL(file);
-        const pending = event(video, "loadedmetadata", UNDECODABLE);
-        video.src = sourceURL;
-        $("#mediaPreview").replaceChildren(video);
-        await pending;
-        duration = video.duration;
-        if (!Number.isFinite(duration) || duration <= 0)
-          throw Error("This video has no finite duration.");
-        if (video.videoWidth * video.videoHeight > 8294400)
-          throw Error("Video exceeds the 8 megapixel limit.");
+      } catch (error) {
+        reset();
+        $("#mediaPreview").replaceChildren();
+        throw error;
       }
-      check();
-      $("#end").value = Math.min(duration, 10).toFixed(2);
-      say(
-        `Loaded ${duration.toFixed(2)} seconds. Choose an interval and format.`,
-      );
     });
   function encodeFrame(G, encoder, c, delay) {
     const rgba = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
@@ -1050,12 +1065,13 @@ function trimmer() {
           throw Error("This browser has no WebM recording codec. Choose GIF.");
         video.pause();
         await seek(start);
-        const stream = video.captureStream(),
+        const recordingVideo = video,
+          stream = recordingVideo.captureStream(),
           chunks = [],
           recorder = new MediaRecorder(stream, { mimeType: mime });
         const stop = () => {
           if (recorder.state !== "inactive") recorder.stop();
-          video.pause();
+          recordingVideo.pause();
           stream.getTracks().forEach((t) => t.stop());
         };
         cleanups.push(stop);
@@ -1071,10 +1087,11 @@ function trimmer() {
           const abort = () => stop();
           controller.signal.addEventListener("abort", abort, { once: true });
           recorder.start(100);
-          video.muted = true;
-          await video.play();
+          recordingVideo.muted = true;
+          await recordingVideo.play();
           watch = setInterval(() => {
-            if (video.currentTime >= end || video.ended) stop();
+            if (recordingVideo.currentTime >= end || recordingVideo.ended)
+              stop();
           }, 15);
           timer = setTimeout(stop, (end - start + 10) * 1000);
           await stopped;
@@ -1094,7 +1111,7 @@ function trimmer() {
           clearInterval(watch);
           clearTimeout(timer);
           stop();
-          video.muted = false;
+          recordingVideo.muted = false;
           cleanups = cleanups.filter((fn) => fn !== stop);
         }
       }
@@ -1138,6 +1155,20 @@ $("#offline").onclick = async () => {
         worker.addEventListener("statechange", settle);
         settle();
       });
+    // An active registration can outlive its evicted cache. Check/repair it first.
+    await new Promise((resolve, reject) => {
+      const channel = new MessageChannel();
+      const timer = setTimeout(() => {
+        channel.port1.close();
+        reject(Error("Offline verification timed out. Retry while online."));
+      }, 120000);
+      channel.port1.onmessage = ({ data }) => {
+        clearTimeout(timer);
+        channel.port1.close();
+        data.ok ? resolve() : reject(Error(data.error));
+      };
+      worker.postMessage("VERIFY_OFFLINE", [channel.port2]);
+    });
     /* Activation alone does not control this page. Offline reload only works once this page is
        controlled by the worker, so confirm that instead of claiming readiness early. */
     if (!navigator.serviceWorker.controller)

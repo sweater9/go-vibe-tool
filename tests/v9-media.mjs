@@ -3,10 +3,15 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import fs from "node:fs";
 import crypto from "node:crypto";
+import vm from "node:vm";
 const require = createRequire(import.meta.url),
   C = require("../v9-utilities-core.js"),
   M = require("../tools/v9-media/media-core.js");
 test("CSS curve solver uses x inversion and preserves endpoints/overshoot", () => {
+  const sandbox = { GVTV9: { agent1Engine: true } };
+  vm.runInNewContext(fs.readFileSync("v9-utilities-core.js", "utf8"), sandbox);
+  assert.equal(sandbox.GVTV9.agent1Engine, true);
+  assert.equal(typeof sandbox.GVTV9.bezierAt, "function");
   for (let x = 0; x <= 1; x += 0.1)
     assert.ok(Math.abs(C.bezierAt(x, 0, 0, 1, 1) - x) < 1e-10);
   assert.equal(C.bezierAt(0, 0.25, 0.1, 0.25, 1), 0);
@@ -15,6 +20,31 @@ test("CSS curve solver uses x inversion and preserves endpoints/overshoot", () =
   assert.ok(C.bezierAt(0.2, 0.68, -0.6, 0.32, 1.6) < 0);
   assert.throws(() => C.bezierAt(NaN, 0, 0, 1, 1));
   assert.throws(() => C.bezierAt(0.5, -1, 0, 1, 1));
+});
+test("root worker activation preserves scoped media and foreign caches", async () => {
+  const source = fs.readFileSync("sw.js", "utf8");
+  const current = source.match(/const CACHE="([^"]+)"/)[1];
+  const keys = new Set([
+    current,
+    "govibetool-old",
+    "gvt-v9-media-2",
+    "other-app",
+  ]);
+  const handlers = {};
+  vm.runInNewContext(source, {
+    self: {
+      addEventListener: (name, fn) => (handlers[name] = fn),
+      clients: { claim: async () => {} },
+    },
+    caches: {
+      keys: async () => [...keys],
+      delete: async (key) => keys.delete(key),
+    },
+  });
+  let pending;
+  handlers.activate({ waitUntil: (promise) => (pending = promise) });
+  await pending;
+  assert.deepEqual([...keys], [current, "gvt-v9-media-2", "other-app"]);
 });
 test("range validation rejects invalid and excessive intervals", () => {
   assert.deepEqual(M.range(1, 2, 3), [1, 2]);

@@ -10,6 +10,7 @@ on:
       - "tests/v9-utilities.mjs"
       - "tests/fixtures/v9-media/**"
       - "index.html"
+      - "sw.js"
       - ".github/workflows/v9-media-qa.yml"
   pull_request:
     branches: [feature/v9-browser-utilities]
@@ -20,6 +21,7 @@ on:
       - "tests/v9-utilities.mjs"
       - "tests/fixtures/v9-media/**"
       - "index.html"
+      - "sw.js"
       - ".github/workflows/v9-media-qa.yml"
   workflow_dispatch:
 
@@ -47,6 +49,7 @@ jobs:
         run: |
           set -o pipefail
           node --test tests/v9-media.mjs tests/v9-utilities.mjs | tee artifacts/v9-media/unit.log
+          node tests/v8-service-worker.mjs | tee artifacts/v9-media/service-worker.log
           node scripts/build-static.mjs | tee artifacts/v9-media/build.log
       - uses: actions/upload-artifact@v4
         if: always()

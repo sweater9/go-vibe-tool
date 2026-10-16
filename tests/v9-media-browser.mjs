@@ -278,7 +278,7 @@ async function pickVideoFixture() {
 const NO_DECODER = (probe) =>
   `This engine decodes none of the bundled video fixtures (${probe.join("; ")}). ` +
   "Verified instead: the app reports it cannot decode the video, offers the GIF alternative and exports nothing.";
-async function loadVideoFixture() {
+async function loadVideoFixture(expected = /^Loaded/) {
   const fixture = await pickVideoFixture();
   if (!fixture.file) {
     const [file, type] = videoFixtures[0];
@@ -308,7 +308,7 @@ async function loadVideoFixture() {
   );
   assert.match(
     await page.locator("#status").textContent(),
-    /^Loaded/,
+    expected,
     `Fixture ${fixture.file} decoding failed although the engine decoded it directly`,
   );
   return fixture;
@@ -329,13 +329,33 @@ const check = async (name, fn) => {
       detail || "",
     );
   } catch (error) {
+    const ui = await page
+      .locator("#status")
+      .textContent({ timeout: 1000 })
+      .catch(() => "unavailable");
+    const offline = await page
+      .locator("#offlineStatus")
+      .textContent({ timeout: 1000 })
+      .catch(() => "unavailable");
     cases.push({
       name,
       status: "failed",
       elapsedMs: Date.now() - time,
       error: String(error.stack || error),
+      ui,
+      offline,
     });
     console.error("FAIL", name, error);
+    if (process.env.GITHUB_ACTIONS) {
+      const escape = (s) =>
+        String(s)
+          .replaceAll("%", "%25")
+          .replaceAll("\r", "%0D")
+          .replaceAll("\n", "%0A");
+      console.error(
+        `::error::${escape(`${engine}/${target}: ${name}\n${error.stack || error}\nUI: ${ui}\nOffline: ${offline}`)}`,
+      );
+    }
     await page
       .screenshot({
         path: path.join(artifacts, `failure-${cases.length}.png`),
@@ -353,6 +373,9 @@ try {
       assert.match(await page.locator("#css").inputValue(), /cubic-bezier/);
       assert.match(await page.locator("#sample").textContent(), /0.8024/);
       await page.fill("#x1", "-1");
+      await page.locator("#x1").dispatchEvent("input");
+      assert.match(await page.locator("#status").textContent(), /choose/);
+      await page.fill("#x1", "");
       await page.locator("#x1").dispatchEvent("input");
       assert.match(await page.locator("#status").textContent(), /choose/);
       await page.selectOption("#preset", "0,0,1,1");
@@ -466,6 +489,35 @@ try {
     });
   encoder.finish();
   const gifBytes = encoder.bytes();
+  await check(
+    "rejected oversized video cannot be exported and releases its preview",
+    async () => {
+      await open("video-gif-trimmer");
+      // Exercise the real decoder, then simulate metadata beyond the resource cap.
+      await page.evaluate(() => {
+        Object.defineProperty(HTMLVideoElement.prototype, "videoWidth", {
+          configurable: true,
+          get: () => 10000,
+        });
+        Object.defineProperty(HTMLVideoElement.prototype, "videoHeight", {
+          configurable: true,
+          get: () => 10000,
+        });
+      });
+      await loadVideoFixture(/8 megapixel/);
+      await page.waitForFunction(() =>
+        document.querySelector("#status").textContent.includes("8 megapixel"),
+      );
+      assert.equal(await page.locator("#mediaPreview video").count(), 0);
+      await page.selectOption("#format", "gif");
+      await page.click("#trim");
+      assert.match(
+        await page.locator("#status").textContent(),
+        /Load media first/,
+      );
+      assert.equal(await page.locator("#downloads a").count(), 0);
+    },
+  );
   await check("GIF trims real frames, colors and delays", async () => {
     await open("video-gif-trimmer");
     await upload("animated.gif", "image/gif", gifBytes);
@@ -548,6 +600,31 @@ try {
         JSON.stringify(measured),
       );
       assert.ok(measured.peak > 0.1, "captured audio is audible");
+      await page.evaluate(() => {
+        const video = document.querySelector("video");
+        const capture = video.captureStream.bind(video);
+        video.captureStream = () => {
+          const stream = capture();
+          window.testCapturedTracks = stream.getTracks();
+          return stream;
+        };
+      });
+      await page.fill("#end", "2");
+      await page.click("#trim");
+      await page.waitForFunction(() => window.testCapturedTracks?.length > 0);
+      await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+      await page.waitForFunction(
+        () => document.querySelector("#status").textContent === "Cancelled.",
+      );
+      assert.equal(
+        await page.evaluate(() =>
+          window.testCapturedTracks.every(
+            (track) => track.readyState === "ended",
+          ),
+        ),
+        true,
+      );
+      assert.equal(await page.locator("#downloads a").count(), 0);
     },
   );
   await check(
@@ -602,6 +679,25 @@ try {
           /^Offline assets cached\./.test(
             document.querySelector("#offlineStatus").textContent,
           ),
+        null,
+        { timeout: 120000 },
+      );
+      // An active worker must repair a missing cache entry, not falsely report ready.
+      await page.evaluate(async () => {
+        const key = (await caches.keys()).find((key) =>
+          key.startsWith("gvt-v9-media-"),
+        );
+        await (
+          await caches.open(key)
+        ).delete(new URL("media.js", location.href));
+        document.querySelector("#offlineStatus").textContent = "Rechecking";
+      });
+      await page.click("#offline");
+      await page.waitForFunction(
+        () =>
+          document
+            .querySelector("#offlineStatus")
+            .textContent.startsWith("Offline assets cached"),
         null,
         { timeout: 120000 },
       );
