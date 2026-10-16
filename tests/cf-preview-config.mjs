@@ -33,3 +33,20 @@ r = run({ CLOUDFLARE_API_TOKEN: 'SECRET-TOKEN-VALUE', CLOUDFLARE_ACCOUNT_ID: 'a'
 r = run({ CLOUDFLARE_API_TOKEN: 'SECRET-TOKEN-VALUE', CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32), PREVIEW_WORKER: 'my-site' }); assert.equal(r.code, 1); assert.match(r.out, /must end in "-preview"/);
 r = run({ CLOUDFLARE_API_TOKEN: 'SECRET-TOKEN-VALUE', CLOUDFLARE_ACCOUNT_ID: 'not-an-id' }); assert.equal(r.code, 1); assert.match(r.out, /32-character/);
 console.log('✓ Cloudflare config: build script present, assets.directory ./dist, isolated preview Worker, guarded workflow, no credentials');
+
+// --- Reconciliation guard: the production workflow and the preview workflow must stay independent. ---
+// main carries a dispatch-only STUB of the preview workflow; the V8 branch carries the real one. Whichever is merged,
+// production deployment behaviour must be identical. These checks pin the properties that guarantee it.
+const prodWf = read('.github/workflows/cloudflare-v8-production.yml');
+const prodHead = prodWf.split('jobs:')[0];
+assert.match(prodHead, /workflow_dispatch:/); assert.ok(!/\n\s*(push|pull_request|schedule|workflow_run):/.test(prodHead), 'production deploys only on manual dispatch');
+const sha = prodWf.match(/RELEASE_SHA:\s*([0-9a-f]{40})/); assert.ok(sha, 'production pins an immutable 40-hex release SHA');
+assert.ok([...prodWf.matchAll(/ref:\s*([0-9a-f]{40})/g)].every(m => m[1] === sha[1]) && [...prodWf.matchAll(/ref:\s*([0-9a-f]{40})/g)].length >= 2, 'every production checkout uses the pinned SHA, never a branch or github.sha');
+assert.match(prodWf, /if:\s*github\.event_name == 'workflow_dispatch' && inputs\.deploy == true/); assert.match(prodWf, /environment:\s*cloudflare-production/);
+assert.ok(!/cloudflare-v8-preview|wrangler\.preview\.jsonc|go-vibe-tool-v8-preview/.test(prodWf), 'production never references the preview Worker or config');
+assert.ok(!/cloudflare-production/.test(wf), 'preview never uses the production environment or its secrets');
+assert.ok(!/--config wrangler\.jsonc/.test(wf), 'preview never deploys with the production config');
+const previewHead = wf.split('jobs:')[0];
+assert.ok(!/\n\s*(pull_request|schedule|workflow_run):/.test(previewHead), 'preview has no automatic deploy-capable triggers');
+assert.match(wf, /REQUIRED_REF[\s\S]*?GITHUB_REF[\s\S]*?exit 1/, 'preview refuses to run from any ref other than the V8 branch (so on main it cannot build or deploy)');
+console.log('✓ Cloudflare reconciliation: production pinned and independent; preview guarded, preview-only, never production config');

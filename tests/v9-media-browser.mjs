@@ -56,6 +56,7 @@ async function report(outcome, error) {
         cases.filter((c) => c.status === status).length,
       ]),
     ),
+    crashes,
     cases,
     ...(error ? { error: String(error.stack || error) } : {}),
   };
@@ -177,21 +178,32 @@ const context = await browser.newContext({
   viewport: { width: 390, height: 844 },
   acceptDownloads: true,
 });
-const page = await context.newPage();
-page.setDefaultTimeout(60000);
+/* The page is replaceable so one browser-process crash (seen once, WebKit, "Page crashed") is recorded as a
+   failure but does not cascade into every later check. The context is kept, so the service worker and its
+   cache survive exactly as they would for a user who reloads a crashed tab. Nothing is retried or hidden. */
+let page;
+let crashed = false;
+const crashes = [];
+const newPage = async () => {
+  page = await context.newPage();
+  crashed = false;
+  page.setDefaultTimeout(60000);
+  page.on("crash", () => (crashed = true));
+  page.on("pageerror", (e) => errors.push(e.message));
+  if (process.env.MEDIA_TRACE) {
+    page.on("console", (m) => console.log("BROWSER", m.type(), m.text()));
+    page.on("requestfailed", (r) =>
+      console.log("REQUEST FAILED", r.url(), r.failure()),
+    );
+  }
+};
 const errors = [],
   external = [];
-page.on("pageerror", (e) => errors.push(e.message));
 context.on("request", (r) => {
   if (/^https?:/.test(r.url()) && !r.url().startsWith(base))
     external.push(r.url());
 });
-if (process.env.MEDIA_TRACE) {
-  page.on("console", (m) => console.log("BROWSER", m.type(), m.text()));
-  page.on("requestfailed", (r) =>
-    console.log("REQUEST FAILED", r.url(), r.failure()),
-  );
-}
+await newPage();
 /* Only third-party http(s) requests are intercepted and blocked. Same-origin traffic is not routed
    so Playwright cannot stand between the page and its service worker. blob:/data: URLs must never
    be aborted: WebKit surfaces blob: media loads as intercepted requests, and aborting them made
@@ -320,6 +332,10 @@ const check = async (name, fn) => {
   }
   const time = Date.now();
   try {
+    if (simulateCrash && engine === "chromium" && name.includes(simulateCrash)) {
+      await page.goto("chrome://crash").catch(() => {});
+      await new Promise((r) => setTimeout(r, 500));
+    }
     const detail = await fn();
     const status = detail?.limitation ? "capability-limited" : "passed";
     cases.push({ name, status, elapsedMs: Date.now() - time, ...detail });
@@ -342,8 +358,18 @@ const check = async (name, fn) => {
         fullPage: true,
       })
       .catch(() => {});
+    if (crashed || page.isClosed()) {
+      cases[cases.length - 1].crashed = true;
+      crashes.push(name);
+      console.error(`CRASH during "${name}": opening a fresh page in the same context so later checks still run`);
+      await page.close().catch(() => {});
+      await newPage();
+    }
   }
 };
+/* Verification hook (Chromium only): MEDIA_SIMULATE_CRASH=<check name substring> crashes the page
+   at the start of that check so the recovery path above can be exercised without a real crash. */
+const simulateCrash = process.env.MEDIA_SIMULATE_CRASH;
 let suiteError;
 try {
   await check(

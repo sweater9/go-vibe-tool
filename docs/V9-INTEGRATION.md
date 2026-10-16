@@ -89,3 +89,51 @@ Agent 2 branch, commit `b38998f055f682f1431174739872ff0085f35c19`: [run 38792811
 
 - `main` does not contain V8 at all (it has only the gated production workflow pinned to `db1d375`). A PR into `main` therefore shows the whole V8 plus V9 diff. Merging it is a release decision, not part of this task.
 - This branch keeps the V8 baseline's `cloudflare-v8-preview.yml` (enforced by `tests/cf-preview-config.mjs`) instead of `main`'s dispatch stub. Choose which to keep before merging.
+
+## Release-gate cleanup (follow-up)
+
+### Known baseline-equivalent legacy failure
+
+`tests/v5-maintenance-browser.mjs` fails on Chromium and WebKit with a console message, once per width (4 per run):
+
+- Chromium: `Failed to load resource: net::ERR_CONNECTION_REFUSED`
+- WebKit: `Failed to load resource: Could not connect to 127.0.0.1: Connection refused`
+
+Evidence that it is baseline-equivalent, not assumed:
+
+- Reproduced on the accepted V8 baseline `db1d37540d92919f7b09612a91502dff0faf358c` (local Chromium, same suite, same four messages, 32 checks passed on both sides).
+- Direct probe on the baseline: with the origin stopped and `navigator.onLine` still true, the refused requests are `/assets/icon.svg` (and the SW-internal `/studios.css` fetch that the worker answers from cache). The icon bypass is the documented PR #19 trade-off: while online, the worker leaves browser-owned favicon requests to the browser.
+- Firefox does not report it, so the repository gate was red on exactly two of three engines.
+
+What changed (no assertion weakened, no suite skipped):
+
+- `scripts/compare-maintenance.mjs` compares candidate results with the baseline results. It fails on any issue the baseline lacks, or on fewer passing checks. Negative control: an injected extra console error exits 1.
+- `.github/workflows/v5-cross-browser-pr.yml` runs the suite on both the PR and the pinned baseline and applies that comparison, instead of failing on the baseline-equivalent message. The other seven suites are unchanged.
+- `.github/workflows/v9-integration-qa.yml` uses the same script.
+
+The proper long-term fix (serving or suppressing the favicon during an intentional outage) changes V8 behaviour or a V8 test and is deliberately not part of this cleanup.
+
+### WebKit "Page crashed" during offline preparation
+
+Observed once in about 40 repeat jobs (Agent 2 media suite, WebKit, source): `Page crashed` while the page waited for "Offline assets cached", then every later check in that process failed on the dead page.
+
+Findings:
+
+- It is a content-process crash event, not an assertion or timeout; no application error preceded it.
+- Memory is not a plausible cause. The worker installs 201 pinned files (20.6 MiB; largest 10.4 MiB) with concurrency 4. Worst case is the four largest files at once, about 18 MiB raw and roughly 55 MiB with clone, hash buffer and cache write. That is small for a worker process.
+- The page itself does nothing heavy at that point (registration and waiting); OCR has not started. No product change is justified by this evidence, and none was made.
+- It cannot be reproduced locally (no WebKit build in the authoring environment), so the cause is not established.
+
+What changed (harness only):
+
+- `tests/v9-media-browser.mjs` now treats a crashed or closed page as a recorded failure (`crashed: true`, listed in `results.json` under `crashes`), then opens a fresh page in the same browser context and continues. The context is kept, so the service worker and cache survive just as for a user reloading a crashed tab. Nothing is retried or hidden: the crashed check stays failed and the run stays red.
+- Verification hook: `MEDIA_SIMULATE_CRASH=<check name substring>` crashes the page (`chrome://crash`, Chromium only). With `offline asset` selected the run showed the crash recorded, the independent homepage check still passing after recovery, and the dependent offline-reload check failing honestly because its preparation never happened.
+
+### Cloudflare workflow reconciliation
+
+`main` carries a dispatch-only stub of `cloudflare-v8-preview.yml`; the V8 branch carries the real preview workflow. Decision: keep the real workflow (it is what `tests/cf-preview-config.mjs` enforces), and prove it cannot affect production.
+
+- `cloudflare-v8-production.yml` is byte-identical on `main` and on this branch, dispatch-only, pinned to `db1d375…`, gated by `inputs.deploy == true` and the `cloudflare-production` environment. Not modified.
+- The preview workflow deploys only with `wrangler.preview.jsonc` to `go-vibe-tool-v8-preview`, has no `pull_request`/`schedule`/`workflow_run` triggers, its only `push` trigger is scoped to `feature/v8-discovery-navigation` and its own file, and a `REQUIRED_REF` guard makes it refuse every other ref. On `main` it therefore cannot build or deploy, which matches the stub's behaviour; the "Run workflow" button remains because the file has `workflow_dispatch` on the default branch.
+- `tests/cf-preview-config.mjs` gained a reconciliation guard asserting all of the above (production pinned to one 40-hex SHA on every checkout, dispatch-only, gated; preview never references the production environment or config). Negative control: pointing a production checkout at `main` fails the guard.
+- Production deployment behaviour, secrets, environments, domains and automatic builds are unchanged.
