@@ -276,6 +276,11 @@
   backdrop-filter: blur(4px);
   padding: 20px;
 }
+/* The author rule above sets display:flex, which would override the UA [hidden] rule and leave the pause, win and
+   no-moves overlays covering (and blocking) the board even while hidden. */
+.overlay[hidden] {
+  display: none;
+}
 
 .modal-card {
   background: #ffffff;
