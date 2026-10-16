@@ -1,0 +1,65 @@
+name: File-media WebKit repeat (manual measurement)
+# Measurement only. Read-only, no secrets, no deployment, never touches the release pin.
+# Purpose: classify the intermittent WebKit failure of the Image Compressor test
+# "many files at once complete sequentially without errors (memory-friendly), Stop button appears only while running"
+# (tests/file-media-browser.mjs) by running the same suite repeatedly on BOTH the accepted V8 baseline and the
+# immutable Mahjong V9 release SHA, on the built distribution (SITE_ROOT=dist), exactly as V9 Integration QA does.
+on:
+  workflow_dispatch:
+  # Bootstrap: also runs when this file changes on the measurement branch (so it registers and can be re-run).
+  push:
+    branches: [ci/file-media-webkit-repeat]
+    paths: ['.github/workflows/file-media-webkit-repeat.yml']
+permissions:
+  contents: read
+concurrency:
+  group: file-media-webkit-repeat-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  repeat:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        side: [baseline, release]
+        n: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # baseline = accepted V8 release; release = immutable Mahjong V9 release SHA (the app code under PR #34)
+          ref: ${{ matrix.side == 'baseline' && 'db1d37540d92919f7b09612a91502dff0faf358c' || 'a85e4695a139c56456c743d607a79f76ff8abda8' }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - name: Install browser (retry; the download occasionally hangs)
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            timeout -k 10 240 npx playwright install --with-deps webkit && exit 0
+            sudo pkill -f 'apt-get|dpkg' || true
+            sleep 5
+          done
+          exit 1
+      - run: npm run build
+      - name: file-media-browser on WebKit (${{ matrix.side }} #${{ matrix.n }})
+        env:
+          SITE_ROOT: dist
+          FM_ARTIFACTS: artifacts/file-media-webkit
+        run: |
+          set +e
+          mkdir -p artifacts
+          node tests/file-media-browser.mjs webkit > artifacts/fm.log 2>&1
+          rc=$?
+          sha=$(git rev-parse --short HEAD)
+          summary=$(grep -E "^webkit: [0-9]+ passed" artifacts/fm.log | tail -1)
+          fails=$(grep -E "^FAIL " artifacts/fm.log | cut -c1-420 | tr '\n' '|')
+          echo "RESULT side=${{ matrix.side }} run=${{ matrix.n }} sha=$sha rc=$rc $summary"
+          echo "::notice title=${{ matrix.side }} #${{ matrix.n }} sha=$sha rc=$rc::$summary $fails"
+          exit $rc
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: file-media-webkit-${{ matrix.side }}-${{ matrix.n }}
+          path: artifacts/
