@@ -162,20 +162,7 @@ jobs:
           set +e
           (cd v8-baseline && MAINTENANCE_ARTIFACTS="$PWD/../artifacts/maint-baseline" node tests/v5-maintenance-browser.mjs ${{ matrix.engine }} > ../artifacts/logs/v5-maintenance-baseline.log 2>&1; echo "baseline exit $?")
           MAINTENANCE_ARTIFACTS="$PWD/artifacts/maint-integration" node tests/v5-maintenance-browser.mjs ${{ matrix.engine }} > artifacts/logs/v5-maintenance-integration.log 2>&1; echo "integration exit $?"
-          node -e '
-            const fs=require("fs");
-            const load=p=>{try{return JSON.parse(fs.readFileSync(p,"utf8"))}catch(e){return null}};
-            const b=load("artifacts/maint-baseline/results.json"), i=load("artifacts/maint-integration/results.json");
-            if(!b||!i){console.error("::error title=maintenance A/B::missing results (baseline "+!!b+", integration "+!!i+")");process.exit(1)}
-            const norm=m=>m.replace(/^\d+ /,"");
-            const baseIssues=new Set(b.issues.map(norm));
-            const fresh=i.issues.filter(m=>!baseIssues.has(norm(m)));
-            console.log("baseline: "+b.results.length+" checks passed, issues:",JSON.stringify([...baseIssues]));
-            console.log("integration: "+i.results.length+" checks passed, issues:",JSON.stringify([...new Set(i.issues.map(norm))]));
-            if(i.results.length<b.results.length){console.error("::error title=maintenance A/B::fewer passing checks than baseline");process.exit(1)}
-            if(fresh.length){console.error("::error title=maintenance A/B::NEW issues vs baseline: "+JSON.stringify(fresh));process.exit(1)}
-            console.log("no new issues vs the V8 baseline");
-          '
+          node scripts/compare-maintenance.mjs artifacts/maint-baseline/results.json artifacts/maint-integration/results.json
       - name: dist-browser, integration vs the accepted V8 baseline (fails only on NEW failures)
         run: |
           # Reproduce, do not assume: any failure of this untouched V8 suite must also fail identically on the baseline.
