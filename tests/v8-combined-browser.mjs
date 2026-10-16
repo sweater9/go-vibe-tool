@@ -31,7 +31,7 @@ for(const width of [375,1280]){
  }
  await page.waitForSelector('#studio-'+key+':not([hidden])');
  if(key==='url'){await page.fill('#urlInput','https://example.com/?ref=keep&utm_source=test');await page.click('#urlAnalyze');assert.match(await page.locator('#urlResult').innerText(),/ref=keep/);}
- 
+
  if(key==='qr'){assert.ok(await page.locator('#qrUrl').count());await page.evaluate(()=>generateQR());assert.ok(await page.locator('#qrOutput canvas').count());}
  if(key==='privacy'){await page.fill('#redactInput','Contact test@example.com Bearer abc.def.ghi');await page.evaluate(()=>runRedactor());assert.match(await page.locator('#redactOutput').innerText(),/REDACTED/i);}
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

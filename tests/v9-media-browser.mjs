@@ -18,7 +18,7 @@ const engine = process.argv[2] || "chromium";
 if (!["chromium", "firefox", "webkit"].includes(engine))
   throw Error("Choose chromium, firefox, or webkit.");
 const root = path.resolve(process.env.SITE_ROOT || ".");
-const target = process.env.SITE_ROOT ? "dist" : "source";
+const target = root === path.resolve(".") ? "source" : "dist";
 const artifacts =
   process.env.MEDIA_ARTIFACTS || `artifacts/v9-media/${engine}/${target}`;
 await fs.mkdir(artifacts, { recursive: true });

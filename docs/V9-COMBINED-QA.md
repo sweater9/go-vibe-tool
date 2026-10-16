@@ -33,3 +33,7 @@ The combined catalogue is 69 listed tools (59 retained plus ten V9 additions), s
 PDF signatures are visible raster marks, not cryptographic digital signatures or certified redaction. Raster exports lose selectable text, links, forms and accessibility. OCR is local English printed-text recognition. Audio is peak leveling, not LUFS mastering. Firefox/WebKit WebM capture may be unavailable; GIF alternatives are separately exercised. No watermark is added; existing watermarks are retained. Offline storage can be evicted and must be prepared again.
 
 Status: combined release validation in progress; not deployment-approved. Final evidence must refer to the exact tested candidate, not the earlier individually green lane commits.
+
+Local reconciliation evidence at `dcac129`: all 65 static gate commands passed, including 56 lane-1/epoch tests with the large-file case enabled (zero skips), nine additional media tests, static distribution checks and three local Cloudflare-runtime tests. The legacy Chromium integration suite passed 66 checks after the retirement-contract reconciliation. Joint worker/catalogue checks passed in Chromium and Firefox. These results do not replace the pending six-job hosted browser matrix.
+
+The media runner classifies `SITE_ROOT=.` as source explicitly, so the combined source gate uses its plain source server and reports the correct target; `SITE_ROOT=dist` keeps the production-equivalent routing server. Firefox/WebKit capture limitations remain distinct from successful exports.
