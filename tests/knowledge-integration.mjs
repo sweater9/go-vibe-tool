@@ -9,7 +9,9 @@ const need = (ok, msg) => { if (!ok) failures.push(msg); };
 const home = R("index.html");
 need(/<div class="navlinks">[^]*?<a href="knowledge\/">Knowledge<\/a>[^]*?<\/div>/.test(home), "homepage header nav needs a Knowledge link");
 need(/<footer>[^]*<a href="knowledge\/">Knowledge<\/a>[^]*<\/footer>/.test(home), "homepage footer needs a Knowledge link (the header nav is hidden below 900px)");
-for (const href of ['href="#tools"', 'href="learn/"', 'href="#labs"', 'href="#play"', 'href="#about"', 'href="privacy.html"', 'href="terms.html"', 'href="contact.html"']) need(home.includes(href), "existing homepage link lost: " + href);
+for (const href of ['href="#tools"', 'href="learn/"', 'href="labs/"', 'href="play/"', 'href="#about"', 'href="privacy.html"', 'href="terms.html"', 'href="contact.html"']) need(home.includes(href), "existing homepage link lost: " + href);
+// V8 splits the old combined "Labs & Play" nav entry into separate Labs and Play links to their hubs; the old in-page anchors must still resolve for bookmarks.
+for (const id of ['id="labs"', 'id="play"', 'id="tools"', 'id="about"']) need(home.includes(id), "existing homepage anchor lost: " + id);
 need(readFileSync(new URL("../knowledge/index.html", import.meta.url), "utf8").length > 0, "knowledge index missing");
 
 // 2. Root sitemap: valid structure, one generated Knowledge block, exactly the canonical pages, no redirect stubs, no duplicates.

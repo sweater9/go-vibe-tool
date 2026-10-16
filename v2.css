@@ -112,3 +112,6 @@ header{box-shadow:0 8px 30px rgba(26,22,67,.04)}.eyebrow{background:linear-gradi
 .featured-chip:hover,.featured-chip:focus-visible{border-color:var(--brand)}
 .featured-chip small{color:#4a5068;font-size:12px;line-height:1.35}
 .play-preview .btn{min-height:44px;display:inline-flex;align-items:center}
+
+/* V8 brand: supplied sparkle mark + bold black wordmark */
+.brand{display:inline-flex;align-items:center}.brand .brand-mark{width:30px;height:30px;flex:none;display:block;margin-right:9px}.brand span,.brand b{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#0b0b14}

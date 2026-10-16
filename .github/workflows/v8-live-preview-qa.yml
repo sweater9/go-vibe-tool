@@ -1,0 +1,145 @@
+name: V8 GitHub snapshot QA
+# Frozen, isolated review of the requested snapshot. No Pages deployment or Render calls.
+on:
+  workflow_dispatch:
+  push:
+    branches: [feature/v8-discovery-navigation]
+    paths:
+      - .github/workflows/v8-live-preview-qa.yml
+      - qa/v8-github/**
+permissions:
+  contents: read
+concurrency:
+  group: v8-github-snapshot-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  TARGET_COMMIT: f6685bff58ae91f835b41963239cda2355c8554c
+jobs:
+  inspect-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Inspect Pages configuration without changing it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 qa/v8-github/inspect-pages.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v8-pages-inspection-f6685bff
+          path: inspection/
+          retention-days: 14
+
+  snapshot-and-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: f6685bff58ae91f835b41963239cda2355c8554c
+          path: site
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact checkout and package the isolated preview
+        run: |
+          node harness/qa/v8-github/build-preview.mjs site preview
+          test "$(git -C site rev-parse HEAD)" = "$TARGET_COMMIT"
+      - name: Run npm test on the target commit
+        working-directory: site
+        run: npm test 2>&1 | tee ../preview/npm-test.log
+      - name: Publish the commit-pinned preview artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v8-preview-f6685bff
+          path: preview/
+          retention-days: 14
+      - name: Snapshot summary
+        if: always()
+        run: |
+          {
+            echo '## GoVibeTool V8 frozen snapshot'
+            echo "Target: $TARGET_COMMIT"
+            echo 'A downloadable artifact was prepared. No public website was deployed.'
+            echo 'The payload is isolated under /go-vibe-tool/v8-preview/<full-commit>/.'
+            echo 'GitHub Pages settings, custom domain, visibility and DNS are unchanged.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  acceptance:
+    needs: snapshot-and-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: f6685bff58ae91f835b41963239cda2355c8554c
+          path: site
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test tooling outside the snapshot
+        working-directory: harness
+        run: npm install --no-save playwright@1.56.0
+      - name: Install the actual browser engine
+        working-directory: harness
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: v8-preview-f6685bff
+          path: preview
+      - name: Verify downloaded preview bytes
+        run: node --input-type=module -e "import {verify} from './harness/qa/v8-github/serve-preview.mjs'; console.log(verify('preview').resolvedCommit)"
+      - name: Run existing V8 and Play browser acceptance tests on target source
+        env:
+          PLAYWRIGHT_PACKAGE: ${{ github.workspace }}/harness/node_modules/playwright/index.mjs
+          V8_ARTIFACTS: ${{ github.workspace }}/artifacts/v8-root
+          PLAY_ARTIFACTS: ${{ github.workspace }}/artifacts/play-root
+        run: |
+          mkdir -p artifacts
+          test "$(git -C site rev-parse HEAD)" = "$TARGET_COMMIT"
+          node site/tests/v8-browser.mjs ${{ matrix.browser }} 2>&1 | tee artifacts/v8-root.log
+          node site/tests/play-games-browser.mjs ${{ matrix.browser }} 2>&1 | tee artifacts/play-root.log
+      - name: Verify project-path navigation, assets, scope and true offline play
+        env:
+          PLAYWRIGHT_PACKAGE: ${{ github.workspace }}/harness/node_modules/playwright/index.mjs
+          SITE_DIR: ${{ github.workspace }}/site
+          PREVIEW_ROOT: ${{ github.workspace }}/preview
+          QA_OUT: ${{ github.workspace }}/artifacts/prefix
+        run: node harness/qa/v8-github/prefix-browser.mjs ${{ matrix.browser }} 2>&1 | tee artifacts/prefix.log
+      - name: Publish screenshots, traces, logs and commit verification
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v8-tests-${{ matrix.browser }}-f6685bff
+          path: artifacts/
+          retention-days: 14
+      - name: Browser result summary
+        if: always()
+        run: |
+          {
+            echo '## ${{ matrix.browser }} — frozen V8 snapshot'
+            echo "Tested source: $TARGET_COMMIT"
+            echo 'Root acceptance plus nested-path checks; origin-server shutdown tests offline functionality.'
+            echo 'Download this engine artifact for screenshots, failure traces and exact result JSON.'
+          } >> "$GITHUB_STEP_SUMMARY"

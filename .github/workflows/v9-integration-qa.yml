@@ -1,0 +1,184 @@
+name: V9 Integration QA
+# Validation only: read-only permissions, no secrets, no deployment, no Cloudflare access.
+on:
+  push:
+    branches: [integration/v9-agent1-agent2]
+    paths-ignore: ['**/*.md', '.github/workflows/v9-integration-repeat.yml']
+  pull_request:
+    branches: [main]
+    paths-ignore: ['**/*.md']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v9-integration-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  unit-build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: git rev-parse HEAD | tee revision.txt
+      - run: npm install --no-save --package-lock=false tailwindcss@3.4.17
+      - name: All unit, static and V8 regression checks (npm test)
+        run: npm test 2>&1 | tee unit.log
+        shell: bash
+      - name: V9 unit tests incl. 1 GiB memory-bounded hash
+        run: V9_BIG_GIB=1 npm run test:v9 2>&1 | tee v9-unit.log
+        shell: bash
+      - run: npm run test:studios && npm run test:developer:tailwind
+      - name: Production-equivalent static build and verification
+        run: |
+          npm run build | tee build.log
+          npm run verify:dist | tee -a build.log
+          npm run test:v9:dist | tee -a build.log
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v9-integration-unit-${{ github.sha }}
+          path: |
+            revision.txt
+            unit.log
+            v9-unit.log
+            build.log
+
+  browser-v9:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npm run build
+      - name: V9 suites (every suite runs; any failure fails the job)
+        env:
+          V9_BIG_FILE_MIB: '300'
+        run: |
+          set +e
+          mkdir -p artifacts/logs
+          failed=""
+          run() { # name, env-prefix..., command
+            name="$1"; shift
+            echo "::group::$name (${{ matrix.engine }})"
+            env "$@" 2>&1 | tee "artifacts/logs/$name.log"
+            rc=${PIPESTATUS[0]}
+            echo "::endgroup::"
+            if [ $rc -ne 0 ]; then failed="$failed $name"; echo "::error title=SUITE FAILED: $name::exit $rc"; fi
+          }
+          run capability-probe node tests/v9-media-probe.mjs ${{ matrix.engine }}
+          run integration-dist SITE_ROOT=dist node tests/v9-integration-browser.mjs ${{ matrix.engine }}
+          run agent1-dist SITE_ROOT=dist node tests/v9-agent1-browser.mjs ${{ matrix.engine }}
+          run media-source node tests/v9-media-browser.mjs ${{ matrix.engine }}
+          run media-dist SITE_ROOT=dist MEDIA_ARTIFACTS=artifacts/v9-media/${{ matrix.engine }}/dist node tests/v9-media-browser.mjs ${{ matrix.engine }}
+          echo "failed suites =${failed:- none}"
+          [ -z "$failed" ]
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v9-integration-${{ matrix.engine }}-${{ github.sha }}
+          path: artifacts/
+
+  browser-v8-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - name: Install browser (retry; the download occasionally hangs)
+        timeout-minutes: 14
+        run: |
+          for attempt in 1 2 3; do
+            timeout -k 10 240 npx playwright install --with-deps ${{ matrix.engine }} && exit 0
+            sudo pkill -f 'apt-get|dpkg' || true
+            sleep 5
+          done
+          exit 1
+      - run: npm run build
+      - name: V8 acceptance suites on the built distribution (every suite runs)
+        env:
+          SITE_ROOT: dist
+        run: |
+          set +e
+          mkdir -p artifacts/logs
+          failed=""
+          for t in v8-integration-browser v8-combined-browser v8-developer-browser file-media-browser v8-browser knowledge-v4-dist-browser labs-browser play-games-browser v8-studios-lifecycle-browser; do
+            echo "::group::$t (${{ matrix.engine }})"
+            node tests/$t.mjs ${{ matrix.engine }} 2>&1 | tee artifacts/logs/$t.log
+            rc=${PIPESTATUS[0]}
+            echo "::endgroup::"
+            if [ $rc -ne 0 ]; then failed="$failed $t"; echo "::error title=SUITE FAILED: $t::exit $rc"; fi
+          done
+          echo "failed suites =${failed:- none}"
+          [ -z "$failed" ]
+      - name: V5/V8 legacy suites served from the checkout (every suite runs)
+        env:
+          BASE_URL: http://127.0.0.1:8765
+        run: |
+          set +e
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/server.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8765/ >/dev/null && break; sleep 1; done
+          failed=""
+          for t in v5-browser-smoke prompt-improver-browser tool-fixes-browser; do
+            echo "::group::$t (${{ matrix.engine }})"
+            node tests/$t.mjs ${{ matrix.engine }} 2>&1 | tee artifacts/logs/$t.log
+            rc=${PIPESTATUS[0]}
+            echo "::endgroup::"
+            if [ $rc -ne 0 ]; then failed="$failed $t"; echo "::error title=SUITE FAILED: $t::exit $rc"; fi
+          done
+          echo "failed suites =${failed:- none}"
+          [ -z "$failed" ]
+      - name: Check out the accepted V8 baseline for A/B comparison
+        if: always()
+        uses: actions/checkout@v4
+        with:
+          ref: db1d37540d92919f7b09612a91502dff0faf358c
+          path: v8-baseline
+      - name: v5-maintenance-browser, integration vs the accepted V8 baseline (fails only on NEW issues)
+        env:
+          BASE_URL: http://127.0.0.1:8765
+        run: |
+          # The suite flags a console "ERR_CONNECTION_REFUSED" (the browser-owned favicon request while the origin
+          # is stopped but navigator.onLine is still true, see PR #19) on the V8 baseline too. A/B compare so that a
+          # pre-existing issue is reproduced rather than assumed, and only a regression fails the job.
+          set +e
+          (cd v8-baseline && MAINTENANCE_ARTIFACTS="$PWD/../artifacts/maint-baseline" node tests/v5-maintenance-browser.mjs ${{ matrix.engine }} > ../artifacts/logs/v5-maintenance-baseline.log 2>&1; echo "baseline exit $?")
+          MAINTENANCE_ARTIFACTS="$PWD/artifacts/maint-integration" node tests/v5-maintenance-browser.mjs ${{ matrix.engine }} > artifacts/logs/v5-maintenance-integration.log 2>&1; echo "integration exit $?"
+          node scripts/compare-maintenance.mjs artifacts/maint-baseline/results.json artifacts/maint-integration/results.json
+      - name: dist-browser, integration vs the accepted V8 baseline (fails only on NEW failures)
+        run: |
+          # Reproduce, do not assume: any failure of this untouched V8 suite must also fail identically on the baseline.
+          set +e
+          (cd v8-baseline && node tests/dist-browser.mjs ${{ matrix.engine }} > ../artifacts/logs/dist-browser-baseline.log 2>&1; echo "baseline exit $?")
+          node tests/dist-browser.mjs ${{ matrix.engine }} > artifacts/logs/dist-browser-integration.log 2>&1; echo "integration exit $?"
+          fails() { grep -E "^(FAIL |\+ +')" "$1" | sort -u; }
+          fails artifacts/logs/dist-browser-baseline.log > /tmp/base.fails
+          fails artifacts/logs/dist-browser-integration.log > /tmp/int.fails
+          echo "--- baseline failures"; cat /tmp/base.fails; echo "--- integration failures"; cat /tmp/int.fails
+          grep -E "passed, [0-9]+ failed" artifacts/logs/dist-browser-baseline.log artifacts/logs/dist-browser-integration.log
+          new=$(comm -13 /tmp/base.fails /tmp/int.fails)
+          if [ -n "$new" ]; then echo "::error title=dist-browser A/B::NEW failures vs baseline: $new"; exit 1; fi
+          echo "no new failures vs the V8 baseline"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v8-regression-${{ matrix.engine }}-${{ github.sha }}
+          path: artifacts/

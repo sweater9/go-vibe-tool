@@ -1,0 +1,30 @@
+name: Mahjong review tests
+on:
+  push:
+    branches: [feature/v8-discovery-navigation]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  mahjong:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm run test:mahjong
+      - run: npm install --no-save playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: node tests/mahjong-browser.mjs ${{ matrix.browser }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mahjong-${{ matrix.browser }}
+          path: artifacts/mahjong/

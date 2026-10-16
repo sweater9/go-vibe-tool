@@ -1,0 +1,49 @@
+name: V8 Combined Acceptance
+on:
+  pull_request:
+    branches: [feature/v8-discovery-navigation]
+permissions:
+  contents: read
+jobs:
+  unit-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false tailwindcss@3.4.17
+      - run: npm test
+      - run: npm run test:studios && npm run test:developer:tailwind
+      - run: npm run build && npm run verify:dist
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npm run build
+      - run: |
+          node tests/v8-integration-browser.mjs ${{ matrix.engine }}
+          node tests/v8-combined-browser.mjs ${{ matrix.engine }}
+          node tests/v8-developer-browser.mjs ${{ matrix.engine }}
+          node tests/file-media-browser.mjs ${{ matrix.engine }}
+          node tests/v8-browser.mjs ${{ matrix.engine }}
+          node tests/knowledge-v4-dist-browser.mjs ${{ matrix.engine }}
+          node tests/labs-browser.mjs ${{ matrix.engine }}
+          node tests/play-games-browser.mjs ${{ matrix.engine }}
+        env:
+          SITE_ROOT: dist
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: combined-${{ matrix.engine }}
+          path: artifacts/

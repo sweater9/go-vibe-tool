@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {readFileSync,writeFileSync,mkdirSync,cpSync} from 'node:fs';
+import {resolve,join,dirname} from 'node:path';
+import {createHash} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+export const TARGET='f6685bff58ae91f835b41963239cda2355c8554c';
+export const TREE='57754c128de33e3fe0e3a6c8e145bd4afccc3650';
+const source=resolve(process.argv[2]||'site'),out=resolve(process.argv[3]||'preview');
+const git=(...args)=>execFileSync('git',['-C',source,...args],{maxBuffer:8*1024*1024});
+assert.equal(git('rev-parse','HEAD').toString().trim(),TARGET,'Snapshot must be checked out at the requested commit');
+assert.equal(git('rev-parse','HEAD^{tree}').toString().trim(),TREE,'Requested commit tree must match GitHub metadata');
+const prefix=`/go-vibe-tool/v8-preview/${TARGET}/`,payload=join(out,prefix);
+const entries=[];
+for(const entry of git('ls-tree','-r','-z','HEAD').toString().split('\0').filter(Boolean)){
+ const [meta,path]=entry.split('\t'),[mode,type,blob]=meta.split(' ');
+ if(type!=='blob'||mode==='120000')continue;
+ if(/^(?:\.github\/|docs\/|tests\/|knowledge\/src\/|play\/daily-word\/src\/)/.test(path))continue;
+ if(!/\.(?:html|css|js|mjs|json|svg|png|jpe?g|webp|ico|txt|xml|webmanifest|woff2?)$/i.test(path)||/^package(?:-lock)?\.json$/.test(path))continue;
+ const data=readFileSync(join(source,path));
+ assert.equal(createHash('sha1').update(`blob ${data.length}\0`).update(data).digest('hex'),blob,'Working tree file changed: '+path);
+ mkdirSync(dirname(join(payload,path)),{recursive:true});writeFileSync(join(payload,path),data);
+ entries.push({path,bytes:data.length,gitBlob:blob,sha256:createHash('sha256').update(data).digest('hex')});
+}
+for(const path of ['index.html','sw.js','play/index.html','play/2048/app.js','play/daily-word/words.js'])assert.ok(entries.some(e=>e.path===path));
+const provenance={repository:'sweater9/go-vibe-tool',requestedCommit:TARGET,resolvedCommit:TARGET,tree:TREE,prefix,hostedWebsite:false,files:entries};
+writeFileSync(join(out,'preview-provenance.json'),JSON.stringify(provenance,null,2)+'\n');
+cpSync(fileURLToPath(new URL('serve-preview.mjs',import.meta.url)),join(out,'serve.mjs'));
+writeFileSync(join(out,'README.txt'),`GoVibeTool V8 frozen review snapshot\n\nCommit: ${TARGET}\nTree: ${TREE}\n\nThis is a downloadable GitHub Actions artifact, NOT a live GitHub Pages deployment.\nNo production publishing source, domain, DNS or visibility was changed.\nCNAME is intentionally omitted from this artifact; source files remain untouched.\n\nAfter unzipping this folder, run:\n  node serve.mjs\nOpen:\n  http://127.0.0.1:8080${prefix}\n\nNode 22+ is sufficient. Opening HTML through file:// cannot reliably run modules or service workers.\nThe server verifies every payload file against preview-provenance.json before starting.\nFull browser test evidence is uploaded separately in the workflow's engine artifacts.\nArtifact expiry is 14 days; rerun the configured branch workflow to regenerate it.\n`);
+console.log(JSON.stringify({commit:TARGET,tree:TREE,prefix,files:entries.length,bytes:entries.reduce((n,e)=>n+e.bytes,0)}));

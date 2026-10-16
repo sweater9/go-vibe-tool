@@ -1,0 +1,160 @@
+{
+  "runId": 38310449904,
+  "workflowCommit": "0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f",
+  "targetCommit": "f6685bff58ae91f835b41963239cda2355c8554c",
+  "tree": "57754c128de33e3fe0e3a6c8e145bd4afccc3650",
+  "publicPreviewUrl": null,
+  "unitTest": "pass",
+  "engines": {
+    "chromium": {
+      "v8Root": {
+        "passed": 126,
+        "failed": 0
+      },
+      "playRoot": {
+        "passed": 28,
+        "failed": 0
+      },
+      "playProjectPath": {
+        "passed": 27,
+        "failed": 0
+      },
+      "additionalProjectChecks": [
+        {
+          "name": "served target commit and all precache assets match Git blob-derived checksums",
+          "status": "pass"
+        },
+        {
+          "name": "original target Play acceptance suite under project path",
+          "status": "pass"
+        },
+        {
+          "name": "chromium 1280px navigation, assets, game controls, exact scoped worker",
+          "status": "pass",
+          "worker": {
+            "scope": "http://127.0.0.1:46019/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/",
+            "script": "http://127.0.0.1:46019/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/sw.js"
+          },
+          "cacheEntries": 63
+        },
+        {
+          "name": "chromium 1280px offline home/Play/2048/Daily Word with the origin server stopped",
+          "status": "pass"
+        },
+        {
+          "name": "chromium 375px navigation, assets, game controls, exact scoped worker",
+          "status": "pass",
+          "worker": {
+            "scope": "http://127.0.0.1:46019/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/",
+            "script": "http://127.0.0.1:46019/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/sw.js"
+          },
+          "cacheEntries": 63
+        },
+        {
+          "name": "chromium 375px offline home/Play/2048/Daily Word with the origin server stopped",
+          "status": "pass"
+        }
+      ]
+    },
+    "firefox": {
+      "v8Root": {
+        "passed": 126,
+        "failed": 0
+      },
+      "playRoot": {
+        "passed": 28,
+        "failed": 0
+      },
+      "playProjectPath": {
+        "passed": 27,
+        "failed": 0
+      },
+      "additionalProjectChecks": [
+        {
+          "name": "served target commit and all precache assets match Git blob-derived checksums",
+          "status": "pass"
+        },
+        {
+          "name": "original target Play acceptance suite under project path",
+          "status": "pass"
+        },
+        {
+          "name": "firefox 1280px navigation, assets, game controls, exact scoped worker",
+          "status": "pass",
+          "worker": {
+            "scope": "http://127.0.0.1:43239/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/",
+            "script": "http://127.0.0.1:43239/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/sw.js"
+          },
+          "cacheEntries": 63
+        },
+        {
+          "name": "firefox 1280px offline home/Play/2048/Daily Word with the origin server stopped",
+          "status": "pass"
+        },
+        {
+          "name": "firefox 375px navigation, assets, game controls, exact scoped worker",
+          "status": "pass",
+          "worker": {
+            "scope": "http://127.0.0.1:43239/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/",
+            "script": "http://127.0.0.1:43239/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/sw.js"
+          },
+          "cacheEntries": 63
+        },
+        {
+          "name": "firefox 375px offline home/Play/2048/Daily Word with the origin server stopped",
+          "status": "pass"
+        }
+      ]
+    },
+    "webkit": {
+      "v8Root": {
+        "passed": 126,
+        "failed": 0
+      },
+      "playRoot": {
+        "passed": 28,
+        "failed": 0
+      },
+      "playProjectPath": {
+        "passed": 27,
+        "failed": 0
+      },
+      "additionalProjectChecks": [
+        {
+          "name": "served target commit and all precache assets match Git blob-derived checksums",
+          "status": "pass"
+        },
+        {
+          "name": "original target Play acceptance suite under project path",
+          "status": "pass"
+        },
+        {
+          "name": "webkit 1280px navigation, assets, game controls, exact scoped worker",
+          "status": "pass",
+          "worker": {
+            "scope": "http://127.0.0.1:46141/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/",
+            "script": "http://127.0.0.1:46141/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/sw.js"
+          },
+          "cacheEntries": 63
+        },
+        {
+          "name": "webkit 1280px offline home/Play/2048/Daily Word with the origin server stopped",
+          "status": "pass"
+        },
+        {
+          "name": "webkit 375px navigation, assets, game controls, exact scoped worker",
+          "status": "pass",
+          "worker": {
+            "scope": "http://127.0.0.1:46141/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/",
+            "script": "http://127.0.0.1:46141/go-vibe-tool/v8-preview/f6685bff58ae91f835b41963239cda2355c8554c/sw.js"
+          },
+          "cacheEntries": 63
+        },
+        {
+          "name": "webkit 375px offline home/Play/2048/Daily Word with the origin server stopped",
+          "status": "pass"
+        }
+      ]
+    }
+  }
+}

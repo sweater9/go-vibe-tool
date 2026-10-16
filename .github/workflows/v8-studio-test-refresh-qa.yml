@@ -1,0 +1,63 @@
+name: V8 Studio Test Refresh QA
+on:
+  push:
+    branches: [test/v8-retire-freelance-test-assumptions]
+  pull_request:
+    branches: [integration/v8-firefox-release-candidate]
+    paths:
+      - 'studios*.js'
+      - 'tests/**'
+      - 'docs/qa/**'
+      - '.github/workflows/v8-studio-test-refresh-qa.yml'
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false jsdom@26.1.0
+      - run: node --test tests/v8-studios.mjs tests/v8-studios-lifecycle.mjs tests/v8-studio-diagnostics.mjs
+      - run: npm run build
+      - name: Static integration checks
+        run: |
+          set +e
+          node tests/v8-integration.mjs 2>&1 | tee integration.log
+          code=${PIPESTATUS[0]}
+          grep -E '^FAIL' integration.log | while IFS= read -r line; do echo "::error::$line"; done
+          exit $code
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npm run build
+      - name: Browser suites
+        run: |
+          rc=0
+          for t in v8-studios-lifecycle-browser v8-integration-browser v8-combined-browser; do
+            node tests/$t.mjs ${{ matrix.engine }} > "$t.log" 2>&1 || { rc=1; echo "::error::$t failed"; }
+            grep -E '^FAIL' "$t.log" | while IFS= read -r line; do echo "::error::${line:0:900}"; done
+          done
+          exit $rc
+      - name: Verify failure event logs and trace capture
+        if: matrix.engine == 'firefox' && success()
+        run: |
+          set +e
+          GVT_STUDIO_DIAGNOSTIC_PROBE=1 STUDIO_QA_ARTIFACTS=artifacts/studios-diagnostics-probe-firefox node tests/v8-studios-lifecycle-browser.mjs firefox
+          code=$?
+          set -e
+          test "$code" -eq 1
+          node tests/v8-studio-diagnostics-artifacts.mjs artifacts/studios-diagnostics-probe-firefox

@@ -1,0 +1,132 @@
+name: V8 Render QA (optional, read-only)
+# Optional manual Render diagnostics only. Primary V8 snapshot testing is v8-live-preview-qa.yml. No service is deleted or changed.
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Preview URL to test
+        default: https://govibetool-v8-review.onrender.com
+      expected_sha:
+        description: Commit the preview is expected to serve
+        default: 0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f
+  # Bootstrap only: GitHub registers a workflow_dispatch-only file once it has run or reached the default branch.
+  # This path-filtered push (this file only) runs it once with the defaults; afterwards it can be dispatched manually.
+  push:
+    branches: [feature/v8-discovery-navigation]
+    paths: ['.github/workflows/v8-render-preview-qa.yml']
+permissions:
+  contents: read
+
+jobs:
+  verify-deployment:
+    name: verify deployed commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fetch expected commit
+        run: git fetch --no-tags origin "${{ inputs.expected_sha || '0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f' }}" || true; git cat-file -e "${{ inputs.expected_sha || '0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f' }}^{commit}"
+      - name: Compare live files and Render metadata with the expected commit
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          set +e
+          node tests/live-deploy-verify.mjs "${{ inputs.url || 'https://govibetool-v8-review.onrender.com' }}" "${{ inputs.expected_sha || '0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f' }}" artifacts/live-qa/deploy-verify.json
+          rc=$?
+          {
+            echo "### Deployment verification"
+            echo '```json'; cat artifacts/live-qa/deploy-verify.json 2>/dev/null; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          case $rc in
+            0) echo "Live static files match the expected commit." ;;
+            3) echo "::error title=NETWORK FAILURE::preview unreachable from GitHub Actions: $(python3 -c "import json;print(json.load(open('artifacts/live-qa/deploy-verify.json')).get('network'))")" ;;
+            4) echo "::error title=DEPLOYMENT CONTENT MISMATCH::live files differ from ${{ inputs.expected_sha || '0e9edab3b7f1b6cdb4881d7c92a8ee905d4b122f' }}" ;;
+            5) echo "::error title=RENDER METADATA MISMATCH::Render reports a different live commit" ;;
+            *) echo "::error title=VERIFY SCRIPT ERROR::exit $rc" ;;
+          esac
+          exit $rc
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-qa-deploy-verify
+          path: artifacts/live-qa/
+          if-no-files-found: ignore
+
+  browser-qa:
+    name: browser QA (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: verify-deployment
+    if: always()   # run even if verification failed, so network and functional results are both reported
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright@1.56.0
+      - name: Install browser (retry; the download occasionally hangs)
+        timeout-minutes: 12
+        run: |
+          for attempt in 1 2 3; do
+            timeout -k 10 240 npx playwright install --with-deps ${{ matrix.browser }} > install.log 2>&1 && exit 0
+            echo "browser install attempt $attempt failed"; tail -n 10 install.log
+            sudo pkill -f 'apt-get|dpkg' || true; sleep 5
+          done
+          echo "::error title=BROWSER INSTALL FAILED::${{ matrix.browser }}"; exit 1
+      - name: Run live QA
+        env:
+          REVIEW_URL: ${{ inputs.url || 'https://govibetool-v8-review.onrender.com' }}
+          QA_OUT: artifacts/live-qa
+        run: |
+          set +e
+          node tests/live-review-qa.mjs ${{ matrix.browser }} 2>&1 | tee /tmp/qa.log
+          rc=${PIPESTATUS[0]}
+          {
+            echo "### Live QA (${{ matrix.browser }}) — $([ $rc -eq 0 ] && echo PASS || ([ $rc -eq 3 ] && echo BLOCKED/NETWORK || echo FAIL))"
+            grep -E '^FAIL|passed;' /tmp/qa.log | sed 's/^/- /'
+          } >> "$GITHUB_STEP_SUMMARY"
+          case $rc in
+            0) echo "All live checks passed on ${{ matrix.browser }}." ;;
+            3) echo "::error title=NETWORK FAILURE (${{ matrix.browser }})::$(grep -m3 'NETWORK' /tmp/qa.log | tr '\n' ' ' | cut -c1-600)" ;;
+            1) echo "::error title=FUNCTIONAL FAILURE (${{ matrix.browser }})::$(grep -m6 '^FAIL \[FUNCTIONAL' /tmp/qa.log | tr '\n' ' ' | cut -c1-900)" ;;
+            *) echo "::error title=QA SCRIPT ERROR (${{ matrix.browser }})::exit $rc" ;;
+          esac
+          exit $rc
+      - name: Live play games QA (2048 + Daily Word)
+        env:
+          PLAY_BASE_URL: ${{ inputs.url || 'https://govibetool-v8-review.onrender.com' }}
+          PLAY_ARTIFACTS: artifacts/live-qa/play-games
+        run: |
+          set +e
+          node tests/play-games-browser.mjs ${{ matrix.browser }} 2>&1 | tee /tmp/play.log
+          rc=${PIPESTATUS[0]}
+          { echo "### Live play games (${{ matrix.browser }}) — $([ $rc -eq 0 ] && echo PASS || echo FAIL)"; grep -E '^FAIL|passed,' /tmp/play.log | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
+          [ $rc -eq 0 ] || echo "::error title=PLAY GAMES FAILED (${{ matrix.browser }})::$(grep -m6 '^FAIL' /tmp/play.log | tr '\n' ' ' | cut -c1-900)"
+          exit $rc
+      - name: Live Labs QA (six labs; offline check is local-only)
+        env:
+          LABS_BASE_URL: ${{ inputs.url || 'https://govibetool-v8-review.onrender.com' }}
+          LABS_ARTIFACTS: artifacts/live-qa/labs
+        run: |
+          set +e
+          node tests/labs-browser.mjs ${{ matrix.browser }} 2>&1 | tee /tmp/labs.log
+          rc=${PIPESTATUS[0]}
+          { echo "### Live Labs (${{ matrix.browser }}) — $([ $rc -eq 0 ] && echo PASS || echo FAIL)"; grep -E '^FAIL|passed,' /tmp/labs.log | sed 's/^/- /'; } >> "$GITHUB_STEP_SUMMARY"
+          [ $rc -eq 0 ] || echo "::error title=LABS FAILED (${{ matrix.browser }})::$(grep -m6 '^FAIL' /tmp/labs.log | tr '\n' ' ' | cut -c1-900)"
+          exit $rc
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-qa-${{ matrix.browser }}
+          path: artifacts/live-qa/
+          if-no-files-found: ignore

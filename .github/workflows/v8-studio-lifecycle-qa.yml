@@ -1,0 +1,55 @@
+name: V8 Studio Lifecycle QA
+on:
+  pull_request:
+    branches: [feature/v8-discovery-navigation]
+    paths:
+      - 'studios*.js'
+      - 'tests/v8-studios*'
+      - 'tests/v8-studio-diagnostics*'
+      - 'tests/helpers/studio-interaction-recorder.mjs'
+      - '.github/workflows/v8-studio-lifecycle-qa.yml'
+permissions:
+  contents: read
+jobs:
+  dom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false jsdom@26.1.0
+      - run: node --test tests/v8-studios.mjs tests/v8-studios-lifecycle.mjs tests/v8-studio-diagnostics.mjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - run: npm run build
+      - run: node tests/v8-studios-lifecycle-browser.mjs ${{ matrix.engine }}
+      - name: Verify failure event logs and trace capture
+        if: matrix.engine == 'firefox' && success()
+        run: |
+          set +e
+          GVT_STUDIO_DIAGNOSTIC_PROBE=1 STUDIO_QA_ARTIFACTS=artifacts/studios-diagnostics-probe-firefox node tests/v8-studios-lifecycle-browser.mjs firefox
+          code=$?
+          set -e
+          test "$code" -eq 1
+          node tests/v8-studio-diagnostics-artifacts.mjs artifacts/studios-diagnostics-probe-firefox
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: studio-lifecycle-${{ matrix.engine }}
+          path: |
+            artifacts/studios-lifecycle-${{ matrix.engine }}.json
+            artifacts/studios-lifecycle-${{ matrix.engine }}/
+            artifacts/studios-diagnostics-probe-${{ matrix.engine }}/

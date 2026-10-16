@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const pw = await import(process.env.PLAYWRIGHT_PACKAGE || 'playwright');
 const engine = process.argv[2] || 'chromium';
-const root = fileURLToPath(new URL('../', import.meta.url));
+const root = process.env.SITE_ROOT ? path.resolve(process.env.SITE_ROOT) + '/' : fileURLToPath(new URL('../', import.meta.url)); // SITE_ROOT=dist runs the suite against the built output
 const types = { '.html': 'text/html', '.js': 'application/javascript', '.mjs': 'application/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.xml': 'application/xml', '.txt': 'text/plain' };
 
 // Serve the checkout without the external ad script so the test never leaves localhost.
@@ -63,12 +63,14 @@ const page = await newPage();
 
 await check('catalogue counts the new tool', async () => {
   await page.goto(base + '/', { waitUntil: 'domcontentloaded' });
-  await page.locator('#toolCatalog .toolcard').first().waitFor();
+  await page.locator('.cat-tile').first().waitFor();
   const listed = await page.evaluate(() => tools.filter(isListed).length);
   assert.ok(listed >= 50);
-  assert.equal(await page.locator('#activeCount').innerText(), String(listed));
-  assert.equal(await page.locator('#toolCatalog .toolcard').count(), listed);
+  assert.equal(await page.locator('#toolCatalog .toolcard').count(), 0);
+  await page.fill('#toolSearch', 'AI Prompt Improver');
   assert.equal(await page.locator('#toolCatalog .toolcard', { hasText: 'AI Prompt Improver' }).count(), 1);
+  await page.goto(base + '/?category=ai-prompts', { waitUntil: 'domcontentloaded' });
+  await page.locator('#categoryTools .toolcard', { hasText: 'AI Prompt Improver' }).waitFor();
 });
 
 await check('deep link opens the workspace with an empty state', async () => {

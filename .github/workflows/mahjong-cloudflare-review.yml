@@ -1,0 +1,34 @@
+name: Mahjong Cloudflare review
+on:
+  push:
+    branches: [feature/v8-discovery-navigation]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cloudflare:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false miniflare@4.20260730.0 playwright@1.58.2
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm test
+      - run: node tests/static-dist.mjs
+      - run: npm run test:mahjong:cloudflare
+      - run: npm run test:mahjong:browser -- ${{ matrix.browser }}
+        env:
+          MAHJONG_CLOUDFLARE: '1'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mahjong-cloudflare-${{ matrix.browser }}-${{ github.sha }}
+          path: artifacts/mahjong/

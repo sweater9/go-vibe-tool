@@ -1,49 +1,102 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#5746e8">
+  <meta name="theme-color" content="#120f33">
   <meta name="description" content="GoVibeTool — fast, focused online tools for documents, images, text, productivity, money and everyday digital work."><link rel="canonical" href="https://govibetool.com/"><meta property="og:type" content="website"><meta property="og:site_name" content="GoVibeTool"><meta property="og:title" content="GoVibeTool — Private tools. Smart learning. Good vibes."><meta property="og:image" content="https://govibetool.com/assets/og-image.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://govibetool.com/assets/og-image.png"><meta property="og:description" content="Fast, focused everyday tools in one intelligent workspace."><meta property="og:url" content="https://govibetool.com/">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="v2.css">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="stylesheet" href="v2.css"><link rel="stylesheet" href="v8.css"><link rel="stylesheet" href="v8-developer.css"><link rel="stylesheet" href="studios.css"><link rel="stylesheet" href="v9-agent1.css">
+  <script>document.documentElement.className="js"</script>
   <title>GoVibeTool — Private tools. Smart learning. Good vibes.</title>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6129942955275199" crossorigin="anonymous"></script>
+  <!-- Sensitive tools share this page: avoid third-party executable scripts here. -->
+  <meta name="google-adsense-account" content="ca-pub-6129942955275199">
 </head>
 <body class="homepage">
-  <a class="skip" href="#tools">Skip to tools</a>
-  <header><div class="wrap"><nav aria-label="Main navigation">
-    <a class="brand" href="#top" aria-label="GoVibeTool home"><span>GoVibe</span>Tool</a>
-    <div class="navlinks"><a href="#tools">Tools</a><a href="learn/">Learn</a><a href="knowledge/">Knowledge</a><a href="#labs">Labs</a><a href="#play">Play</a><a href="#about">About</a></div>
-    <button class="nav-search" type="button" onclick="document.querySelector('#toolSearch').focus();location.hash='tools'">Find a tool <kbd>/</kbd></button>
+  <svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute"><defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></g></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></g></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5 13.8 11.3 12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></g></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></g></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></g></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></g></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 9"/></g></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></g></symbol>
+    <symbol id="i-briefcase" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></g></symbol>
+    <symbol id="i-calc" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/></g></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></g></symbol>
+    <symbol id="i-type" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5h16v2M9 19h6M12 5v14"/></g></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></g></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h13v15H6a2 2 0 0 0-2 2z"/><path d="M6 21h13"/></g></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></g></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3M8 14h8"/></g></symbol>
+    <symbol id="i-pad" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="11" rx="4"/><path d="M8 10v5M5.5 12.5h5M15.5 11.5h.01M18 14h.01"/></g></symbol>
+  </defs></svg>
+  <a class="skip" href="#top">Skip to main content</a>
+  <header class="site-header"><div class="wrap"><nav aria-label="Main navigation">
+    <a class="brand" href="#top" aria-label="GoVibeTool home"><img class="brand-mark" src="assets/logo-mark.svg" width="36" height="36" alt=""><b class="wordmark"><span>GoVibe</span>Tool</b></a>
+    <div class="nav-panel" id="primaryNav"><div class="navlinks"><a href="#tools" aria-current="page">Tools</a><a href="learn/">Learn</a><a href="knowledge/">Knowledge</a><a href="labs/">Labs</a><a href="play/">Play</a><a href="#about">About</a></div></div>
+    <button class="nav-search" type="button" aria-label="Search tools"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span class="nav-search-label">Search</span> <kbd>/</kbd></button>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav" aria-label="Menu"><span aria-hidden="true"></span></button>
   </nav></div></header>
-  <main id="top">
-    <section class="hero"><div class="wrap hero-grid"><div>
-      <span class="eyebrow">PRIVATE BY DESIGN · GOVIBETOOL</span>
-      <h1>Your Data.<br>Your Browser.<br><em>Your Control.</em></h1>
+  <main id="top" tabindex="-1">
+    <div class="wrap ws-wrap"><div id="workspace" class="workspace" tabindex="-1"></div></div>
+
+    <div id="homeView">
+    <section class="hero" aria-labelledby="heroTitle"><div class="wrap">
+      <h1 id="heroTitle">Everyday tools.<br><em>Private by design.</em></h1>
+      <p class="lead">Discover a smarter way to work, learn, explore and have fun. Access 50+ everyday tools, discover useful knowledge, build new skills through interactive learning, experiment in creative labs and enjoy engaging games. All in one simple, accessible space, with no account required.</p>
+    </div></section>
+
+    <div class="wrap cats-wrap"><section class="cats-panel" id="tools" aria-labelledby="catsTitle">
+      <div class="sh"><h2 id="catsTitle">Choose a category</h2><span>Open one to see its tools</span></div>
+      <div id="categoryGrid" class="cat-grid"></div>
+      <noscript><p class="noscript-note">GoVibeTool’s tools run in your browser and need JavaScript. You can still read <a href="learn/">Learn</a>, <a href="knowledge/">Knowledge</a>, <a href="labs/">Labs</a> and <a href="play/">Play</a>.</p></noscript>
+    </section></div>
+
+    <section class="sec searchsec" id="search" aria-labelledby="searchTitle"><div class="wrap">
+      <div class="search-card">
+        <h2 id="searchTitle">Know what you need? Search for it.</h2>
+        <p class="search-sub">Describe the task — GoVibeTool matches tools, guides and labs.</p>
+        <form class="sbar" role="search" id="searchForm" action="#search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><input id="toolSearch" aria-label="Search tools by task or result" type="search" autocomplete="off" spellcheck="false" enterkeyhint="search" placeholder="What do you want to do? Try “compress an image”"><kbd aria-hidden="true">/</kbd></form>
+        <div class="try" role="group" aria-label="Search suggestions"><span class="try-label" aria-hidden="true">Try</span><button type="button" class="task-chip" data-q="compress an image">Compress an image</button><button type="button" class="task-chip" data-q="merge pdf">Merge PDFs</button><button type="button" class="task-chip" data-q="format json">Format JSON</button><button type="button" class="task-chip" data-q="build an AI prompt">Build an AI prompt</button><button type="button" class="task-chip" data-q="create an invoice">Create an invoice</button><button type="button" class="task-chip" data-q="hide sensitive data">Hide sensitive data</button></div>
+      </div>
+      <div id="discoveryShelf" class="shortcuts"></div>
+      <div id="searchStatus" class="category-status" role="status" aria-live="polite"></div>
+      <div class="list" id="toolCatalog" hidden></div>
+      <div id="intentResults" class="also" aria-live="polite" hidden></div>
+    </div></section>
+
+    <section class="sec more" id="more" aria-labelledby="moreTitle"><div class="wrap">
+      <div class="sh"><h2 id="moreTitle">Tools. Learn. Labs. Play.</h2><span>More than a toolbox</span></div>
+      <div class="trio">
+        <a class="tr tr-learn" href="learn/"><svg class="sp" aria-hidden="true"><use href="#i-book"/></svg><b>LEARN</b><strong>Understand how</strong><small>Practical programming and workflow guides connected to tools.</small></a>
+        <a class="tr tr-know" href="knowledge/"><svg class="sp" aria-hidden="true"><use href="#i-bulb"/></svg><b>KNOWLEDGE</b><strong>Know the why</strong><small>Plain-English guides to AI, agents, language models and prompting.</small></a>
+        <a class="tr tr-labs" id="labs" href="labs/"><svg class="sp" aria-hidden="true"><use href="#i-flask"/></svg><b>LABS</b><strong>Go deeper locally</strong><small>Visual Workflow Lab and API &amp; JSON Playground.</small></a>
+        <a class="tr tr-play" id="play" href="play/"><svg class="sp" aria-hidden="true"><use href="#i-pad"/></svg><b>PLAY</b><strong>Practice and return</strong><small>2048, Daily Word, Logic Crypt and Mahjong with Friends preview.</small></a>
+      </div>
+    </div></section>
+
+    <section class="sec about" id="about" aria-labelledby="aboutTitle"><div class="wrap">
+      <span class="eyebrow">ABOUT GOVIBETOOL</span><h2 id="aboutTitle">Small tools. Less friction. Better work.</h2>
+      <p class="sub">GoVibeTool brings focused utilities together in one consistent experience, with an emphasis on speed, clarity, privacy and genuinely useful outcomes.</p>
+      <div class="about-points"><div><b>01</b><span><strong>Start immediately</strong><small>No signup, onboarding or trial gate.</small></span></div><div><b>02</b><span><strong>Keep sensitive work local</strong><small>Where technically possible, processing stays in your browser.</small></span></div><div><b>03</b><span><strong>Take the result with you</strong><small>Copy, print or export in useful formats.</small></span></div></div>
+    </div></section>
+
+    <section class="sec privacy" id="privacy" aria-labelledby="privacyTitle"><div class="wrap"><div class="privacy-card">
+      <div class="privacy-copy">
+    <span class="eyebrow">PRIVATE BY DESIGN · GOVIBETOOL</span>
+      <h2 id="privacyTitle">Your Data.<br>Your Browser.<br><em>Your Control.</em></h2>
       <p>GoVibeTool is designed with your privacy in mind. Our browser-based tools process your files and information directly on your device, giving you greater control over your data. Our tools also work without an internet connection, and no account is required.</p>
       <div class="hero-privacy-points" aria-label="GoVibeTool privacy benefits"><span>✓ On-device processing</span><span>✓ Works offline</span><span>✓ No account required</span></div>
-      <div class="intent-panel"><label for="intent">What do you need to do?</label><div class="intent"><input id="intent" autocomplete="off" placeholder="Try “build an AI prompt” or “compress an image”…"><button class="btn" type="button" onclick="routeIntent()">Find my tool</button></div><div id="intentResults" class="privacy-note" aria-live="polite">Describe the outcome you want — GoVibeTool will match Tools, Learn and Labs.</div></div>
-      <div class="hero-stats"><span><strong id="activeCount">51</strong> active tools</span><span><strong>0</strong> accounts required</span><span><strong>Local</strong> processing</span></div>
-    </div><aside class="hero-card" aria-label="Popular tools">
-      <p class="mini-label">QUICK START</p>
-      <button type="button" onclick="openTool('ai-prompt-builder')"><span class="tool-icon">AI</span><span><strong>AI Prompt Builder</strong><small>Turn an idea into a structured prompt</small></span><b>→</b></button>
-      <button type="button" onclick="openTool('invoice-studio')"><span class="tool-icon">▤</span><span><strong>Invoice Studio</strong><small>Create, preview and export</small></span><b>→</b></button>
-      <button type="button" onclick="openTool('image-studio')"><span class="tool-icon">◫</span><span><strong>Image Studio</strong><small>Resize, convert and compress</small></span><b>→</b></button>
-      <button type="button" onclick="openTool('pdf-studio')"><span class="tool-icon">PDF</span><span><strong>Private PDF Tools</strong><small>Merge, split and rotate locally</small></span><b>→</b></button>
-    </aside></div></section>
+      </div>
+      <div class="privacy-mark" aria-hidden="true"><svg class="ic"><use href="#i-shield"/></svg></div>
+    </div></div></section>
+    </div>
 
-    <section class="section" id="tools"><div class="wrap"><div class="section-heading"><div><span class="eyebrow">THE TOOLBOX</span><h2>Find the right tool, quickly</h2><p class="sub">AI Prompt Builder comes first, followed by focused browser-first workspaces for everyday tasks.</p></div><span class="count-badge"><b id="visibleCount">51</b> tools</span></div>
-      <div class="featured-tools" aria-labelledby="featuredTitle"><h3 id="featuredTitle">Start with these</h3><div id="featuredTools"></div></div>
-      <div class="toolbar"><div class="search-field"><span>⌕</span><input id="toolSearch" aria-label="Search tools by task or result" placeholder="Search by task or result…" oninput="renderCatalog()"></div><select id="categoryFilter" onchange="renderCatalog()" aria-label="Filter tools by category"><option>All categories</option><option>Business</option><option>Images & Design</option><option>Files & PDF</option><option>Writing & Text</option><option>Productivity</option><option>Money & Calculators</option><option>Links & Web</option><option>Developer</option><option>Privacy & Safety</option></select></div>
-      <div class="category-chips"><button class="active" data-category="All categories">All</button><button data-category="Productivity">AI & Productivity</button><button data-category="Business">Business</button><button data-category="Images & Design">Images</button><button data-category="Files & PDF">PDF</button><button data-category="Writing & Text">Writing</button><button data-category="Developer">Developer</button><button data-category="Privacy & Safety">Privacy</button></div>
-      <section class="discovery-shelf" aria-labelledby="shortcutsTitle"><div class="shelf-head"><div><span class="eyebrow">YOUR SHORTCUTS</span><h3 id="shortcutsTitle">Pick up where you left off</h3></div><span class="shortcut-hint"><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>K</kbd> Search</span></div><div id="discoveryShelf"></div></section><div class="tools" id="toolCatalog"></div><div id="workspace" class="workspace" tabindex="-1"></div>
-    </div></section>
-    <section class="section ecosystem" id="labs"><div class="wrap"><span class="eyebrow">MORE THAN A TOOLBOX</span><h2>Tools. Learn. Labs. Play.</h2><div class="ecosystem-grid"><a href="#tools"><b>TOOLS</b><strong>Get something done</strong><small>50+ focused browser-first utilities.</small></a><a href="learn/"><b>LEARN</b><strong>Understand how</strong><small>Practical programming and workflow guides connected to tools.</small></a><a href="labs/"><b>LABS</b><strong>Go deeper locally</strong><small>Visual Workflow Lab and API &amp; JSON Playground.</small></a><a href="play/"><b>PLAY</b><strong>Practice and return</strong><small>Daily Knowledge Challenge and Logic Crypt.</small></a></div><div style="margin-top:16px; display:flex; gap:10px;"><a href="#labs" style="display:none;">Labs anchor</a><a href="#play" style="display:none;">Play anchor</a><a href="labs/" class="btn small" style="text-decoration:none;">Explore Labs Hub →</a><a href="play/" class="btn alt small" style="text-decoration:none;">Explore Play Hub →</a></div></div></section><section class="section play-preview" id="play"><div class="wrap"><span class="eyebrow">PLAY</span><h2>Practice should be useful, too.</h2><p class="sub">A five-question Daily Challenge and a Word &amp; Deduction logic puzzle, both free, with no account needed. More games are on the way.</p><p><a class="btn" href="play/">Play now</a></p></div></section>
-    <section class="section popular" id="popular"><div class="wrap popular-grid"><div><span class="eyebrow">BUILT FOR REAL WORK</span><h2>One familiar workspace for the tasks that interrupt your day.</h2></div><div class="feature-list"><div><b>01</b><span><strong>Start immediately</strong><small>No signup, onboarding or trial gate.</small></span></div><div><b>02</b><span><strong>Keep sensitive work local</strong><small>Where technically possible, processing stays in your browser.</small></span></div><div><b>03</b><span><strong>Take the result with you</strong><small>Copy, print or export in useful formats.</small></span></div></div></div></section>
-    <section class="section" id="about"><div class="wrap"><span class="eyebrow">ABOUT GOVIBETOOL</span><h2>Small tools. Less friction. Better work.</h2><p class="sub">GoVibeTool brings focused utilities together in one consistent experience, with an emphasis on speed, clarity, privacy and genuinely useful outcomes.</p></div></section>
+    <div id="categoryView" hidden></div>
   </main>
-  <footer><div class="wrap footer-grid"><div><a class="brand" href="#top"><span>GoVibe</span>Tool</a><p>Private, browser-based tools for everyday digital work. Smart learning. Good vibes.</p></div><div><strong>Product</strong><a href="#tools">All tools</a><a href="#popular">Popular tools</a><a href="learn/">Learn</a><a href="knowledge/">Knowledge</a><a href="labs/">Labs</a><a href="play/">Play</a><a href="#about">About</a></div><div><strong>Company & legal</strong><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact & feedback</a></div></div><div class="wrap footer-bottom"><span>© 2026 GoVibeTool</span><span>Private tools. Smart learning. Good vibes.</span></div></footer>
-  <script src="vendor/pdf-lib.min.js"></script><script src="vendor/qrcode.min.js"></script><script src="vendor/jsqr.min.js"></script><script src="tools.js"></script><script src="v2-tools.js"></script><script src="v21-tools.js"></script><script src="prompt-improver-core.js"></script><script src="v6-tools.js"></script><script src="discovery.js"></script>
+  <footer><div class="wrap footer-grid"><div><a class="brand" href="#top" aria-label="GoVibeTool home"><img class="brand-mark" src="assets/logo-mark.svg" width="36" height="36" alt=""><b class="wordmark"><span>GoVibe</span>Tool</b></a><p>GoVibeTool is your space to get things done, discover knowledge, learn new skills, explore creative ideas and have fun. From practical everyday tools and useful insights to interactive learning, experimental labs and engaging experiences, everything comes together in one simple place. Explore more. Learn something new. Enjoy the experience.</p></div><div><strong>Product</strong><a href="#tools">Tool categories</a><a href="studios.html">Consolidated Studios</a><a href="learn/">Learn</a><a href="knowledge/">Knowledge</a><a href="labs/">Labs</a><a href="play/">Play</a><a href="#about">About</a></div><div><strong>Company & legal</strong><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact & feedback</a><a href="mailto:support@govibetool.com">support@govibetool.com</a></div></div><div class="wrap footer-bottom"><span>© 2026 GoVibeTool</span><span>Private tools. Smart learning. Good vibes.</span></div></footer>
+  <script src="vendor/pdf-lib.min.js"></script><script src="vendor/qrcode.min.js"></script><script src="vendor/jsqr.min.js"></script><script src="tools.js"></script><script src="v2-tools.js"></script><script src="v21-tools.js"></script><script src="prompt-improver-core.js"></script><script src="v6-tools.js"></script><script src="v8-developer-core.js"></script><script src="v8-developer-tools.js"></script><script src="v9-utilities-core.js"></script><script src="v9-sql-engine.js"></script><script src="v9-sha256.js"></script><script src="v9-social-card.js"></script><script src="v9-agent1-tools.js"></script><script src="tools/file-media/file-media-tools.js"></script><script src="tools/v9-media/register.js"></script><script src="studios-core.js"></script><script src="studios.js"></script><script src="studios-routing.js"></script><script src="discovery.js"></script><script src="v8-discovery.js"></script>
 <script>addEventListener("DOMContentLoaded",()=>{const id=new URLSearchParams(location.search).get("tool");if(id&&typeof openTool==="function"){setTimeout(()=>openTool(id),0)}});</script></body></html>

@@ -17,7 +17,7 @@
   <header>
     <div class="wrap">
       <nav aria-label="Main navigation">
-        <a class="brand" href="../" aria-label="GoVibeTool home"><span>GoVibe</span>Tool</a>
+        <a class="brand" href="../" aria-label="GoVibeTool home"><img class="brand-mark" src="../assets/logo-mark.svg" width="28" height="28" alt=""><span>GoVibe</span>Tool</a>
         <div class="navlinks">
           <a href="../">Tools</a>
           <a href="../learn/">Learn</a>
@@ -40,9 +40,9 @@
         </nav>
         <span class="eyebrow">GOVIBETOOL LABS — EXPERIMENTATION & SIMULATION</span>
         <h1>Interactive sandboxes.<br><em>Zero code required.</em></h1>
-        <p>Explore automation, inspect API data contracts, and simulate complex logic flows in hands-on browser sandboxes. Free, fast, private, and deterministic.</p>
+        <p>Explore workflows, APIs, machine learning, cybersecurity, finance and physics in hands-on browser experiments with guided steps and free exploration. Free, fast, private, and deterministic.</p>
         <div class="hero-stats">
-          <span><strong>2</strong> Live Labs</span>
+          <span><strong>6</strong> Live Labs</span>
           <span><strong>100%</strong> Offline Capable</span>
           <span><strong>0</strong> Cloud Transmissions</span>
         </div>
@@ -60,39 +60,102 @@
         </div>
 
         <div class="v5-grid">
-          <!-- Lab 1: Visual Workflow Lab -->
           <article class="v5-card">
             <div class="v5-card-meta">
               <span class="v5-badge featured">Visual Simulator</span>
               <span class="v5-badge live">Ready to Run</span>
             </div>
             <h3>Visual Workflow Lab</h3>
-            <p>Design, validate, and simulate automated decision workflows on an interactive node canvas. Connect triggers, logic conditions, and action steps with a deterministic, local step-by-step debugger.</p>
+            <p>Design, validate and debug automated workflows on a node canvas. Branch with conditions, repeat with safe loops, use variables and math, start from templates, step backwards and import or export JSON.</p>
             <div class="v5-card-meta">
-              <span class="v5-badge">Start / Action / Condition Nodes</span>
-              <span class="v5-badge">Step-by-Step Stepper</span>
-              <span class="v5-badge">JSON Export / Import</span>
-              <span class="v5-badge">Sample Templates</span>
+              <span class="v5-badge">Loops with safety caps</span>
+              <span class="v5-badge">Breakpoints & step-back</span>
+              <span class="v5-badge">Templates</span>
+              <span class="v5-badge">Undo / redo</span>
             </div>
             <a href="workflow/" class="btn" style="text-decoration:none; display:inline-block; align-self:flex-start;">Launch Workflow Lab →</a>
           </article>
 
-          <!-- Lab 2: API & JSON Playground -->
           <article class="v5-card">
             <div class="v5-card-meta">
               <span class="v5-badge featured">Developer Sandbox</span>
               <span class="v5-badge live">Ready to Run</span>
             </div>
             <h3>API & JSON Playground</h3>
-            <p>Master REST APIs and structured data. Craft custom HTTP requests (GET, POST, PUT, DELETE), inspect headers, simulate network delays, and test payloads against deterministic offline mock endpoints.</p>
+            <p>Craft HTTP requests against an in-browser mock server, then work through guided scenarios: pagination, authentication and token expiry, retries, rate limits, timeouts and validation errors.</p>
             <div class="v5-card-meta">
-              <span class="v5-badge">In-Browser Mock REST Server</span>
-              <span class="v5-badge">JSON Lint & Format</span>
-              <span class="v5-badge">Header Preset Builder</span>
-              <span class="v5-badge">Request History</span>
+              <span class="v5-badge">Mock REST server</span>
+              <span class="v5-badge">Auth simulation</span>
+              <span class="v5-badge">Pagination & latency</span>
+              <span class="v5-badge">JSON lint</span>
             </div>
             <a href="api-playground/" class="btn" style="text-decoration:none; display:inline-block; align-self:flex-start;">Launch API Playground →</a>
           </article>
+
+          <article class="v5-card">
+            <div class="v5-card-meta">
+              <span class="v5-badge featured">Machine Learning</span>
+              <span class="v5-badge live">Ready to Run</span>
+            </div>
+            <h3>AI & Machine Learning Lab</h3>
+            <p>Train tiny models right in your browser: a k-NN classifier, a neural network with a live decision boundary, a Naive Bayes spam filter and a word-embedding map.</p>
+            <div class="v5-card-meta">
+              <span class="v5-badge">k-NN & overfitting</span>
+              <span class="v5-badge">Neural network trainer</span>
+              <span class="v5-badge">Spam filter</span>
+              <span class="v5-badge">Embedding map</span>
+            </div>
+            <a href="ai/" class="btn" style="text-decoration:none; display:inline-block; align-self:flex-start;">Launch AI Lab →</a>
+          </article>
+
+          <article class="v5-card">
+            <div class="v5-card-meta">
+              <span class="v5-badge featured">Security</span>
+              <span class="v5-badge live">Ready to Run</span>
+            </div>
+            <h3>Cybersecurity Lab</h3>
+            <p>Safe simulations of hashing, encryption, password strength, authentication storage and phishing awareness. Nothing real is attacked and nothing you type leaves the page.</p>
+            <div class="v5-card-meta">
+              <span class="v5-badge">SHA-256 avalanche</span>
+              <span class="v5-badge">AES-GCM & ciphers</span>
+              <span class="v5-badge">Password cracking times</span>
+              <span class="v5-badge">Phishing quiz</span>
+            </div>
+            <a href="cyber/" class="btn" style="text-decoration:none; display:inline-block; align-self:flex-start;">Launch Cybersecurity Lab →</a>
+          </article>
+
+          <article class="v5-card">
+            <div class="v5-card-meta">
+              <span class="v5-badge featured">Physics & Probability</span>
+              <span class="v5-badge live">Ready to Run</span>
+            </div>
+            <h3>Science & Physics Lab</h3>
+            <p>Launch projectiles on other worlds, bend orbits, swing pendulums and watch randomness turn into bell curves, with instant visual feedback as you drag the sliders.</p>
+            <div class="v5-card-meta">
+              <span class="v5-badge">Projectile motion</span>
+              <span class="v5-badge">Orbital gravity</span>
+              <span class="v5-badge">Pendulum energy</span>
+              <span class="v5-badge">Probability</span>
+            </div>
+            <a href="science/" class="btn" style="text-decoration:none; display:inline-block; align-self:flex-start;">Launch Science Lab →</a>
+          </article>
+
+          <article class="v5-card">
+            <div class="v5-card-meta">
+              <span class="v5-badge featured">Finance Simulation</span>
+              <span class="v5-badge live">Ready to Run</span>
+            </div>
+            <h3>Finance & Market Simulation Lab</h3>
+            <p>Explore compounding, diversification and risk scenarios, then trade a virtual portfolio in a fictional market. Simulated prices only: never advice, never live data.</p>
+            <div class="v5-card-meta">
+              <span class="v5-badge">Compound growth</span>
+              <span class="v5-badge">Diversification</span>
+              <span class="v5-badge">Risk scenarios</span>
+              <span class="v5-badge">Virtual market</span>
+            </div>
+            <a href="finance/" class="btn" style="text-decoration:none; display:inline-block; align-self:flex-start;">Launch Finance Lab →</a>
+          </article>
+
         </div>
 
         <!-- Trust & Philosophy section -->
@@ -115,7 +178,7 @@
   <footer>
     <div class="wrap footer-grid">
       <div>
-        <a class="brand" href="../"><span>GoVibe</span>Tool</a>
+        <a class="brand" href="../"><img class="brand-mark" src="../assets/logo-mark.svg" width="28" height="28" alt=""><span>GoVibe</span>Tool</a>
         <p>Private, browser-based tools, guided learning, interactive labs, and cognitive play. Good vibes.</p>
       </div>
       <div>

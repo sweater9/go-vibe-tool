@@ -1,0 +1,148 @@
+:root {
+  color-scheme: light dark;
+  font:
+    17px/1.5 system-ui,
+    sans-serif;
+  background: #101824;
+  color: #f0f4fa;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+}
+a {
+  color: #9bdcff;
+}
+nav,
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 18px 0;
+}
+nav a {
+  padding: 8px;
+  border: 1px solid #7791aa;
+  border-radius: 8px;
+}
+nav a[aria-current] {
+  background: #284966;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 12px 0;
+  flex: 1;
+  min-width: 120px;
+}
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid #879db3;
+  border-radius: 6px;
+  background: #172536;
+  color: inherit;
+}
+input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+}
+button {
+  cursor: pointer;
+  min-height: 44px;
+  margin: 6px 6px 6px 0;
+  background: #215a7d;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+:focus-visible {
+  outline: 3px solid #ffe18c;
+  outline-offset: 3px;
+}
+canvas,
+video,
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  background: #fff;
+}
+canvas {
+  border: 1px solid #879db3;
+}
+#signature {
+  touch-action: none;
+}
+#status {
+  min-height: 2em;
+  white-space: pre-wrap;
+}
+#downloads a {
+  display: inline-block;
+  padding: 12px;
+  margin: 8px;
+  border: 1px solid #8bd8ff;
+}
+textarea {
+  width: 100%;
+  min-height: 150px;
+}
+details {
+  margin: 24px 0;
+  padding: 14px;
+  border: 1px solid #6d8399;
+  border-radius: 8px;
+}
+.warning {
+  border-left: 4px solid #f2cd7b;
+  padding: 10px;
+}
+#motion {
+  height: 32px;
+  width: 32px;
+  background: #8bd8ff;
+  border-radius: 50%;
+  margin: 18px 0;
+}
+svg {
+  width: 300px;
+  max-width: 100%;
+  overflow: visible;
+}
+svg path {
+  fill: none;
+  stroke: #8bd8ff;
+  stroke-width: 2;
+}
+svg line {
+  stroke: #b4c3d2;
+}
+svg circle {
+  fill: #ffe18c;
+}
+audio {
+  max-width: 100%;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    animation: none !important;
+  }
+}
+[hidden] {
+  display: none !important;
+}
