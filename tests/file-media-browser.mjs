@@ -569,6 +569,25 @@ await check('Compressor: many files at once complete sequentially without errors
   assert.equal(await page.locator('#cmpStop').isVisible(), false); assert.deepEqual(errs, []);
   await ctx.close();
 });
+await check('Compressor: the run ends in the same task that renders the last result (Stop already hidden and Compress re-enabled when the last file shows done)', async () => {
+  // Deterministic companion to the check above: that one polls from outside and only fails when a slow engine timer widens the gap
+  // between the last card turning "done" and the run ending. A MutationObserver callback runs right after the mutating task, so it
+  // sees the page exactly as it was when the last card changed, on every engine and every run.
+  const { ctx, page, errs } = await open(); await openTool(page, 'image-batch-compressor');
+  const img = await genImage(page, { w: 120, h: 90, draw: NOISE }); const files = Array.from({ length: 3 }, (_, i) => asFile(`img-${i}.jpg`, 'image/jpeg', img));
+  await page.waitForFunction(() => document.querySelector('#cmpCaps')?.dataset.caps); await upload(page, files);
+  await page.evaluate(() => {
+    window.__cmpAtLastDone = null;
+    new MutationObserver(() => {
+      if (window.__cmpAtLastDone || document.querySelectorAll('#cmpList .fm-item[data-state="done"]').length !== 3) return;
+      window.__cmpAtLastDone = { stopHidden: document.querySelector('#cmpStop').hidden, compressDisabled: document.querySelector('#cmpGo').disabled };
+    }).observe(document.querySelector('#cmpList'), { subtree: true, childList: true, attributes: true, attributeFilter: ['data-state'] });
+  });
+  await page.click('#cmpGo');
+  await page.waitForFunction(() => window.__cmpAtLastDone, null, { timeout: 60000 });
+  assert.deepEqual(await page.evaluate(() => window.__cmpAtLastDone), { stopHidden: true, compressDisabled: false });
+  assert.deepEqual(errs, []); await ctx.close();
+});
 
 /* =========================================================================================================
    I. Markdown Table <-> CSV / Google Sheets

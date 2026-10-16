@@ -377,13 +377,22 @@
       items.forEach(function (i) { if (i.state !== "working") i.state = "queued"; });
       running = true; cancelled = false; progress.hidden = false; sync(); renderAll();
       var todo = items.filter(function (i) { return i.state === "queued"; }), n = 0;
+      function wrapUp() { running = false; progress.hidden = true; sync(); finish(cancelled); }
       (function next() {
         var it = todo.shift();
         if (!document.body.contains(root)) cancelled = true; // the tool was closed or replaced
-        if (!it || cancelled) { running = false; progress.hidden = true; sync(); finish(cancelled); return; }
+        if (!it || cancelled) { wrapUp(); return; }
         it.state = "working"; renderItem(it); say(root, "Compressing " + it.file.name + " (" + (++n) + " of " + (n + todo.length) + ")…");
         progress.firstChild.style.width = Math.round((n - 1) / (n + todo.length) * 100) + "%";
-        one(it).then(function () { it.state = "done"; }, function (e) { it.state = "error"; it.error = e && e.message || String(e); }).then(function () { renderItem(it); sync(); return tick(); }).then(next);
+        one(it).then(function () { it.state = "done"; }, function (e) { it.state = "error"; it.error = e && e.message || String(e); }).then(function () {
+          if (!document.body.contains(root)) cancelled = true;
+          renderItem(it);
+          // The run ends in the SAME task that renders its last result. Previously the last card showed "done" while
+          // Stop was still visible and Compress still disabled until the next timer tick, a window that a slow
+          // WebKit timer turned into an intermittent, user-visible (and test-visible) inconsistency.
+          if (!todo.length || cancelled) { wrapUp(); return; }
+          sync(); return tick().then(next);
+        });
       })();
     }
     function one(it) {
