@@ -17,7 +17,6 @@ const pagesToTest = [
   { path: '/labs/science/', name: 'labs-science' },
   { path: '/labs/finance/', name: 'labs-finance' },
   { path: '/play/', name: 'play-hub' },
-  { path: '/play/mahjong/', name: 'play-mahjong' },
   { path: '/play/word-logic/', name: 'play-wordlogic' },
   { path: '/play/2048/', name: 'play-2048' },
   { path: '/play/daily-word/', name: 'play-dailyword' }
@@ -95,8 +94,6 @@ async function run() {
             if (imgCount > 0) {
               issues.push(`${engine} ${viewport.width}px Unsanitized <img> element rendered in JSON validation status`);
             }
-          } else if (item.name === 'play-mahjong') {
-            await page.waitForSelector('#lobby', { timeout: 5000 });
           } else if (item.name === 'play-wordlogic') {
             await page.waitForSelector('#slotsContainer', { timeout: 5000 });
           } else if (item.name === 'play-2048') {

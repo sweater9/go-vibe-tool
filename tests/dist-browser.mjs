@@ -37,7 +37,7 @@ const overflow = p => p.evaluate(() => document.documentElement.scrollWidth - do
 
 const tools = fs.readdirSync(path.join(dist, 'tools')).filter(f => f.endsWith('.html')).map(f => '/tools/' + f.replace(/\.html$/, ''));
 const knowledgePages = fs.readdirSync(path.join(dist, 'knowledge')).filter(f => f.endsWith('.html') && f !== 'index.html').slice(0, 3).map(f => '/knowledge/' + f.replace(/\.html$/, ''));
-const PAGES = ['/', '/labs/', '/labs/workflow/', '/labs/api-playground/', '/labs/ai/', '/labs/cyber/', '/labs/science/', '/labs/finance/', '/play/', '/play/2048/', '/play/daily-word/', '/play/word-logic/', '/play/daily/', '/play/mahjong/', '/knowledge/', ...knowledgePages, '/learn/', ...tools, '/privacy', '/terms', '/contact'];
+const PAGES = ['/', '/labs/', '/labs/workflow/', '/labs/api-playground/', '/labs/ai/', '/labs/cyber/', '/labs/science/', '/labs/finance/', '/play/', '/play/2048/', '/play/daily-word/', '/play/word-logic/', '/play/daily/', '/play/mahjong-solitaire/', '/knowledge/', ...knowledgePages, '/learn/', ...tools, '/privacy', '/terms', '/contact'];
 
 try {
   await check('static verification: size limits, forbidden paths, references, service-worker precache, sitemap', async () => { const r = verifyDist(dist, { root: repo }); assert.deepEqual(r.errors, []); assert.ok(r.largest.bytes < 25 * 1024 * 1024); assert.ok(r.files < 20000); });
@@ -54,7 +54,7 @@ try {
     assert.match(await (await get('/ads.txt')).text(), /pub-6129942955275199/); assert.equal((await get('/multiplayer/server.mjs')).status, 404); assert.equal((await get('/tests/labs-browser.mjs')).status, 404);
   });
   for (const [label, w, h, touch] of [['desktop', 1280, 900, false], ['mobile', 390, 844, true]]) {
-    await check(`${label}: homepage, six Labs, Play games, Mahjong frontend, Knowledge, Learn, every tool page load cleanly`, async () => {
+    await check(`${label}: homepage, six Labs, Play games, Mahjong Solitaire, Knowledge, Learn, every tool page load cleanly`, async () => {
       const c = await open({ w, h, touch }); const problems = [];
       for (const p of PAGES) {
         c.errs.length = 0; c.bad.length = 0; const resp = await c.page.goto(base.slice(0, -1) + p, { waitUntil: 'networkidle' });
@@ -76,13 +76,11 @@ try {
     for (let i = 0; i < 50 && !c.external.length; i++) await new Promise(r => setTimeout(r, 100)); // the route handler runs in this process, so poll instead of assuming ordering
     assert.deepEqual(c.external, ['https://example.org/tracker.gif']); await c.ctx.close();
   });
-  await check('Mahjong frontend loads without a backend: no API configured, no network calls to any service', async () => {
-    const c = await open(); await c.page.goto(base + 'play/mahjong/', { waitUntil: 'networkidle' });
-    // On a production hostname config.js must leave the API empty (localhost/127.0.0.1 is dev mode and points at a local server).
-    const cfg = fs.readFileSync(path.join(dist, 'play/mahjong/config.js'), 'utf8');
-    for (const host of ['go-vibe-tool.workers.dev', 'govibetool.com', 'preview.example.com']) { const win = {}; new Function('window', 'location', cfg)(win, { hostname: host }); assert.equal(win.MAHJONG_API, '', host); }
-    const dev = {}; new Function('window', 'location', cfg)(dev, { hostname: 'localhost' }); assert.equal(dev.MAHJONG_API, 'http://localhost:8787');
-    assert.ok(await c.page.locator('#instructions').count()); assert.deepEqual(c.errs, []); assert.deepEqual(c.external, []); await c.ctx.close();
+  await check('four-player Mahjong is not shipped: no files, no config, no backend reference, direct URLs 404', async () => {
+    assert.equal(fs.existsSync(path.join(dist, 'play/mahjong')), false);
+    const c = await open();
+    for (const u of ['play/mahjong/', 'play/mahjong/index.html', 'play/mahjong/config.js', 'play/mahjong/mahjong.mjs']) { const r = await c.page.goto(base + u, { waitUntil: 'domcontentloaded' }); assert.equal(r.status(), 404, u); }
+    assert.deepEqual(c.external, []); await c.ctx.close();
   });
   await check('labs from dist: a lab responds to input (hub links, tabs, slider readout)', async () => {
     const c = await open(); await c.page.goto(base + 'labs/', { waitUntil: 'networkidle' });
@@ -98,10 +96,10 @@ try {
     await c.page.waitForFunction(async need => { for (const n of await caches.keys()) { const k = new Set((await (await caches.open(n)).keys()).map(r => new URL(r.url).pathname)); if (need.every(x => k.has(x))) return true; } return false; }, listed, { timeout: 30000 });
     assert.ok(listed.length >= 50); assert.equal(await c.page.evaluate(async () => (await navigator.serviceWorker.getRegistration()).scope), base); await c.ctx.close();
   });
-  if (!liveUrl) await check('offline from dist: installed site loads homepage, Labs, Play games and Mahjong frontend with the server stopped', async () => {
+  if (!liveUrl) await check('offline from dist: installed site loads homepage, Labs, Play games and Mahjong Solitaire with the server stopped', async () => {
     const c = await open({ w: 390, h: 844, touch: true }); await c.page.goto(base + 'labs/cyber/', { waitUntil: 'networkidle' });
     await c.page.evaluate(async () => { await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }); setTimeout(r, 8000); }); });
-    const need = ['/index.html', '/labs/index.html', '/labs/ai/index.html', '/labs/workflow/workflow-engine.js', '/play/2048/index.html', '/play/mahjong/index.html', '/play/mahjong/mahjong.mjs'];
+    const need = ['/index.html', '/labs/index.html', '/labs/ai/index.html', '/labs/workflow/workflow-engine.js', '/play/2048/index.html', '/play/mahjong-solitaire/index.html', '/play/mahjong-solitaire/solitaire.js'];
     await c.page.waitForFunction(async n => { for (const k of await caches.keys()) { const s = new Set((await (await caches.open(k)).keys()).map(r => new URL(r.url).pathname)); if (n.every(x => s.has(x))) return true; } return false; }, need, { timeout: 30000 });
     await srv.stop();
     try {
@@ -110,7 +108,7 @@ try {
       for (const [p, panel] of [['labs/ai/', '#panel-classifier'], ['labs/cyber/', '#panel-hashing'], ['labs/science/', '#panel-projectile'], ['labs/finance/', '#panel-compounding']]) { await c.page.goto(base + p, { waitUntil: 'domcontentloaded' }); await c.page.waitForSelector(panel); await c.page.locator(`${panel} .lk-btn`).first().click(); }
       await c.page.goto(base + 'labs/workflow/', { waitUntil: 'domcontentloaded' }); await c.page.selectOption('#sampleSelect', 'loopCounter'); await c.page.click('#btnRunAllSim'); assert.match(await c.page.locator('#simContextContainer').innerText(), /"total": 10/);
       await c.page.goto(base + 'play/2048/', { waitUntil: 'domcontentloaded' }); await c.page.waitForSelector('.g2048-tile'); await c.page.keyboard.press('ArrowLeft');
-      await c.page.goto(base + 'play/mahjong/', { waitUntil: 'domcontentloaded' }); assert.ok(await c.page.locator('#instructions').count());
+      await c.page.goto(base + 'play/mahjong-solitaire/', { waitUntil: 'domcontentloaded' }); await c.page.waitForFunction(() => document.querySelectorAll('.sol-tile').length > 0);
     } finally { await srv.start(); }
     await c.ctx.close();
   });

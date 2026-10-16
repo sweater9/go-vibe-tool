@@ -144,8 +144,8 @@ try {
    assert.ok((await page.locator('#responseBodyPre').innerText()).includes('id'));
    await page.locator('#bodyTextarea').fill('{"bad": <img src=x onerror="window.__xss=true">}');assert.equal(await page.locator('#jsonValidationStatus img').count(),0);assert.ok(!(await page.evaluate(()=>window.__xss)));await overflow();
   });
-  await check(`${width}: Mahjong preview and retired daily route`,async()=>{
-   await goto('/play/mahjong/');assert.ok((await page.locator('h1').innerText()).includes('Mahjong'));await overflow();
+  await check(`${width}: four-player Mahjong is not released (404) and the daily route is retired`,async()=>{
+   const r=await page.goto(new URL('/play/mahjong/',base).href,{waitUntil:'domcontentloaded'});assert.equal(r.status(),404);assert.equal(await page.locator('#lobby').count(),0);await overflow();
    await goto('/play/daily/');await page.waitForURL('**/play/');assert.equal(await page.locator('a[href="daily/"]').count(),0);
   });
   await check(`${width}: Word & Logic Challenge solve`,async()=>{
@@ -157,9 +157,9 @@ try {
    await goto('/');await homeReady();await page.evaluate(()=>navigator.serviceWorker.ready);
    await page.reload({waitUntil:'networkidle',timeout:45000});await homeReady();assert.ok(await page.evaluate(()=>!!navigator.serviceWorker.controller));
    // The precache is filled asynchronously by the install event; poll for it (assertions below are unchanged).
-   await page.waitForFunction(async()=>{const c=await caches.open('govibetool-v8-9');const k=(await c.keys()).map(r=>new URL(r.url).pathname);return ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong/index.html','/play/word-logic/index.html'].every(x=>k.includes(x))},null,{timeout:30000}).catch(()=>{});
-   const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v8-9');return (await c.keys()).map(r=>new URL(r.url).pathname)});
-   for(const path of ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong/index.html','/play/word-logic/index.html']) assert.ok(cached.includes(path),`uncached ${path}`);
+   await page.waitForFunction(async()=>{const c=await caches.open('govibetool-v8-10');const k=(await c.keys()).map(r=>new URL(r.url).pathname);return ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong-solitaire/index.html','/play/word-logic/index.html'].every(x=>k.includes(x))},null,{timeout:30000}).catch(()=>{});
+   const cached=await page.evaluate(async()=>{const c=await caches.open('govibetool-v8-10');return (await c.keys()).map(r=>new URL(r.url).pathname)});
+   for(const path of ['/labs/workflow/index.html','/labs/api-playground/index.html','/play/mahjong-solitaire/index.html','/play/word-logic/index.html']) assert.ok(cached.includes(path),`uncached ${path}`);
    if (!production) {
     await stopServer();
     try {

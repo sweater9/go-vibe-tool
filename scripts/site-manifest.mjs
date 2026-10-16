@@ -10,6 +10,12 @@ export const ROOT_FILE_PATTERN = /^[A-Za-z0-9._-]+\.(js|css)$/; // root scripts 
 // artifacts, scripts, .git, .github, ...) is never copied.
 export const SITE_DIRS = ['assets', 'vendor', 'tools', 'learn', 'knowledge', 'labs', 'play'];
 
+// Releases are staged: the four-player Mahjong frontend stays in the repository but is NOT shipped until live
+// multiplayer acceptance passes. Paths (relative to the repo root) that build-static.mjs must never copy and that
+// verify-dist.mjs refuses to find in the output. To release four-player Mahjong later, remove it here (and re-add
+// its links, discovery entry, service-worker precache entries and sitemap URL).
+export const UNRELEASED_SITE_PATHS = ['play/mahjong'];
+
 // Never shipped, even inside a site directory.
 export const EXCLUDE_DIR_NAMES = new Set(['node_modules', '.git', 'src', 'spec', 'tests', 'test', 'docs', 'artifacts', '__pycache__']);
 export const EXCLUDE_FILE_PATTERNS = [/\.md$/i, /\.py$/i, /\.map$/i, /\.log$/i, /\.tmp$/i, /^\.DS_Store$/, /^sitemap-fragment\.xml$/];
