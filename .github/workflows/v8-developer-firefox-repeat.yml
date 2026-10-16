@@ -1,8 +1,8 @@
 name: v8-developer Firefox repeat (manual measurement)
 # Measurement only. Read-only, no secrets, no deployment, never touches the release pin.
 # Classifies the Firefox failure of tests/v8-developer-browser.mjs seen in V9 Integration QA for PR #35 by running it
-# repeatedly on the built distribution (SITE_ROOT=dist) on: the accepted V8 baseline, the immutable Mahjong V9 release SHA,
-# and the Image Compressor fix commit (which does not touch any developer-tool code).
+# 30 times each on the built distribution (SITE_ROOT=dist) on the accepted V8 baseline and the immutable Mahjong V9
+# release SHA, to decide whether the intermittent failure exists on V9 code only.
 on:
   workflow_dispatch:
   push:
@@ -20,12 +20,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        side: [baseline, release, fixed]
-        n: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        side: [baseline, release]
+        n: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.side == 'baseline' && 'db1d37540d92919f7b09612a91502dff0faf358c' || matrix.side == 'release' && 'a85e4695a139c56456c743d607a79f76ff8abda8' || '17d1bbbe8c8e212ceaa3717bad292e110fd19cd8' }}
+          ref: ${{ matrix.side == 'baseline' && 'db1d37540d92919f7b09612a91502dff0faf358c' || matrix.side == 'release' && 'a85e4695a139c56456c743d607a79f76ff8abda8' }}
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
