@@ -19,7 +19,10 @@ const engine = process.argv[2] || 'chromium';
 let passed = 0; const failures = [];
 async function check(label, fn) {
   try { await fn(); passed++; console.log('PASS', label); }
-  catch (e) { failures.push(`${label}: ${String(e.message).split('\n').slice(0, 4).join(' | ')}`); console.error('FAIL', label, '\n    ', String(e.message).split('\n').slice(0, 4).join('\n     ')); }
+  catch (e) {
+    failures.push(`${label}: ${String(e.message).split('\n').slice(0, 4).join(' | ')}`); console.error('FAIL', label, '\n    ', String(e.message).split('\n').slice(0, 4).join('\n     '));
+    if (process.env.GITHUB_ACTIONS) console.log(`::error title=solitaire-only-release ${engine}::${label}: ${String(e.message).split('\n').slice(0, 3).join(' | ').replace(/[\r%]/g, ' ').slice(0, 400)}`); // visible in the check annotations
+  }
 }
 /* Node's fetch forbids the Upgrade header, so send the WebSocket handshake with a raw http request. */
 const upgradeStatus = p => new Promise((resolve, reject) => {

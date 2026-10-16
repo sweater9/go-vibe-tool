@@ -144,8 +144,9 @@ try {
    assert.ok((await page.locator('#responseBodyPre').innerText()).includes('id'));
    await page.locator('#bodyTextarea').fill('{"bad": <img src=x onerror="window.__xss=true">}');assert.equal(await page.locator('#jsonValidationStatus img').count(),0);assert.ok(!(await page.evaluate(()=>window.__xss)));await overflow();
   });
-  await check(`${width}: four-player Mahjong is not released (404) and the daily route is retired`,async()=>{
-   const r=await page.goto(new URL('/play/mahjong/',base).href,{waitUntil:'domcontentloaded'});assert.equal(r.status(),404);assert.equal(await page.locator('#lobby').count(),0);await overflow();
+  await check(`${width}: four-player Mahjong is not released and the daily route is retired`,async()=>{
+   if(production||process.env.SITE_ROOT){const r=await page.goto(new URL('/play/mahjong/',base).href,{waitUntil:'domcontentloaded'});assert.equal(r.status(),404);assert.equal(await page.locator('#lobby').count(),0);await overflow()} // built output / live site: the route is gone
+   else{await goto('/play/');assert.equal(await page.locator('a[href^="mahjong/"]').count(),0,'the Play hub must not link to four-player Mahjong');await overflow()} // checkout served as-is: the source folder exists, but nothing links to it
    await goto('/play/daily/');await page.waitForURL('**/play/');assert.equal(await page.locator('a[href="daily/"]').count(),0);
   });
   await check(`${width}: Word & Logic Challenge solve`,async()=>{
