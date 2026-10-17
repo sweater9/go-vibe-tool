@@ -330,7 +330,7 @@ const SECRETS = ['FixtureCam', 'Privacy-1', 'GVT-test', 'Jane Fixture', 'secret 
 async function strip(page, fileSpec, { format, quality } = {}) {
   if (format) await page.selectOption('#stripFormat', format);
   await upload(page, fileSpec);
-  await page.waitForSelector('#stripList .fm-item[data-state="done"], #stripList .fm-item[data-state="error"]');
+  await page.waitForFunction(() => [...document.querySelectorAll('#stripList .fm-item')].some(el => el.dataset.state === 'error' || (el.dataset.state === 'done' && Number(el.dataset.outBytes) > 0)));
 }
 await check('Stripper: JPEG with EXIF+GPS, IPTC, XMP, ICC and comment -> the downloaded file has none of them (verified on the real bytes)', async () => {
   const { ctx, page, errs, external } = await open(); await openTool(page, 'image-metadata-stripper');
