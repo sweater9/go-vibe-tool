@@ -71,7 +71,7 @@ $('copy-link').onclick=()=>copy(location.origin+location.pathname+'#'+state.code
 setInterval(()=>{if(state?.game?.pending)$('claim-clock').textContent='Claims close in '+Math.max(0,Math.ceil((state.game.pending.deadline-Date.now())/1000))+' seconds. No response counts as pass.';},500);
 function invitation(){const code=location.hash.slice(1);if(/^[a-f0-9]{24}$/.test(code)){if(!state)$('code').value=code;else if(state.code!==code)status('You already have a reserved seat. Leave this device before joining another room.');}}
 window.addEventListener('hashchange',invitation);invitation();
-if(!API){status('Multiplayer preview: the room service is awaiting deployment review. Please return after it is enabled.');$('create').disabled=true;$('join-form').querySelector('button').disabled=true;}
+if(!API){status('Mahjong Multiplayer — Coming Soon');$('create').disabled=true;$('join-form').querySelector('button').disabled=true;}
 else{
  let saved;try{saved=JSON.parse(sessionStorage.getItem(storageKey));}catch{}
  if(saved&&/^[a-f0-9]{24}$/.test(saved.code)&&(!location.hash||location.hash.slice(1)===saved.code)){token=saved.token;try{render(await request('/rooms/'+saved.code));stream();}catch(e){forget();status(e.message);}}
