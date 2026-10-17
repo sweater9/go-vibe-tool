@@ -14,7 +14,7 @@ Status: **DRAFT / NOT DEPLOYED**. This package now integrates Vibe Arcade at `/p
 - [ ] On a physical iPhone/Safari and Android/Chrome, check 320/375/390/400/460px-equivalent widths: launch, navigate, complete Vibeline, Twofold and Carve; no accidental zoom or inaccessible board edges.
 - [ ] Verify keyboard-only navigation and accessible status/labels. Carve currently requires pointer/touch; decide explicitly whether this is an acceptable launch limitation.
 - [ ] Confirm game state and offline reload after browser restart and service-worker update.
-- [ ] Confirm original saved-game schema from the **real legacy Vibeline implementation** or a representative real saved value for `vibeline:v1`. The automated migration fixture assumes `{level, best:{<level>:{t,h}}}`; it does not establish that the original app used that shape.
+- [x] Original standalone Vibeline source verified: `index(3).html` (user file library, 497 lines) declares `STORE = 'vibeline:v1'` at line 195, loads `{ level: 1, best: {} }` at lines 277–279, and saves `data.best[level] = { t: elapsed, h: hints }` plus `data.level` at lines 392–399. This **matches the existing migration test fixture** in `tests/vibe-arcade-browser.mjs` lines 303–317. No schema-code change needed. Real-world saved data was not available, so validation is source-based, not an actual-user-data replay.
 - [ ] Verify migration once, without overwriting `vibeline:v1` or existing `vibearcade:v1`; check invalid/corrupt input handling.
 - [ ] Rebase/revalidate against accepted Mahjong PR #40, including five-game Play hub and four-player Mahjong exclusion.
 - [ ] Obtain explicit approval before merge or deployment.
