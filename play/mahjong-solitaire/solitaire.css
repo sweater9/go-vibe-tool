@@ -133,6 +133,13 @@
   touch-action: manipulation;
 }
 
+.board-scroll-size {
+  position: relative;
+  flex: 0 0 auto;
+  width: 960px;
+  height: 560px;
+}
+
 .board-viewport {
   position: relative;
   width: 960px;
