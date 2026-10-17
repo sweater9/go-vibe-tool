@@ -87,8 +87,13 @@ try {
       const before = await remaining(page);
       const pair = await freePair(page);
       assert.ok(pair, 'no free matching pair found at game start');
-      for (const id of pair) await page.locator(`.sol-tile[data-id="${id}"]`).click();
-      await page.waitForFunction((n) => document.querySelectorAll('.sol-tile').length === n, before - 2);
+      const first = page.locator(`.sol-tile[data-id="${pair[0]}"]`);
+      await first.click();
+      assert.equal(await page.locator(`.sol-tile[data-id="${pair[0]}"]`).getAttribute('aria-pressed'), 'true', 'first tile must be selected by pointer');
+      const second = page.locator(`.sol-tile[data-id="${pair[1]}"]`);
+      await second.click();
+      const after = await remaining(page);
+      assert.equal(after, before - 2, `pointer match did not remove pair ${pair.join(', ')}; remaining=${after}, expected=${before - 2}; selected=${await page.locator('.sol-tile[aria-pressed="true"]').count()}`);
       assert.equal(await remaining(page), before - 2);
       await page.reload(); await boardReady(page);
       assert.equal(await remaining(page), before - 2, 'progress should persist across reload');
