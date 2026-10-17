@@ -55,15 +55,20 @@ try {
   });
   for (const [label, w, h, touch] of [['desktop', 1280, 900, false], ['mobile', 390, 844, true]]) {
     await check(`${label}: homepage, six Labs, Play games, Mahjong Solitaire, Knowledge, Learn, every tool page load cleanly`, async () => {
-      const c = await open({ w, h, touch }); const problems = [];
+      const problems = [];
       for (const p of PAGES) {
-        c.errs.length = 0; c.bad.length = 0; const resp = await c.page.goto(base.slice(0, -1) + p, { waitUntil: 'networkidle' });
-        if (!resp || resp.status() !== 200) problems.push(`${p}: status ${resp && resp.status()}`);
-        const o = await overflow(c.page); if (o > 0) problems.push(`${p}: horizontal overflow ${o}px`);
-        if (c.errs.length) problems.push(`${p}: ${c.errs[0]}`); if (c.bad.length) problems.push(`${p}: failed request ${c.bad[0]}`);
-        if (!(await c.page.locator('h1').count())) problems.push(`${p}: no h1`);
+        const c = await open({ w, h, touch });
+        try {
+          const resp = await c.page.goto(base.slice(0, -1) + p, { waitUntil: 'networkidle' });
+          if (!resp || resp.status() !== 200) problems.push(`${p}: status ${resp && resp.status()}`);
+          const o = await overflow(c.page); if (o > 0) problems.push(`${p}: horizontal overflow ${o}px`);
+          if (c.errs.length) problems.push(`${p}: ${c.errs[0]}`);
+          if (c.bad.length) problems.push(`${p}: failed request ${c.bad[0]}`);
+          if (c.external.length) problems.push(`${p}: external request ${c.external[0]}`);
+          if (!(await c.page.locator('h1').count())) problems.push(`${p}: no h1`);
+        } finally { await c.ctx.close(); }
       }
-      assert.deepEqual(problems, []); assert.deepEqual(c.external, []); await c.ctx.close();
+      assert.deepEqual(problems, []);
     });
   }
   await check('test harness: ad hosts are aborted silently, any other third-party host is reported', async () => {
