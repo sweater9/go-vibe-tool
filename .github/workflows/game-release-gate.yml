@@ -1,0 +1,32 @@
+name: Game Release Gate
+# Read-only game-focused validation; never deploys.
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  game-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0 tailwindcss@3.4.17
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm run build
+      - run: npm run verify:dist
+      - name: Mahjong Solitaire gameplay and four-player exclusion
+        run: |
+          node tests/mahjong-solitaire-browser.mjs ${{ matrix.browser }}
+          # Arcade's five-game hub intentionally differs from the four-card solitaire-only release test.
+      - name: Vibe Arcade gameplay, touch, persistence and offline checks
+        if: ${{ hashFiles('tests/vibe-arcade-browser.mjs') != '' }}
+        run: SITE_ROOT=dist node tests/vibe-arcade-browser.mjs ${{ matrix.browser }}

@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vibe Arcade</title>
+<meta name="theme-color" content="#0F8F80">
+<meta name="description" content="Vibe Arcade: three original logic puzzles with endless levels. Vibeline, Twofold and Carve, plus a daily challenge, streaks, XP and badges. Private, offline and free.">
+<link rel="canonical" href="https://govibetool.com/play/vibe-arcade/">
+<link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="site-chrome.css">
+<style>
+/* Layout: one centered column with two screens, the hub and a game, switched by script. */
+:root {
+  --bg: #E8EDF3;
+  --surface: #F6F8FB;
+  --fg: #112033;
+  --muted: #566679;
+  --line: #C3CEDA;
+  --thread: #0F8F80;
+  --on-thread: #FFFFFF;
+  --accent2: #B8750B;
+  --bad: #B3372B;
+  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --body: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --mono: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E151D; --surface: #16202B; --fg: #E6EDF5; --muted: #8FA0B3;
+    --line: #2A3948; --thread: #38D2BD; --on-thread: #06201C; --accent2: #F0B64A; --bad: #FF8A7A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E151D; --surface: #16202B; --fg: #E6EDF5; --muted: #8FA0B3;
+  --line: #2A3948; --thread: #38D2BD; --on-thread: #06201C; --accent2: #F0B64A; --bad: #FF8A7A;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; } /* author display rules (flex/grid) must not defeat the hidden attribute */
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.45;
+  padding-block: 24px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.app { max-width: 480px; margin: 0 auto; }
+section.screen { display: flex; flex-direction: column; gap: 18px; }
+h1 { margin: 0; font: 800 42px/1 var(--display); letter-spacing: -.02em; text-wrap: balance; }
+h2 { margin: 0; font: 800 34px/1.05 var(--display); letter-spacing: -.02em; text-wrap: balance; }
+h3 { margin: 0; font: 600 13px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.eyebrow { margin: 0; font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.lede { margin: 0; color: var(--muted); max-width: 52ch; }
+header.top { display: flex; flex-direction: column; gap: 6px; }
+
+.btn { touch-action: manipulation; font: 600 14px var(--body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 16px; cursor: pointer; text-decoration: none; display: inline-block; text-align: center; }
+.btn:hover:not(:disabled) { border-color: var(--thread); }
+.btn:focus-visible, .board:focus-visible, .tcell:focus-visible { outline: 3px solid var(--thread); outline-offset: 2px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn.primary { background: var(--thread); color: var(--on-thread); border-color: var(--thread); }
+.btn.link { background: none; border-color: transparent; color: var(--muted); padding-inline: 4px; text-decoration: underline; text-underline-offset: 3px; }
+.btn.small { padding: 7px 12px; font-size: 13px; }
+
+.card { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--surface); border-radius: 14px; box-shadow: 0 0 0 1px var(--line); }
+.rankrow { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.rankname { font: 800 28px/1.05 var(--display); letter-spacing: -.01em; }
+.xp { font: 500 13px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--thread); border-radius: 99px; }
+.streakrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.streakn { font: 800 22px/1 var(--display); font-variant-numeric: tabular-nums; }
+.pips { display: inline-flex; gap: 6px; align-items: center; font: 500 12px var(--mono); color: var(--muted); }
+.pip { width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--accent2); }
+.pip.on { background: var(--accent2); }
+
+.list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+.list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.list li:first-child { border-top: 0; padding-top: 0; }
+.list li:last-child { padding-bottom: 0; }
+.gname { font: 800 20px/1.1 var(--display); letter-spacing: -.01em; }
+.gmeta { font: 500 12px var(--mono); color: var(--muted); letter-spacing: .04em; }
+.done { font: 600 13px var(--mono); color: var(--thread); font-variant-numeric: tabular-nums; }
+.gcard { display: flex; flex-direction: column; gap: 6px; }
+.gcard p { margin: 0; color: var(--muted); font-size: 14px; }
+.badges { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.badge { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line); min-width: 0; }
+.badge b { font: 600 14px var(--body); }
+.badge span { font-size: 12px; color: var(--muted); }
+.badge.off { opacity: .5; }
+.badge.on { box-shadow: inset 0 0 0 2px var(--accent2); }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+.stat { display: flex; flex-direction: column; gap: 2px; padding-left: 12px; border-left: 1px solid var(--line); min-width: 0; }
+.stat:first-child { padding-left: 0; border-left: 0; }
+.stat span { font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stat b { font: 600 22px/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.topbar { display: flex; justify-content: space-between; align-items: center; }
+.levelnav { display: flex; align-items: center; gap: 10px; }
+.levelnav b { font: 600 14px var(--mono); font-variant-numeric: tabular-nums; }
+.banner { margin: 0; padding: 10px 12px; border-radius: 10px; box-shadow: inset 0 0 0 2px var(--accent2); font-size: 14px; }
+.status { min-height: 1.45em; margin: 0; font: 500 13px var(--mono); color: var(--muted); }
+.status.bad { color: var(--bad); }
+.controls, .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sharelabel { flex-basis: 100%; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.result h2 { font-size: 26px; }
+.result p { margin: 0; color: var(--muted); }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; color: var(--muted); font-size: 14px; }
+.rules b { color: var(--fg); font-weight: 600; }
+.lb { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-variant-numeric: tabular-nums; }
+.lb li { display: grid; grid-template-columns: 24px 1fr auto; gap: 10px; align-items: baseline; font-size: 14px; }
+.lb .rk { font: 500 12px var(--mono); color: var(--muted); }
+.lb .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb .me .nm { font-weight: 600; color: var(--thread); }
+.lb .tm { font: 500 13px var(--mono); }
+.note { margin: 0; font-size: 13px; color: var(--muted); }
+
+/* boards */
+.board { --n: 6; position: relative; display: grid; grid-template-columns: repeat(var(--n), 1fr); grid-template-rows: repeat(var(--n), 1fr); aspect-ratio: 1; width: 100%; container-type: inline-size; background: var(--surface); border-radius: 14px; box-shadow: 0 0 0 1px var(--line); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer; }
+.board.won { box-shadow: 0 0 0 2px var(--thread); }
+.cell { position: relative; display: grid; place-items: center; box-shadow: inset 0 0 0 .5px var(--line); transition: background .12s; }
+.cell.on { background: color-mix(in srgb, var(--thread) 13%, var(--surface)); }
+.num { position: relative; z-index: 2; width: 62%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; background: var(--fg); color: var(--bg); font-family: var(--mono); font-weight: 500; font-size: calc(100cqw / var(--n) * .34); transition: background .15s, color .15s; }
+.num.hit { background: var(--thread); color: var(--on-thread); }
+.cell.nudge .num { animation: nudge .32s; }
+@keyframes nudge { 20% { transform: translateX(-4px); } 50% { transform: translateX(4px); } 80% { transform: translateX(-2px); } }
+.overlay { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+.overlay .trail { fill: none; stroke: var(--thread); stroke-width: .34; stroke-linecap: round; stroke-linejoin: round; }
+.overlay .tip { fill: var(--thread); stroke: var(--surface); stroke-width: .06; }
+.overlay .wall { stroke: var(--fg); stroke-width: .09; stroke-linecap: round; }
+.overlay .arrow { fill: none; stroke: var(--fg); stroke-width: .085; stroke-linecap: round; stroke-linejoin: round; }
+
+.tcell { touch-action: manipulation; -webkit-tap-highlight-color: transparent; appearance: none; border: 0; padding: 0; margin: 0; background: transparent; color: inherit; cursor: pointer; display: grid; place-items: center; box-shadow: inset 0 0 0 .5px var(--line); }
+.tcell.given { background: color-mix(in srgb, var(--fg) 7%, var(--surface)); cursor: default; }
+.tcell.bad { background: color-mix(in srgb, var(--bad) 22%, var(--surface)); }
+.tcell svg { width: 62%; height: 62%; }
+.tcell .dot { fill: var(--thread); }
+.tcell .ring { fill: none; stroke: var(--accent2); stroke-width: 3.2; }
+.edge { position: absolute; z-index: 3; transform: translate(-50%, -50%); width: calc(100cqw / var(--n) * .34); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; background: var(--surface); box-shadow: 0 0 0 1.5px var(--fg); font: 600 calc(100cqw / var(--n) * .24) var(--mono); color: var(--fg); pointer-events: none; line-height: 1; }
+
+.cnum { position: relative; z-index: 3; font: 500 calc(100cqw / var(--n) * .42) var(--mono); pointer-events: none; }
+.rects { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.rect { position: absolute; }
+.rect i { position: absolute; inset: 3px; border-radius: 8px; background: color-mix(in srgb, var(--fg) 8%, transparent); box-shadow: inset 0 0 0 2px var(--muted); }
+.rect.ok i { background: color-mix(in srgb, var(--thread) 22%, transparent); box-shadow: inset 0 0 0 2px var(--thread); }
+.rect.bad i { background: color-mix(in srgb, var(--bad) 16%, transparent); box-shadow: inset 0 0 0 2px var(--bad); }
+.rect.preview i { background: color-mix(in srgb, var(--accent2) 18%, transparent); box-shadow: inset 0 0 0 2px var(--accent2); }
+
+.toasts { position: fixed; left: 0; right: 0; bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; padding-inline: 16px; z-index: 20; }
+.toast { background: var(--fg); color: var(--bg); padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 500; max-width: 420px; }
+@media (max-width: 400px) { h1 { font-size: 36px; } h2 { font-size: 30px; } .stat b { font-size: 19px; } }
+@media (prefers-reduced-motion: reduce) { .cell.nudge .num { animation: none; } .cell, .num { transition: none; } }
+</style>
+<style>html,body{margin:0}</style>
+</head>
+<body>
+<a class="gvt-skip" href="#main">Skip to main content</a>
+<header class="gvt-nav">
+  <a class="gvt-brand" href="../../" aria-label="GoVibeTool home"><img src="../../assets/logo-mark.svg" width="28" height="28" alt=""><span>GoVibe</span>Tool</a>
+  <nav class="gvt-links" aria-label="Main navigation">
+    <a href="../../">Tools</a>
+    <a href="../../learn/">Learn</a>
+    <a href="../../labs/">Labs</a>
+    <a href="../" aria-current="page">Play</a>
+  </nav>
+</header>
+
+<main class="app" id="main">
+  <section class="screen" id="hub"></section>
+
+  <section class="screen" id="game" hidden>
+    <div class="topbar">
+      <button class="btn link" id="back" type="button">&larr; Arcade</button>
+      <div class="levelnav" id="levelnav">
+        <button class="btn small" id="prevL" type="button" aria-label="Previous level">&lsaquo;</button>
+        <b id="lvlLabel">Level 1</b>
+        <button class="btn small" id="nextL" type="button" aria-label="Next level">&rsaquo;</button>
+      </div>
+    </div>
+    <header class="top">
+      <p class="eyebrow" id="geyebrow"></p>
+      <h2 id="gtitle"></h2>
+    </header>
+    <p class="banner" id="challenge" hidden></p>
+    <section class="stats" aria-label="Progress">
+      <div class="stat"><span>Time</span><b id="time">0:00</b></div>
+      <div class="stat"><span>Progress</span><b id="progress">0</b></div>
+      <div class="stat"><span>Hints</span><b id="hints">0</b></div>
+      <div class="stat"><span id="modeLabel">Level</span><b id="modeVal">1</b></div>
+    </section>
+    <div id="host"></div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <div class="controls">
+      <button class="btn" id="undo" type="button">Undo</button>
+      <button class="btn" id="reset" type="button">Reset</button>
+      <button class="btn" id="hint" type="button">Hint</button>
+    </div>
+    <section class="card result" id="result" hidden>
+      <h2 id="resultTitle"></h2>
+      <p id="resultSub"></p>
+      <div class="row">
+        <button class="btn primary" id="again" type="button">Next level</button>
+        <button class="btn" id="challengeBtn" type="button">Copy challenge link</button>
+      </div>
+      <div class="row">
+        <span class="sharelabel">Challenge your friends</span>
+        <a class="btn small" id="sx" target="_blank" rel="noopener noreferrer">X</a>
+        <a class="btn small" id="swa" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        <a class="btn small" id="stg" target="_blank" rel="noopener noreferrer">Telegram</a>
+        <a class="btn small" id="sli" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+        <a class="btn small" id="sfb" target="_blank" rel="noopener noreferrer">Facebook</a>
+      </div>
+    </section>
+    <section class="card" id="lbCard">
+      <h3>Fastest times</h3>
+      <ol class="lb" id="lbList"></ol>
+      <p class="note" id="lbNote"></p>
+    </section>
+    <ul class="rules" id="rules"></ul>
+  </section>
+</main>
+<footer class="gvt-foot">
+  <span>&copy; 2026 GoVibeTool</span>
+  <a href="../../privacy.html">Privacy</a>
+  <a href="../../terms.html">Terms</a>
+  <a href="../../contact.html">Contact</a>
+</footer>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+  var $ = function (s) { return document.querySelector(s); };
+
+/*PURE-START*/
+  // ---------- seeded random ----------
+  function xmur3(str) {
+    var h = 1779033703 ^ str.length;
+    for (var i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+    return function () { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return (h ^= h >>> 16) >>> 0; };
+  }
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function makeRng(seed) { return mulberry32(xmur3(seed)()); }
+  function shuffle(a, rng) { for (var i = a.length - 1; i > 0; i--) { var j = (rng() * (i + 1)) | 0, t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function tierName(d) { return d < 4 ? 'Easy' : d < 12 ? 'Medium' : d < 24 ? 'Hard' : d < 40 ? 'Expert' : 'Master'; }
+
+  // ---------- Vibeline: one line through every square ----------
+  function vlCfg(L) {
+    var d = L - 1, n = Math.min(15, 5 + Math.floor(d / 4)), N = n * n;
+    return {
+      n: n, k: Math.max(3, Math.round(n * 1.4 - d * 0.15)),
+      w: Math.min(Math.round(N * 0.2), Math.floor(d * 0.6)),
+      o: d < 12 ? 0 : Math.min(Math.round(N * 0.12), Math.floor((d - 10) * 0.5)),
+      name: tierName(d), label: n + '×' + n + ' · ' + tierName(d)
+    };
+  }
+  function vlMake(seed, L) {
+    var cfg = vlCfg(L), rng = makeRng(seed), n = cfg.n, N = n * n, p = [], r, c, i;
+    for (r = 0; r < n; r++) for (c = 0; c < n; c++) p.push(r % 2 ? r * n + (n - 1 - c) : r * n + c);
+    var pos = new Array(N);
+    function idx() { for (var q = 0; q < N; q++) pos[p[q]] = q; }
+    function nb(x) {
+      var rr = (x / n) | 0, cc = x % n, o = [];
+      if (rr > 0) o.push(x - n);
+      if (rr < n - 1) o.push(x + n);
+      if (cc > 0) o.push(x - 1);
+      if (cc < n - 1) o.push(x + 1);
+      return o;
+    }
+    idx();
+    for (var it = 0; it < N * 80; it++) {
+      var head = rng() < 0.5, e = head ? p[0] : p[N - 1], ns = nb(e), v = ns[(rng() * ns.length) | 0], j = pos[v];
+      if (head) { if (j < 2) continue; p = p.slice(0, j).reverse().concat(p.slice(j)); }
+      else { if (j > N - 3) continue; p = p.slice(0, j + 1).concat(p.slice(j + 1).reverse()); }
+      idx();
+    }
+    if (rng() < 0.5) p.reverse();
+    idx();
+    var K = cfg.k, cp = [0];
+    for (i = 1; i < K - 1; i++) {
+      var base = Math.round(i * (N - 1) / (K - 1)), jit = (((rng() * 3) | 0) - 1) * 2;
+      var lo = cp[i - 1] + 1, hi = N - 1 - (K - 1 - i);
+      cp.push(Math.min(hi, Math.max(lo, base + jit)));
+    }
+    cp.push(N - 1);
+    var numAt = new Array(N).fill(0), cellOf = [0];
+    cp.forEach(function (q, k) { numAt[p[q]] = k + 1; cellOf.push(p[q]); });
+    var cand = [];
+    for (i = 0; i < N; i++) {
+      var rr = (i / n) | 0, cc = i % n;
+      if (cc < n - 1 && Math.abs(pos[i] - pos[i + 1]) > 1) cand.push([i, i + 1]);
+      if (rr < n - 1 && Math.abs(pos[i] - pos[i + n]) > 1) cand.push([i, i + n]);
+    }
+    shuffle(cand, rng);
+    var walls = cand.slice(0, cfg.w), wallSet = {};
+    walls.forEach(function (w) { wallSet[w[0] + '-' + w[1]] = 1; });
+    var oneSet = {}, oneWay = [], pairs = [];
+    for (i = 0; i < N - 1; i++) pairs.push(i);
+    shuffle(pairs, rng);
+    pairs.slice(0, cfg.o).forEach(function (q) { oneWay.push([p[q], p[q + 1]]); oneSet[p[q] + '>' + p[q + 1]] = 1; });
+    return { n: n, N: N, sol: p, numAt: numAt, cellOf: cellOf, K: K, walls: walls, wallSet: wallSet, oneWay: oneWay, oneSet: oneSet };
+  }
+
+  // ---------- Twofold: balance two symbols ----------
+  function twCfg(L) {
+    var d = L - 1, tier = Math.min(4, Math.floor(d / 6)), n = [4, 6, 8, 10, 12][tier], N = n * n;
+    var base = [0.55, 0.42, 0.32, 0.22, 0.14][tier];
+    var ratio = Math.max(0, base - (tier < 3 ? (d % 6) * 0.03 : (d - tier * 6) * 0.012));
+    var e = tier === 0 ? 0 : Math.min(Math.round(N * 0.18), Math.floor(d * 0.5));
+    return { n: n, ratio: ratio, e: e, name: tierName(d), label: n + '×' + n + ' · ' + tierName(d) };
+  }
+  function twLines(n) {
+    var lines = [], r, c, a;
+    for (r = 0; r < n; r++) { a = []; for (c = 0; c < n; c++) a.push(r * n + c); lines.push(a); }
+    for (c = 0; c < n; c++) { a = []; for (r = 0; r < n; r++) a.push(r * n + c); lines.push(a); }
+    return lines;
+  }
+  // returns false on contradiction; fills forced cells in v (-1 unknown)
+  function twPropagate(v, n, lines, edges) {
+    var h = n / 2, changed = true, i, k, L, a, b, c;
+    while (changed) {
+      changed = false;
+      for (k = 0; k < lines.length; k++) {
+        L = lines[k];
+        var c0 = 0, c1 = 0;
+        for (i = 0; i < n; i++) { if (v[L[i]] === 0) c0++; else if (v[L[i]] === 1) c1++; }
+        if (c0 > h || c1 > h) return false;
+        if (c0 + c1 < n && (c0 === h || c1 === h)) {
+          var fill = c0 === h ? 1 : 0;
+          for (i = 0; i < n; i++) if (v[L[i]] === -1) { v[L[i]] = fill; changed = true; }
+        }
+        for (i = 0; i + 2 < n; i++) {
+          a = L[i]; b = L[i + 1]; c = L[i + 2];
+          if (v[a] >= 0 && v[a] === v[b] && v[c] === -1) { v[c] = 1 - v[a]; changed = true; }
+          else if (v[b] >= 0 && v[b] === v[c] && v[a] === -1) { v[a] = 1 - v[b]; changed = true; }
+          else if (v[a] >= 0 && v[a] === v[c] && v[b] === -1) { v[b] = 1 - v[a]; changed = true; }
+          if (v[a] >= 0 && v[a] === v[b] && v[b] === v[c]) return false;
+        }
+      }
+      for (k = 0; k < edges.length; k++) {
+        var ed = edges[k], va = v[ed.a], vb = v[ed.b], same = ed.t === '=';
+        if (va >= 0 && vb === -1) { v[ed.b] = same ? va : 1 - va; changed = true; }
+        else if (vb >= 0 && va === -1) { v[ed.a] = same ? vb : 1 - vb; changed = true; }
+        else if (va >= 0 && vb >= 0 && (va === vb) !== same) return false;
+      }
+    }
+    return true;
+  }
+  // Counts solutions up to `limit`. `bud` ({n}) caps the search so generation stays fast
+  // and identical on every device; running out counts as "not unique".
+  function twCount(v0, n, lines, edges, limit, bud) {
+    if (bud && --bud.n < 0) return limit;
+    var v = v0.slice();
+    if (!twPropagate(v, n, lines, edges)) return 0;
+    var best = -1, bestU = 99, k, i;
+    for (k = 0; k < lines.length; k++) {
+      var u = 0, first = -1;
+      for (i = 0; i < n; i++) if (v[lines[k][i]] === -1) { u++; if (first < 0) first = lines[k][i]; }
+      if (u > 0 && u < bestU) { bestU = u; best = first; }
+    }
+    if (best < 0) return 1;
+    var total = 0;
+    for (var val = 0; val < 2 && total < limit; val++) {
+      var w = v.slice(); w[best] = val;
+      total += twCount(w, n, lines, edges, limit - total, bud);
+    }
+    return total;
+  }
+  function twMake(seed, L) {
+    var cfg = twCfg(L), rng = makeRng(seed), n = cfg.n, N = n * n, h = n / 2, g, tries = 0;
+    function fill() {
+      var steps = 0, cnt0r = [], cnt0c = [], cnt1r = [], cnt1c = [], gg = new Array(N).fill(-1), r;
+      for (r = 0; r < n; r++) { cnt0r[r] = cnt1r[r] = cnt0c[r] = cnt1c[r] = 0; }
+      function rec(i) {
+        if (i === N) return true;
+        if (++steps > 20000) return false;
+        var rr = (i / n) | 0, cc = i % n, vals = rng() < 0.5 ? [0, 1] : [1, 0];
+        for (var q = 0; q < 2; q++) {
+          var x = vals[q];
+          if (cc >= 2 && gg[i - 1] === x && gg[i - 2] === x) continue;
+          if (rr >= 2 && gg[i - n] === x && gg[i - 2 * n] === x) continue;
+          var cr = x ? cnt1r : cnt0r, ccn = x ? cnt1c : cnt0c;
+          if (cr[rr] >= h || ccn[cc] >= h) continue;
+          gg[i] = x; cr[rr]++; ccn[cc]++;
+          if (rec(i + 1)) return true;
+          gg[i] = -1; cr[rr]--; ccn[cc]--;
+        }
+        return false;
+      }
+      return rec(0) ? gg : null;
+    }
+    while (!(g = fill()) && tries++ < 50) {}
+    var sol = g, lines = twLines(n), pairs = [], i;
+    for (i = 0; i < N; i++) {
+      if (i % n < n - 1) pairs.push([i, i + 1]);
+      if (i + n < N) pairs.push([i, i + n]);
+    }
+    shuffle(pairs, rng);
+    var edges = pairs.slice(0, cfg.e).map(function (p) { return { a: p[0], b: p[1], t: sol[p[0]] === sol[p[1]] ? '=' : 'x' }; });
+    var start = sol.slice(), given = Math.round(N), target = Math.round(N * cfg.ratio);
+    var order = shuffle(Array.apply(null, { length: N }).map(function (_, q) { return q; }), rng);
+    for (i = 0; i < order.length && given > target; i++) {
+      var cell = order[i], keep = start[cell];
+      start[cell] = -1;
+      if (twCount(start, n, lines, edges, 2, { n: 400 }) === 1) given--; else start[cell] = keep;
+    }
+    return { n: n, N: N, sol: sol, start: start, given: start.map(function (x) { return x >= 0; }), edges: edges, lines: lines };
+  }
+
+  // ---------- Carve: cut the grid into rectangles ----------
+  function caCfg(L) {
+    var d = L - 1, n = Math.min(12, 5 + Math.floor(d / 4)), N = n * n;
+    var avg = Math.min(7, 2.4 + d * 0.07);
+    return { n: n, pieces: Math.max(3, Math.round(N / avg)), name: tierName(d), label: n + '×' + n + ' · ' + tierName(d) };
+  }
+  function caMake(seed, L) {
+    var cfg = caCfg(L), rng = makeRng(seed), n = cfg.n, N = n * n;
+    var rects = [{ r: 0, c: 0, h: n, w: n }];
+    while (rects.length < cfg.pieces) {
+      var cand = rects.filter(function (q) { return q.h * q.w > 1; });
+      if (!cand.length) break;
+      var tot = 0; cand.forEach(function (q) { tot += q.h * q.w; });
+      var pick = rng() * tot, q = cand[cand.length - 1], acc = 0;
+      for (var i = 0; i < cand.length; i++) { acc += cand[i].h * cand[i].w; if (pick < acc) { q = cand[i]; break; } }
+      var vert = q.w > 1 && (q.h === 1 || rng() < 0.5);
+      rects.splice(rects.indexOf(q), 1);
+      if (vert) { var cut = 1 + ((rng() * (q.w - 1)) | 0); rects.push({ r: q.r, c: q.c, h: q.h, w: cut }, { r: q.r, c: q.c + cut, h: q.h, w: q.w - cut }); }
+      else { var cut2 = 1 + ((rng() * (q.h - 1)) | 0); rects.push({ r: q.r, c: q.c, h: cut2, w: q.w }, { r: q.r + cut2, c: q.c, h: q.h - cut2, w: q.w }); }
+    }
+    var numAt = new Array(N).fill(0);
+    rects.forEach(function (q) {
+      var rr = q.r + ((rng() * q.h) | 0), cc = q.c + ((rng() * q.w) | 0);
+      numAt[rr * n + cc] = q.h * q.w;
+    });
+    return { n: n, N: N, sol: rects, numAt: numAt };
+  }
+/*PURE-END*/
+
+  // ---------- profile, XP, streak, badges ----------
+  var STORE = 'vibearcade:v1';
+  // Set this to the public address of the arcade so shared challenge links land on it.
+  // When empty, the current page address is used.
+  var SHARE_URL = '';
+  var DAILY_LEVEL = [16, 2, 5, 8, 11, 14, 18]; // Sunday..Saturday: Monday easiest, Saturday hardest
+  var RANKS = [['Rookie', 0], ['Tracer', 100], ['Weaver', 300], ['Pathfinder', 700], ['Strategist', 1500], ['Mastermind', 3000], ['Grandmaster', 6000], ['Legend', 12000]];
+
+  var GAMES = {
+    vl: {
+      code: 'vl', name: 'Vibeline', tag: 'Draw one line from 1 to the last number, filling every square.',
+      cfg: vlCfg, make: vlMake, mount: vlMount, par: 'Fill every square with one line.',
+      rules: ['<b>Drag</b> from the 1 (or use arrow keys). Drag back over your line to undo.',
+        '<b>Numbers</b> must be reached in order. Thick bars are walls the line can’t cross.',
+        '<b>Arrows</b> on a border (from level 13) mean the line may only cross it in that direction.']
+    },
+    tw: {
+      code: 'tw', name: 'Twofold', tag: 'Fill the grid with dots and rings. Keep every row and column balanced.',
+      cfg: twCfg, make: twMake, mount: twMount,
+      rules: ['<b>Tap</b> a square to cycle dot, ring and empty. Grey squares are fixed.',
+        '<b>Balance:</b> each row and column holds the same number of dots and rings.',
+        '<b>No three</b> of the same symbol in a row or column. A circled = joins two matching squares, a circled × two different ones.']
+    },
+    ca: {
+      code: 'ca', name: 'Carve', tag: 'Cut the grid into rectangles. Each holds one number equal to its area.',
+      cfg: caCfg, make: caMake, mount: caMount,
+      rules: ['<b>Drag</b> across squares to draw a rectangle. Tap a rectangle to remove it.',
+        '<b>Each rectangle</b> must contain exactly one number, and the number equals its area.',
+        '<b>Cover</b> every square. Green rectangles are correct, red ones hold the wrong number.']
+    }
+  };
+  var ORDER = ['vl', 'tw', 'ca'];
+
+  var BADGES = [
+    { id: 'first', name: 'First thread', desc: 'Clear your first level', ok: function (p) { return p.total >= 1; } },
+    { id: 'ten', name: 'Ten down', desc: 'Clear 10 levels', ok: function (p) { return p.total >= 10; } },
+    { id: 'fifty', name: 'Fifty strong', desc: 'Clear 50 levels', ok: function (p) { return p.total >= 50; } },
+    { id: 'round', name: 'All-rounder', desc: 'Clear a level in every game', ok: function (p) { return ORDER.every(function (c) { return p.games[c].cleared > 0; }); } },
+    { id: 'clean', name: 'Clean sweep', desc: 'Clear 5 levels in a row with no hints', ok: function (p) { return p.cleanRun >= 5; } },
+    { id: 'speed', name: 'Quick hands', desc: 'Clear level 5 or higher in under 30 seconds', ok: function (p) { return !!p.flags.speed; } },
+    { id: 's3', name: 'Three in a row', desc: 'Reach a 3-day streak', ok: function (p) { return p.streak.count >= 3; } },
+    { id: 's7', name: 'Full week', desc: 'Reach a 7-day streak', ok: function (p) { return p.streak.count >= 7; } },
+    { id: 's30', name: 'Month of vibes', desc: 'Reach a 30-day streak', ok: function (p) { return p.streak.count >= 30; } }
+  ];
+
+  function defProfile() {
+    var g = {}; ORDER.forEach(function (c) { g[c] = { level: 1, cleared: 0, best: {} }; });
+    return { xp: 0, total: 0, cleanRun: 0, streak: { count: 0, last: '', freezes: 0 }, games: g, daily: {}, badges: {}, flags: {} };
+  }
+  function loadProfile() {
+    var d = defProfile(), s;
+    try { s = JSON.parse(localStorage.getItem(STORE)); } catch (e) { s = null; }
+    if (s && typeof s === 'object') {
+      ['xp', 'total', 'cleanRun'].forEach(function (k) { if (typeof s[k] === 'number') d[k] = s[k]; });
+      if (s.streak) d.streak = { count: s.streak.count | 0, last: s.streak.last || '', freezes: s.streak.freezes | 0 };
+      if (s.daily) d.daily = s.daily;
+      if (s.badges) d.badges = s.badges;
+      if (s.flags) d.flags = s.flags;
+      ORDER.forEach(function (c) { if (s.games && s.games[c]) d.games[c] = { level: Math.max(1, s.games[c].level | 0), cleared: s.games[c].cleared | 0, best: s.games[c].best || {} }; });
+    }
+    return d;
+  }
+  // One-time, non-destructive import of progress from the original standalone
+  // Vibeline game. Older best times and unlocked levels remain accessible.
+  function importLegacyVibeline(profile) {
+    try {
+      if (localStorage.getItem(STORE)) return profile;
+      var old = JSON.parse(localStorage.getItem('vibeline:v1') || 'null');
+      if (!old || typeof old !== 'object') return profile;
+      var level = Number(old.level);
+      if (Number.isSafeInteger(level) && level > 0) {
+        profile.games.vl.level = Math.min(level, 1000000);
+        profile.games.vl.cleared = Math.max(0, profile.games.vl.level - 1);
+      }
+      if (old.best && typeof old.best === 'object' && !Array.isArray(old.best)) {
+        for (var k in old.best) {
+          if (!Object.prototype.hasOwnProperty.call(old.best, k) || !/^[1-9]\d*$/.test(k)) continue;
+          var b = old.best[k];
+          if (!b || !Number.isFinite(b.t) || b.t < 0) continue;
+          profile.games.vl.best[k] = { t: b.t, h: Number.isFinite(b.h) ? Math.max(0, b.h) : 0 };
+        }
+      }
+      // Never overwrite the original key or grant retroactive XP.
+    } catch (e) { /* private storage may be disabled */ }
+    return profile;
+  }
+  var P = importLegacyVibeline(loadProfile());
+  function saveP() { try { localStorage.setItem(STORE, JSON.stringify(P)); } catch (e) {} }
+  function dkey(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function daysBetween(a, b) { return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000); }
+  function fmt(ms) { var s = Math.floor(ms / 1000); return ((s / 60) | 0) + ':' + String(s % 60).padStart(2, '0'); }
+  function streakView() {
+    var s = P.streak, t = dkey(new Date());
+    if (!s.last) return { n: 0, done: false };
+    var g = daysBetween(s.last, t);
+    if (g <= 0) return { n: s.count, done: true };
+    if (g === 1) return { n: s.count, done: false };
+    if (g - 1 <= s.freezes) return { n: s.count, done: false, saved: true };
+    return { n: 0, done: false };
+  }
+  function bumpStreak() {
+    var s = P.streak, t = dkey(new Date());
+    if (s.last === t) return;
+    var g = s.last ? daysBetween(s.last, t) : 99;
+    if (g === 1) s.count++;
+    else if (g > 1 && g - 1 <= s.freezes) { s.freezes -= g - 1; s.count++; }
+    else s.count = 1;
+    s.last = t;
+    if (s.count % 5 === 0) s.freezes = Math.min(2, s.freezes + 1);
+  }
+  function rankInfo(xp) {
+    var i = 0;
+    while (i + 1 < RANKS.length && xp >= RANKS[i + 1][1]) i++;
+    var next = RANKS[i + 1];
+    return { name: RANKS[i][0], floor: RANKS[i][1], next: next ? next[1] : null, nextName: next ? next[0] : null };
+  }
+  function checkBadges() {
+    var got = [];
+    BADGES.forEach(function (b) { if (!P.badges[b.id] && b.ok(P)) { P.badges[b.id] = dkey(new Date()); got.push(b); } });
+    return got;
+  }
+  function toast(msg) {
+    var t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+    $('#toasts').appendChild(t);
+    setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 3600);
+  }
+
+  // ---------- leaderboard (shared db, optional) ----------
+  var DB = null, USER = null, UID = null, canWrite = true, capsReady = false;
+  function initCaps() {
+    // No external backend is approved for the GoVibeTool integration.
+    capsReady = true; return;
+    if (!window.claude || !window.claude.use) { capsReady = true; return; }
+    Promise.all([window.claude.use('db'), window.claude.use('user')]).then(function (r) {
+      DB = r[0]; USER = r[1];
+      return USER && USER.id ? USER.id() : null;
+    }).then(function (id) { UID = id; capsReady = true; if (cur) refreshBoard(); })
+      .catch(function () { capsReady = true; });
+  }
+  function boardKey() { return cur.code + (cur.mode === 'daily' ? '.d' + dkey(new Date()).replace(/-/g, '') : '.l' + cur.level); }
+  function submitScore(key, s, t, h) {
+    if (!DB || !UID) return Promise.resolve();
+    var ref = DB.doc('scores/' + key + '~' + UID);
+    return ref.get().then(function (snap) {
+      if (snap.exists && snap.data().s <= s) return;
+      return ref.set({ board: key, uid: UID, s: s, t: t, h: h, at: Date.now() });
+    }).catch(function (e) { if (e && e.code === 'invalid_argument') canWrite = false; });
+  }
+  function refreshBoard() {
+    var list = $('#lbList'), note = $('#lbNote');
+    if (!cur) return;
+    if (!DB) { list.innerHTML = ''; note.textContent = capsReady ? 'Shared leaderboards are disabled. All puzzles work offline.' : ''; return; }
+    var key = boardKey(), mine = cur;
+    DB.collection('scores').where('board', '==', key).orderBy('s', 'asc').limit(10).get().then(function (snap) {
+      if (cur !== mine) return;
+      var rows = snap.docs.map(function (d) { return d.data(); });
+      var ids = rows.map(function (r) { return r.uid; });
+      var prof = USER && USER.profiles ? USER.profiles(ids) : Promise.resolve({});
+      return prof.then(function (ps) {
+        if (cur !== mine) return;
+        list.innerHTML = '';
+        rows.forEach(function (r, i) {
+          var li = document.createElement('li'); if (r.uid === UID) li.className = 'me';
+          var a = document.createElement('span'); a.className = 'rk'; a.textContent = i + 1;
+          var b = document.createElement('span'); b.className = 'nm';
+          b.textContent = ((ps[r.uid] && ps[r.uid].name) || 'Player') + (r.uid === UID ? ' (you)' : '');
+          var c = document.createElement('span'); c.className = 'tm'; c.textContent = fmt(r.t) + (r.h ? ' +' + r.h + 'h' : '');
+          li.appendChild(a); li.appendChild(b); li.appendChild(c); list.appendChild(li);
+        });
+        note.textContent = rows.length ? (canWrite ? 'Hints add 30 seconds to your ranking time.' : 'Your time was not posted. Ask the owner for contributor access.') : 'No times yet. Be the first on this board.';
+      });
+    }).catch(function () { list.innerHTML = ''; note.textContent = 'Fastest times are unavailable right now.'; });
+  }
+
+  // ---------- game shell ----------
+  var cur = null, hostEl = $('#host');
+  function shareBase() { return SHARE_URL || (location.origin === 'null' ? location.href.split('#')[0] : location.origin + location.pathname); }
+  function challengeLink(secs) { return shareBase() + '#c.' + cur.code + '.' + cur.level + '.' + secs; }
+  function api() {
+    return {
+      begin: function () {
+        if (!cur || cur.started || cur.solved) return;
+        cur.started = true; cur.t0 = Date.now() - cur.elapsed;
+        cur.timer = setInterval(function () { if (cur && !cur.solved) { cur.elapsed = Date.now() - cur.t0; $('#time').textContent = fmt(cur.elapsed); } }, 250);
+      },
+      progress: function (t) { $('#progress').textContent = t; },
+      status: function (m, bad) { var s = $('#status'); s.textContent = m || ''; s.classList.toggle('bad', !!bad); },
+      useHint: function () { cur.hints++; $('#hints').textContent = cur.hints; },
+      win: onWin
+    };
+  }
+  function closeGame() {
+    if (!cur) return;
+    clearInterval(cur.timer);
+    if (cur.ctl && cur.ctl.destroy) cur.ctl.destroy();
+    hostEl.innerHTML = '';
+    cur = null;
+  }
+  function openGame(code, mode, level, ch) {
+    closeGame();
+    var G = GAMES[code];
+    if (mode === 'daily') level = DAILY_LEVEL[new Date().getDay()];
+    var seed = mode === 'daily' ? 'arcade-daily-' + dkey(new Date()) + '-' + code : 'arcade-' + code + '-L' + level;
+    var puz = G.make(seed, level), cfg = G.cfg(level);
+    cur = { code: code, mode: mode, level: level, puz: puz, started: false, t0: 0, elapsed: 0, hints: 0, solved: false, ch: ch || null, timer: 0, ctl: null };
+    $('#hub').hidden = true; $('#game').hidden = false;
+    $('#geyebrow').textContent = (mode === 'daily' ? 'Daily challenge · ' : '') + cfg.label;
+    $('#gtitle').textContent = G.name;
+    $('#levelnav').hidden = mode === 'daily';
+    $('#lvlLabel').textContent = 'Level ' + level;
+    $('#prevL').disabled = level <= 1;
+    $('#nextL').disabled = level >= P.games[code].level;
+    $('#modeLabel').textContent = mode === 'daily' ? 'Daily' : 'Level';
+    $('#modeVal').textContent = mode === 'daily' ? 'Today' : level;
+    $('#time').textContent = '0:00'; $('#hints').textContent = '0';
+    var banner = $('#challenge');
+    if (ch) { banner.hidden = false; banner.textContent = 'A friend cleared this level in ' + fmt(ch * 1000) + '. Can you beat it?'; } else banner.hidden = true;
+    $('#result').hidden = true;
+    $('#status').textContent = '';
+    ['undo', 'reset', 'hint'].forEach(function (id) { $('#' + id).disabled = false; });
+    $('#rules').innerHTML = G.rules.map(function (r) { return '<li>' + r + '</li>'; }).join('');
+    $('#lbList').innerHTML = ''; $('#lbNote').textContent = '';
+    cur.ctl = G.mount(hostEl, puz, api());
+    refreshBoard();
+    window.scrollTo(0, 0);
+  }
+  function showHub() { closeGame(); $('#game').hidden = true; $('#hub').hidden = false; renderHub(); window.scrollTo(0, 0); }
+
+  function onWin() {
+    if (!cur || cur.solved) return;
+    cur.solved = true; clearInterval(cur.timer);
+    cur.elapsed = Date.now() - cur.t0; if (!cur.started) cur.elapsed = 0;
+    var t = cur.elapsed, h = cur.hints, code = cur.code, G = P.games[code], today = dkey(new Date());
+    var first, xp = 0;
+    if (cur.mode === 'daily') {
+      P.daily[today] = P.daily[today] || {};
+      first = !P.daily[today][code];
+      if (first) P.daily[today][code] = { t: t, h: h };
+      else if (t < P.daily[today][code].t) P.daily[today][code] = { t: t, h: h };
+    } else {
+      first = !G.best[cur.level];
+      if (first || t < G.best[cur.level].t) G.best[cur.level] = { t: t, h: h };
+      if (cur.level === G.level) G.level = cur.level + 1;
+    }
+    if (first) {
+      xp = Math.max(5, 20 + Math.min(80, 2 * cur.level) + (h ? 0 : 10) + (cur.mode === 'daily' ? 25 : 0) - 3 * h);
+      var before = rankInfo(P.xp).name;
+      P.xp += xp; P.total++; G.cleared++;
+      P.cleanRun = h ? 0 : P.cleanRun + 1;
+      if (t < 30000 && cur.level >= 5) P.flags.speed = 1;
+      var after = rankInfo(P.xp).name;
+      if (after !== before) toast('New rank: ' + after);
+    }
+    if (cur.mode === 'daily') bumpStreak();
+    checkBadges().forEach(function (b) { toast('Badge earned: ' + b.name); });
+    saveP();
+    // result card
+    var G0 = GAMES[code], secs = Math.max(1, Math.round(t / 1000));
+    $('#resultTitle').textContent = (cur.mode === 'daily' ? 'Daily cleared in ' : 'Level ' + cur.level + ' cleared in ') + fmt(t);
+    var parts = [xp ? '+' + xp + ' XP' : 'Replay, no XP', h ? h + (h === 1 ? ' hint' : ' hints') : 'no hints'];
+    if (cur.mode === 'daily') { var sv = streakView(); parts.push('streak ' + sv.n + (sv.n === 1 ? ' day' : ' days')); }
+    var res = parts.join(' · ');
+    if (cur.ch) res += cur.elapsed / 1000 < cur.ch ? '. You beat your friend’s time!' : '. Your friend’s time of ' + fmt(cur.ch * 1000) + ' still stands.';
+    $('#resultSub').textContent = res;
+    $('#again').textContent = cur.mode === 'daily' ? 'Back to arcade' : 'Next level';
+    $('#result').hidden = false;
+    var msg = 'I cleared ' + G0.name + (cur.mode === 'daily' ? ' daily' : ' level ' + cur.level) + ' in ' + fmt(t) + (h ? ' with ' + h + (h === 1 ? ' hint' : ' hints') : ' with no hints') + '. Can you beat it?';
+    var link = challengeLink(secs), T = encodeURIComponent(msg), U = encodeURIComponent(link);
+    $('#sx').href = 'https://twitter.com/intent/tweet?text=' + T + '&url=' + U;
+    $('#swa').href = 'https://wa.me/?text=' + encodeURIComponent(msg + ' ' + link);
+    $('#stg').href = 'https://t.me/share/url?url=' + U + '&text=' + T;
+    $('#sli').href = 'https://www.linkedin.com/sharing/share-offsite/?url=' + U;
+    $('#sfb').href = 'https://www.facebook.com/sharer/sharer.php?u=' + U;
+    cur.link = link; cur.msg = msg;
+    ['undo', 'reset', 'hint'].forEach(function (id) { $('#' + id).disabled = true; });
+    $('#nextL').disabled = cur.mode === 'daily' || cur.level >= P.games[code].level;
+    var mine = cur;
+    submitScore(boardKey(), t + h * 30000, t, h).then(function () { if (cur === mine) refreshBoard(); });
+    $('#result').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  function copyText(text, btn, label) {
+    function done(m) { var o = btn.textContent; btn.textContent = m; setTimeout(function () { btn.textContent = label || o; }, 1600); }
+    function fb() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done('Copied'); } catch (e) { done('Select and copy'); }
+      document.body.removeChild(ta);
+    }
+    try { navigator.clipboard.writeText(text).then(function () { done('Copied'); }, fb); } catch (e) { fb(); }
+  }
+
+  // ---------- hub ----------
+  function renderHub() {
+    var sv = streakView(), ri = rankInfo(P.xp), today = dkey(new Date()), dl = DAILY_LEVEL[new Date().getDay()];
+    var pct = ri.next ? Math.min(100, Math.round((P.xp - ri.floor) / (ri.next - ri.floor) * 100)) : 100;
+    var pips = '';
+    for (var i = 0; i < 2; i++) pips += '<span class="pip' + (i < P.streak.freezes ? ' on' : '') + '"></span>';
+    var html = '' +
+      '<header class="top"><p class="eyebrow">Daily puzzles · endless levels</p><h1>Vibe Arcade</h1>' +
+      '<p class="lede">Three logic games. Play today’s challenge to keep your streak, then climb the levels.</p></header>' +
+      '<section class="card"><div class="rankrow"><span class="rankname">' + ri.name + '</span><span class="xp">' + P.xp + ' XP' + (ri.next ? ' · ' + (ri.next - P.xp) + ' to ' + ri.nextName : '') + '</span></div>' +
+      '<div class="bar" aria-hidden="true"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="streakrow"><div><span class="streakn">' + sv.n + '</span> <span class="gmeta">day streak' + (sv.done ? ' · today done' : sv.n ? ' · play today to keep it' : '') + '</span></div>' +
+      '<span class="pips" title="A free streak freeze is earned every 5 days, up to 2">' + pips + ' freezes</span></div></section>' +
+      '<section class="card"><h3>Today’s challenge</h3><ul class="list">';
+    ORDER.forEach(function (c) {
+      var G = GAMES[c], d = P.daily[today] && P.daily[today][c];
+      html += '<li><div><div class="gname">' + G.name + '</div><div class="gmeta">' + G.cfg(dl).label + '</div></div>' +
+        (d ? '<span class="done">Done ' + fmt(d.t) + '</span> <button class="btn small" data-act="daily" data-g="' + c + '">Replay</button>'
+          : '<button class="btn primary small" data-act="daily" data-g="' + c + '">Play</button>') + '</li>';
+    });
+    html += '</ul><p class="note">Finishing any daily puzzle counts for your streak. Everyone gets the same puzzles each day.</p></section>' +
+      '<section class="card"><h3>Levels</h3><ul class="list">';
+    ORDER.forEach(function (c) {
+      var G = GAMES[c], lv = P.games[c].level;
+      html += '<li class="gcard"><div style="min-width:0"><div class="gname">' + G.name + '</div><p>' + G.tag + '</p><div class="gmeta">Level ' + lv + ' · ' + G.cfg(lv).label + ' · ' + P.games[c].cleared + ' cleared</div></div>' +
+        '<button class="btn small" data-act="level" data-g="' + c + '">' + (lv === 1 ? 'Start' : 'Continue') + '</button></li>';
+    });
+    html += '</ul></section><section class="card"><h3>Badges · ' + Object.keys(P.badges).length + '/' + BADGES.length + '</h3><div class="badges">';
+    BADGES.forEach(function (b) { html += '<div class="badge ' + (P.badges[b.id] ? 'on' : 'off') + '"><b>' + b.name + '</b><span>' + b.desc + '</span></div>'; });
+    html += '</div></section>';
+    $('#hub').innerHTML = html;
+  }
+
+  // ---------- Vibeline mount ----------
+  function vlMount(host, puz, ctl) {
+    var n = puz.n, path = [], dragging = false, solved = false, nextNum = 1;
+    var board = document.createElement('div');
+    board.className = 'board'; board.tabIndex = 0; board.setAttribute('role', 'application');
+    board.setAttribute('aria-label', 'Puzzle board. Drag or use arrow keys to draw the line.');
+    board.style.setProperty('--n', n);
+    host.appendChild(board);
+    var html = '', i;
+    for (i = 0; i < puz.N; i++) html += '<div class="cell">' + (puz.numAt[i] ? '<span class="num">' + puz.numAt[i] + '</span>' : '') + '</div>';
+    var walls = '';
+    puz.walls.forEach(function (w) {
+      var a = w[0], b = w[1], ra = (a / n) | 0, ca = a % n;
+      if (b === a + 1) walls += '<line class="wall" x1="' + (ca + 1) + '" y1="' + ra + '" x2="' + (ca + 1) + '" y2="' + (ra + 1) + '"/>';
+      else walls += '<line class="wall" x1="' + ca + '" y1="' + (ra + 1) + '" x2="' + (ca + 1) + '" y2="' + (ra + 1) + '"/>';
+    });
+    var arrows = '';
+    puz.oneWay.forEach(function (o) {
+      var ax = (o[0] % n) + .5, ay = ((o[0] / n) | 0) + .5, bx = (o[1] % n) + .5, by = ((o[1] / n) | 0) + .5;
+      var dx = bx - ax, dy = by - ay, mx = (ax + bx) / 2, my = (ay + by) / 2, px = -dy, py = dx;
+      arrows += '<polyline class="arrow" points="' + (mx - dx * .14 + px * .16) + ',' + (my - dy * .14 + py * .16) + ' ' + (mx + dx * .14) + ',' + (my + dy * .14) + ' ' + (mx - dx * .14 - px * .16) + ',' + (my - dy * .14 - py * .16) + '"/>';
+    });
+    html += '<svg class="overlay" viewBox="0 0 ' + n + ' ' + n + '" aria-hidden="true">' + walls + '<polyline class="trail" points=""/><circle class="tip" r=".2" cx="-1" cy="-1"/>' + arrows + '</svg>';
+    board.innerHTML = html;
+    var cells = board.querySelectorAll('.cell'), trail = board.querySelector('.trail'), tip = board.querySelector('.tip');
+    function center(c) { return ((c % n) + .5) + ',' + (((c / n) | 0) + .5); }
+    function render() {
+      var on = {}, maxNum = 0;
+      path.forEach(function (c) { on[c] = 1; if (puz.numAt[c] > maxNum) maxNum = puz.numAt[c]; });
+      nextNum = maxNum + 1;
+      cells.forEach(function (el, k) {
+        el.classList.toggle('on', !!on[k]);
+        var nm = el.querySelector('.num'); if (nm) nm.classList.toggle('hit', !!on[k]);
+      });
+      trail.setAttribute('points', path.map(center).join(' '));
+      if (path.length) { var h = path[path.length - 1]; tip.setAttribute('cx', (h % n) + .5); tip.setAttribute('cy', ((h / n) | 0) + .5); }
+      else { tip.setAttribute('cx', -1); tip.setAttribute('cy', -1); }
+      ctl.progress(path.length + '/' + puz.N);
+      board.classList.toggle('won', solved);
+    }
+    function nudge(c) { var el = cells[c]; if (!el) return; el.classList.remove('nudge'); void el.offsetWidth; el.classList.add('nudge'); }
+    function adjacent(a, b) {
+      var d = Math.abs(a - b);
+      if (d === 1) { if (((a / n) | 0) !== ((b / n) | 0)) return false; } else if (d !== n) return false;
+      return !puz.wallSet[Math.min(a, b) + '-' + Math.max(a, b)];
+    }
+    function checkWin() {
+      if (path.length === puz.N && puz.numAt[path[path.length - 1]] === puz.K) { solved = true; render(); ctl.win(); }
+    }
+    function step(c) {
+      if (solved || !path.length) return false;
+      var head = path[path.length - 1];
+      if (c === head || !adjacent(head, c)) return false;
+      if (path.length >= 2 && c === path[path.length - 2]) { path.pop(); ctl.status(''); render(); return true; }
+      if (path.indexOf(c) >= 0) return false;
+      if (puz.oneSet[c + '>' + head]) { ctl.status('One-way border: it only crosses the other direction.', true); return false; }
+      if (puz.numAt[head] === puz.K) { ctl.status('The line ends at ' + puz.K + '.', true); return false; }
+      var num = puz.numAt[c];
+      if (num && num !== nextNum) { ctl.status('Reach ' + nextNum + ' before ' + num + '.', true); nudge(c); return false; }
+      path.push(c); ctl.status(''); render(); checkWin();
+      return true;
+    }
+    function cellFromEvent(e) {
+      var r = board.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * n), y = Math.floor((e.clientY - r.top) / r.height * n);
+      return (x < 0 || y < 0 || x >= n || y >= n) ? -1 : y * n + x;
+    }
+    board.addEventListener('pointerdown', function (e) {
+      if (solved) return;
+      var c = cellFromEvent(e); if (c < 0) return;
+      e.preventDefault();
+      try { board.setPointerCapture(e.pointerId); } catch (x) {}
+      if (!path.length) {
+        if (puz.numAt[c] === 1) { path = [c]; ctl.begin(); render(); dragging = true; }
+        else { ctl.status('Start on the 1.', true); nudge(puz.cellOf[1]); }
+        return;
+      }
+      var at = path.indexOf(c);
+      if (at >= 0) { path.length = at + 1; ctl.status(''); render(); dragging = true; }
+      else if (step(c)) dragging = true;
+    });
+    board.addEventListener('pointermove', function (e) { if (!dragging || solved) return; var c = cellFromEvent(e); if (c >= 0) step(c); });
+    function endDrag() { dragging = false; }
+    board.addEventListener('pointerup', endDrag); board.addEventListener('pointercancel', endDrag);
+    function onKey(e) {
+      var d = { ArrowUp: -n, ArrowDown: n, ArrowLeft: -1, ArrowRight: 1 }[e.key];
+      if (d === undefined || solved) return;
+      if (document.activeElement && /^(BUTTON|INPUT|TEXTAREA|A)$/.test(document.activeElement.tagName)) return;
+      e.preventDefault();
+      if (!path.length) { path = [puz.cellOf[1]]; ctl.begin(); render(); return; }
+      step(path[path.length - 1] + d);
+    }
+    document.addEventListener('keydown', onKey);
+    render();
+    return {
+      undo: function () { if (!solved && path.length) { path.pop(); ctl.status(''); render(); } },
+      reset: function () { if (!solved) { path = []; ctl.status(''); render(); } },
+      hint: function () {
+        if (solved) return;
+        var m = 0; while (m < path.length && path[m] === puz.sol[m]) m++;
+        ctl.begin(); ctl.useHint();
+        path = puz.sol.slice(0, Math.min(puz.N, Math.max(m, 1) + 3));
+        ctl.status('Hint: the line was extended along the intended route.');
+        render(); checkWin();
+      },
+      destroy: function () { document.removeEventListener('keydown', onKey); }
+    };
+  }
+
+  // ---------- Twofold mount ----------
+  function twMount(host, puz, ctl) {
+    var n = puz.n, N = puz.N, h = n / 2, vals = puz.start.slice(), stack = [], solved = false;
+    var board = document.createElement('div');
+    board.className = 'board'; board.setAttribute('role', 'group'); board.setAttribute('aria-label', 'Twofold board');
+    board.style.setProperty('--n', n);
+    host.appendChild(board);
+    var html = '', i;
+    for (i = 0; i < N; i++) html += '<button type="button" class="tcell' + (puz.given[i] ? ' given' : '') + '" data-i="' + i + '" aria-label="Row ' + (((i / n) | 0) + 1) + ' column ' + ((i % n) + 1) + '"></button>';
+    puz.edges.forEach(function (e) {
+      var a = Math.min(e.a, e.b), b = Math.max(e.a, e.b), ra = (a / n) | 0, ca = a % n, x, y;
+      if (b === a + 1) { x = (ca + 1) / n * 100; y = (ra + .5) / n * 100; } else { x = (ca + .5) / n * 100; y = (ra + 1) / n * 100; }
+      html += '<span class="edge" style="left:' + x + '%;top:' + y + '%">' + (e.t === '=' ? '=' : '×') + '</span>';
+    });
+    board.innerHTML = html;
+    var cells = board.querySelectorAll('.tcell');
+    var DOT = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle class="dot" cx="12" cy="12" r="8"/></svg>';
+    var RING = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="7"/></svg>';
+    function badSet() {
+      var b = {}, k, q, L, a, c0, c1;
+      puz.lines.forEach(function (L) {
+        for (q = 0; q + 2 < n; q++) {
+          a = vals[L[q]];
+          if (a >= 0 && a === vals[L[q + 1]] && a === vals[L[q + 2]]) { b[L[q]] = b[L[q + 1]] = b[L[q + 2]] = 1; }
+        }
+        c0 = 0; c1 = 0;
+        L.forEach(function (x) { if (vals[x] === 0) c0++; else if (vals[x] === 1) c1++; });
+        if (c0 > h) L.forEach(function (x) { if (vals[x] === 0) b[x] = 1; });
+        if (c1 > h) L.forEach(function (x) { if (vals[x] === 1) b[x] = 1; });
+      });
+      puz.edges.forEach(function (e) {
+        var va = vals[e.a], vb = vals[e.b];
+        if (va >= 0 && vb >= 0 && (va === vb) !== (e.t === '=')) { b[e.a] = b[e.b] = 1; }
+      });
+      return b;
+    }
+    function render() {
+      var bad = badSet(), filled = 0;
+      cells.forEach(function (el, k) {
+        var v = vals[k]; if (v >= 0) filled++;
+        el.innerHTML = v === 0 ? DOT : v === 1 ? RING : '';
+        el.classList.toggle('bad', !!bad[k]);
+      });
+      ctl.progress(filled + '/' + N);
+      var ok = !Object.keys(bad).length && vals.every(function (v, k) { return v === puz.sol[k]; });
+      if (ok && !solved) { solved = true; board.classList.add('won'); ctl.win(); }
+    }
+    board.addEventListener('click', function (e) {
+      var t = e.target.closest('.tcell'); if (!t || solved) return;
+      var k = +t.getAttribute('data-i');
+      if (puz.given[k]) { ctl.status('That square is fixed.'); return; }
+      ctl.begin(); ctl.status('');
+      stack.push(vals.slice());
+      vals[k] = vals[k] === -1 ? 0 : vals[k] === 0 ? 1 : -1;
+      render();
+    });
+    render();
+    return {
+      undo: function () { if (!solved && stack.length) { vals = stack.pop(); render(); } },
+      reset: function () { if (!solved) { stack.push(vals.slice()); vals = puz.start.slice(); render(); } },
+      hint: function () {
+        if (solved) return;
+        var c = []; vals.forEach(function (v, k) { if (!puz.given[k] && v !== puz.sol[k]) c.push(k); });
+        if (!c.length) return;
+        ctl.begin(); ctl.useHint();
+        stack.push(vals.slice());
+        var k2 = c[(Math.random() * c.length) | 0];
+        vals[k2] = puz.sol[k2];
+        ctl.status('Hint: one square was filled in.');
+        render();
+      },
+      destroy: function () {}
+    };
+  }
+
+  // ---------- Carve mount ----------
+  function caMount(host, puz, ctl) {
+    var n = puz.n, N = puz.N, rects = [], stack = [], drag = null, solved = false;
+    var board = document.createElement('div');
+    board.className = 'board'; board.setAttribute('role', 'application'); board.setAttribute('aria-label', 'Carve board. Drag to draw rectangles.');
+    board.style.setProperty('--n', n);
+    host.appendChild(board);
+    var html = '', i;
+    for (i = 0; i < N; i++) html += '<div class="cell">' + (puz.numAt[i] ? '<span class="cnum">' + puz.numAt[i] + '</span>' : '') + '</div>';
+    html += '<div class="rects"></div>';
+    board.innerHTML = html;
+    var layer = board.querySelector('.rects');
+    function bbox(a, b) {
+      var r0 = Math.min((a / n) | 0, (b / n) | 0), r1 = Math.max((a / n) | 0, (b / n) | 0), c0 = Math.min(a % n, b % n), c1 = Math.max(a % n, b % n);
+      return { r: r0, c: c0, h: r1 - r0 + 1, w: c1 - c0 + 1 };
+    }
+    function hit(a, b) { return a.r < b.r + b.h && b.r < a.r + a.h && a.c < b.c + b.w && b.c < a.c + a.w; }
+    function state(q) {
+      var cnt = 0, val = 0;
+      for (var r = q.r; r < q.r + q.h; r++) for (var c = q.c; c < q.c + q.w; c++) { var x = puz.numAt[r * n + c]; if (x) { cnt++; val = x; } }
+      if (cnt === 1 && val === q.h * q.w) return 'ok';
+      if (cnt >= 2 || (cnt === 1 && val !== q.h * q.w)) return 'bad';
+      return '';
+    }
+    function el(q, cls) {
+      var d = document.createElement('div');
+      d.className = 'rect ' + cls;
+      d.style.left = (q.c / n * 100) + '%'; d.style.top = (q.r / n * 100) + '%';
+      d.style.width = (q.w / n * 100) + '%'; d.style.height = (q.h / n * 100) + '%';
+      d.appendChild(document.createElement('i'));
+      return d;
+    }
+    function render() {
+      layer.innerHTML = '';
+      var covered = 0, allOk = true;
+      rects.forEach(function (q) { var s = state(q); covered += q.h * q.w; if (s !== 'ok') allOk = false; layer.appendChild(el(q, s)); });
+      if (drag) layer.appendChild(el(bbox(drag.s, drag.e), 'preview'));
+      ctl.progress(covered + '/' + N);
+      if (!solved && covered === N && allOk) { solved = true; board.classList.add('won'); ctl.win(); }
+    }
+    function snap() { stack.push(JSON.stringify(rects)); }
+    function cellFromEvent(e) {
+      var r = board.getBoundingClientRect(), x = Math.floor((e.clientX - r.left) / r.width * n), y = Math.floor((e.clientY - r.top) / r.height * n);
+      return (x < 0 || y < 0 || x >= n || y >= n) ? -1 : y * n + x;
+    }
+    board.addEventListener('pointerdown', function (e) {
+      if (solved) return;
+      var c = cellFromEvent(e); if (c < 0) return;
+      e.preventDefault();
+      try { board.setPointerCapture(e.pointerId); } catch (x) {}
+      ctl.begin(); ctl.status('');
+      drag = { s: c, e: c }; render();
+    });
+    board.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      var c = cellFromEvent(e);
+      if (c >= 0 && c !== drag.e) { drag.e = c; render(); }
+    });
+    function finish() {
+      if (!drag) return;
+      var d = drag; drag = null;
+      var q = bbox(d.s, d.e), changed = true;
+      if (d.s === d.e) {
+        var cell = { r: (d.s / n) | 0, c: d.s % n, h: 1, w: 1 };
+        var idx = -1; rects.forEach(function (x, k) { if (hit(x, cell)) idx = k; });
+        snap();
+        if (idx >= 0) rects.splice(idx, 1); else rects.push(q);
+      } else {
+        snap();
+        rects = rects.filter(function (x) { return !hit(x, q); });
+        rects.push(q);
+      }
+      render();
+    }
+    board.addEventListener('pointerup', finish);
+    board.addEventListener('pointercancel', function () { drag = null; render(); });
+    render();
+    return {
+      undo: function () { if (!solved && stack.length) { rects = JSON.parse(stack.pop()); render(); } },
+      reset: function () { if (!solved && rects.length) { snap(); rects = []; render(); } },
+      hint: function () {
+        if (solved) return;
+        var cand = puz.sol.filter(function (s) { return !rects.some(function (x) { return x.r === s.r && x.c === s.c && x.h === s.h && x.w === s.w; }); });
+        if (!cand.length) return;
+        var s = cand[(Math.random() * cand.length) | 0];
+        ctl.begin(); ctl.useHint(); snap();
+        rects = rects.filter(function (x) { return !hit(x, s); });
+        rects.push({ r: s.r, c: s.c, h: s.h, w: s.w });
+        ctl.status('Hint: one correct rectangle was placed.');
+        render();
+      },
+      destroy: function () {}
+    };
+  }
+
+  // ---------- wiring ----------
+  $('#hub').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var c = b.getAttribute('data-g');
+    if (b.getAttribute('data-act') === 'daily') openGame(c, 'daily', 0, null);
+    else openGame(c, 'level', P.games[c].level, null);
+  });
+  $('#back').addEventListener('click', showHub);
+  $('#undo').addEventListener('click', function () { if (cur && cur.ctl) cur.ctl.undo(); });
+  $('#reset').addEventListener('click', function () { if (cur && cur.ctl) cur.ctl.reset(); });
+  $('#hint').addEventListener('click', function () { if (cur && cur.ctl) cur.ctl.hint(); });
+  $('#prevL').addEventListener('click', function () { if (cur && cur.level > 1) openGame(cur.code, 'level', cur.level - 1, null); });
+  $('#nextL').addEventListener('click', function () { if (cur && cur.level < P.games[cur.code].level) openGame(cur.code, 'level', cur.level + 1, null); });
+  $('#again').addEventListener('click', function () {
+    if (!cur) return;
+    if (cur.mode === 'daily') showHub(); else openGame(cur.code, 'level', Math.min(cur.level + 1, P.games[cur.code].level), null);
+  });
+  $('#challengeBtn').addEventListener('click', function () { if (cur && cur.link) copyText(cur.msg + ' ' + cur.link, $('#challengeBtn'), 'Copy challenge link'); });
+
+  renderHub();
+  initCaps();
+  // friend challenge links look like #c.vl.24.83 (game, level, seconds to beat)
+  var m = /^#c\.(vl|tw|ca)\.(\d+)\.(\d+)$/.exec(location.hash || '');
+  if (m) {
+    var lv = Math.max(1, Math.min(500, +m[2]));
+    var secs = +m[3]; // ignore absurd values so the banner never shows NaN/Infinity
+    openGame(m[1], 'level', lv, secs > 0 && secs <= 359999 ? secs : null);
+  }
+})();
+</script>
+</body>
+</html>

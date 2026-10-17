@@ -352,6 +352,8 @@ const ASSETS=[
   "./play/word-logic/logic-engine.js",
   "./play/word-logic/logic-app.js",
   "./play/games.css",
+  "./play/vibe-arcade/index.html",
+  "./play/vibe-arcade/site-chrome.css",
   "./play/2048/index.html",
   "./play/2048/engine.js",
   "./play/2048/app.js",

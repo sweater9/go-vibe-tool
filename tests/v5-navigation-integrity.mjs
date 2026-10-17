@@ -16,7 +16,8 @@ const NEW_PAGES = [
   'play/mahjong-solitaire/index.html',
   'play/word-logic/index.html',
   'play/2048/index.html',
-  'play/daily-word/index.html'
+  'play/daily-word/index.html',
+  'play/vibe-arcade/index.html'
 ];
 
 // 1. Verify existence and content structure of all V5 pages
@@ -78,7 +79,8 @@ const EXPECTED_SITEMAP_URLS = [
   'https://govibetool.com/play/mahjong-solitaire/',
   'https://govibetool.com/play/word-logic/',
   'https://govibetool.com/play/2048/',
-  'https://govibetool.com/play/daily-word/'
+  'https://govibetool.com/play/daily-word/',
+  'https://govibetool.com/play/vibe-arcade/'
 ];
 
 for (const url of EXPECTED_SITEMAP_URLS) {
