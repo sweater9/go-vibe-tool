@@ -167,6 +167,17 @@ try {
     await c.ctx.close();
   });
 
+  await check('discovery search: "mahjong" and "solitaire" find Mahjong Solitaire (and nothing four-player)', async () => {
+    const c = await open(); await c.page.goto(base + '/', { waitUntil: 'networkidle' });
+    for (const q of ['mahjong', 'solitaire', 'mahjong solitaire', 'tile matching']) {
+      await c.page.fill('#toolSearch', q); await c.page.waitForTimeout(250);
+      const links = await c.page.evaluate(() => [...document.querySelectorAll('a[href]')].map(a => ({ p: new URL(a.href, location.href).pathname, t: a.innerText })));
+      assert.ok(links.some(l => l.p === '/play/mahjong-solitaire/' && /Mahjong Solitaire/i.test(l.t)), `"${q}" should offer Mahjong Solitaire; links: ${links.filter(l => /play/.test(l.p)).map(l => l.p)}`);
+      assert.deepEqual(links.filter(l => /^\/play\/mahjong(\/|$)/.test(l.p)), [], q);
+    }
+    await c.ctx.close();
+  });
+
   await check('service worker: precaches Solitaire only, and an install over a stale four-player cache deletes it and serves 404', async () => {
     const c = await open(); await c.page.goto(base + '/play/mahjong-solitaire/', { waitUntil: 'networkidle' }); await boardReady(c.page);
     const cacheName = fs.readFileSync(path.join(dist, 'sw.js'), 'utf8').match(/const CACHE="([^"]+)"/)[1];
