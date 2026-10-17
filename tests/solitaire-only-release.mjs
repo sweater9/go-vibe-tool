@@ -130,10 +130,11 @@ try {
         stage = 'settle'; await c.page.waitForTimeout(500); // let the first paint and the service-worker registration finish before interacting
         const before = await c.page.locator('.sol-tile').count(); assert.ok(before >= 100, `tiles ${before}`);
         stage = 'pair'; const pair = await freePair(c.page); assert.ok(pair, 'a free matching pair exists at the start');
-        stage = 'click'; for (const id of pair) await c.page.locator(`.sol-tile[data-id="${id}"]`).click();
+        stage = 'click'; for (const id of pair) { await c.page.locator(`.sol-tile[data-id="${id}"]`).click(); }
+
         stage = 'removed'; await c.page.waitForFunction(n => document.querySelectorAll('.sol-tile').length === n, before - 2);
         stage = 'checks';
-      } catch (e) { e.message = `[stage ${stage}; tiles now ${await c.page.locator('.sol-tile').count().catch(() => '?')}; errors ${JSON.stringify(c.errs).slice(0, 200)}] ${e.message}`; throw e; }
+      } catch (e) { e.message = `[stage ${stage}; tiles now ${await c.page.locator('.sol-tile').count().catch(() => '?')}; selected ${await c.page.locator('.sol-tile.selected').count().catch(() => '?')}; errors ${JSON.stringify(c.errs).slice(0, 200)}] ${e.message}`; throw e; }
       assert.deepEqual(c.errs, []); assert.deepEqual(c.sockets, []);
       assert.deepEqual(c.reqs.filter(u => FOUR_PLAYER_REF.test(new URL(u).pathname) || /\/(?:api|ws|rooms)(\/|$)/.test(new URL(u).pathname)), []);
       assert.deepEqual(c.reqs.filter(u => new URL(u).origin !== base), []);
