@@ -13,6 +13,10 @@ const engine = process.argv[2] || 'chromium';
 const dir = process.env.VA_ARTIFACTS || `artifacts/vibe-arcade-${engine}`;
 await fs.mkdir(dir, { recursive: true });
 const root = process.env.SITE_ROOT ? path.resolve(process.env.SITE_ROOT) + '/' : fileURLToPath(new URL('../', import.meta.url));
+/* Firefox has no touch emulation in Playwright (hasTouch is unsupported and mouse drags are ignored when it is on), so
+   there the narrow-viewport runs use the mouse. Chromium uses real CDP touch events; WebKit uses its touch emulation. */
+const realTouch = engine !== 'firefox';
+const tapEl = loc => realTouch ? loc.tap() : loc.click();
 const WIDTHS = (process.env.VA_WIDTHS || '320,375,390,400,460,1280').split(',').map(Number);
 
 /* ---- the game's own pure generators, so the test can solve real puzzles ---- */
@@ -55,7 +59,7 @@ const clockScript = `(()=>{const R=Date;const t0=performance.now();let day=null;
  class D extends R{constructor(...a){a.length?super(...a):super(base+(performance.now()-t0))}static now(){return base+(performance.now()-t0)}}window.Date=D;})();`;
 
 async function open({ w = 390, h = 844, touch = false, reduced = false, dark = false, init = [], day = null, hash = '', clipboard = true, noStorage = false } = {}) {
-  const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: touch, isMobile: touch && engine !== 'firefox', reducedMotion: reduced ? 'reduce' : 'no-preference', colorScheme: dark ? 'dark' : 'light', timezoneId: 'Asia/Dubai', permissions: clipboard && engine === 'chromium' ? ['clipboard-read', 'clipboard-write'] : [] });
+  const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: touch && realTouch, isMobile: touch && realTouch, reducedMotion: reduced ? 'reduce' : 'no-preference', colorScheme: dark ? 'dark' : 'light', timezoneId: 'Asia/Dubai', permissions: clipboard && engine === 'chromium' ? ['clipboard-read', 'clipboard-write'] : [] });
   const errs = [], external = [];
   if (day) await ctx.addInitScript(d => { try { if (!localStorage.getItem('__va_day')) localStorage.setItem('__va_day', d); } catch (e) {} }, day);
   await ctx.addInitScript(clockScript);
@@ -100,7 +104,7 @@ async function solveTwofold(page, puz, tap) {
     const need = puz.sol[i] === 0 ? 1 : 2;
     for (let k = 0; k < need; k++) {
       if (cdp) { const b = await cell.boundingBox(), pt = [{ x: b.x + b.width / 2, y: b.y + b.height / 2, id: 1 }]; await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: pt }); await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await page.waitForTimeout(30); }
-      else tap ? await cell.tap() : await cell.click();
+      else tap && realTouch ? await cell.tap() : await cell.click();
     }
   }
   if (cdp) await cdp.detach();
@@ -125,7 +129,7 @@ for (const w of WIDTHS) {
       const b = await box(page); assert.ok(b.width <= w - 16 + 1 && b.x >= 0 && b.x + b.width <= w + .5, `${code} board ${JSON.stringify(b)} not inside ${w}px viewport`);
       assert.ok(Math.abs(b.width - b.height) < 2, 'board is square');
       await page.screenshot({ path: `${dir}/${code}-${w}.png`, fullPage: true });
-      await solve(page, code, puzzle(code, 1), touch ? 'touch' : 'mouse', touch);
+      await solve(page, code, puzzle(code, 1), touch && realTouch ? 'touch' : 'mouse', touch);
       if (!(await won(page))) await page.screenshot({ path: `${dir}/FAIL-${code}-${w}.png`, fullPage: true });
       assert.ok(await won(page), `${GAME[code]} level 1 not solved by ${touch ? 'touch' : 'pointer'} (progress ${await page.textContent('#progress')}, status "${await page.textContent('#status')}", bad ${await page.locator('.tcell.bad').count()})`);
       assert.equal(await overflow(page), 0, `${code} result overflow`);
@@ -190,11 +194,11 @@ await check('Vibeline: drag-back undo, Undo button, Reset, invalid moves rejecte
 await check('Twofold: tap cycles dot/ring/empty, fixed squares locked, error highlight, Undo/Reset/Hint', async () => {
   const c = await open({ w: 375, touch: true }); const { page } = c; const puz = puzzle('tw', 1); await startLevel(page, 'tw');
   const given = [...Array(puz.N).keys()].find(i => puz.given[i]), free = [...Array(puz.N).keys()].filter(i => !puz.given[i]);
-  if (given !== undefined) { await page.locator(`.tcell[data-i="${given}"]`).tap(); assert.match(await page.textContent('#status'), /fixed/); }
+  if (given !== undefined) { await tapEl(page.locator(`.tcell[data-i="${given}"]`)); assert.match(await page.textContent('#status'), /fixed/); }
   const f = page.locator(`.tcell[data-i="${free[0]}"]`);
-  await f.tap(); assert.equal(await f.locator('.dot').count(), 1); await f.tap(); assert.equal(await f.locator('.ring').count(), 1); await f.tap(); assert.equal(await f.locator('svg').count(), 0);
-  await f.tap(); await page.click('#undo'); assert.equal(await f.locator('svg').count(), 0, 'undo');
-  await f.tap(); await page.click('#reset'); assert.equal(await f.locator('svg').count(), 0, 'reset');
+  await tapEl(f); assert.equal(await f.locator('.dot').count(), 1); await tapEl(f); assert.equal(await f.locator('.ring').count(), 1); await tapEl(f); assert.equal(await f.locator('svg').count(), 0);
+  await tapEl(f); await page.click('#undo'); assert.equal(await f.locator('svg').count(), 0, 'undo');
+  await tapEl(f); await page.click('#reset'); assert.equal(await f.locator('svg').count(), 0, 'reset');
   await page.click('#undo'); assert.equal(await f.locator('svg').count(), 1, 'reset is undoable');
   const before = await page.locator('.tcell svg').count(); await page.click('#hint'); assert.equal(await page.textContent('#hints'), '1');
   assert.ok(await page.locator('.tcell svg').count() >= before, 'hint fills a square');
