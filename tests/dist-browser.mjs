@@ -22,7 +22,7 @@ async function check(name, fn) { try { await fn(); passed++; console.log('PASS',
 async function open({ w = 1280, h = 900, touch = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: touch }); const page = await ctx.newPage(); page.setDefaultTimeout(15000);
   const errs = [], bad = [], external = []; const origin = new URL(base).origin;
-  page.on('pageerror', e => errs.push('pageerror: ' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/pagead|googlesyndication|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  page.on('pageerror', e => errs.push('pageerror: ' + (e.stack || e.message))); page.on('console', m => { if (m.type() === 'error' && !/pagead|googlesyndication|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
   page.on('response', r => { const u = new URL(r.url()); if (u.origin === origin && r.status() >= 400 && r.request().resourceType() !== 'document') bad.push(`${r.status()} ${u.pathname}`); });
   // The site ships its real AdSense tag untouched. Tests never talk to ad networks. Third-party requests are RECORDED from the page's own
   // request events (fired by every engine; WebKit does not reliably expose all cross-origin requests to context routing), and
