@@ -129,15 +129,23 @@
   padding: 30px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
   touch-action: manipulation;
+}
+
+.board-scroll-size {
+  position: relative;
+  flex: 0 0 auto;
+  width: 960px;
+  height: 560px;
 }
 
 .board-viewport {
   position: relative;
   width: 960px;
   height: 560px;
-  transform-origin: center center;
+  /* Scaled board must begin at the wrapper's top-left for accurate scrolling. */
+  transform-origin: top left;
   transition: transform 0.2s ease;
 }
 
@@ -223,8 +231,8 @@
 /* Interactive States */
 .sol-tile.free:hover {
   border-color: #0d9488;
-  transform: translate(calc(var(--base-x) - 2px), calc(var(--base-y) - 3px));
-  z-index: 1000 !important;
+  /* Preserve hit area and stacking order to avoid hover feedback flicker. */
+  box-shadow: -2px 2px 0 #78716c, 0 0 0 2px #0d9488, 0 3px 9px rgba(0,0,0,0.3);
 }
 
 .sol-tile.selected {

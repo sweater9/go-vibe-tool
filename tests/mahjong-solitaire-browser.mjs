@@ -100,6 +100,58 @@ try {
     await A.ctx.close();
   }
 
+  await check('desktop: hover does not shift or elevate a free tile', async () => {
+    const A = await open(1280);
+    try {
+      const { page } = A;
+      await page.goto(origin + URL_PATH);
+      await boardReady(page);
+      const tile = page.locator('.sol-tile.free').first();
+      assert.ok(await tile.count(), 'no free tile');
+      const before = await tile.evaluate((el) => ({
+        transform: getComputedStyle(el).transform,
+        zIndex: getComputedStyle(el).zIndex,
+      }));
+      await tile.hover();
+      await page.waitForTimeout(250); // allow CSS hover transitions to settle
+      const after = await tile.evaluate((el) => ({
+        transform: getComputedStyle(el).transform,
+        zIndex: getComputedStyle(el).zIndex,
+      }));
+      assert.deepEqual(after, before, 'hover must not change transform or stacking order');
+      assert.deepEqual(A.errs, [], 'page errors');
+    } finally { await A.ctx.close(); }
+  });
+
+  // Automated viewport acceptance complements, but does not replace, manual device checks.
+  for (const width of [320, 375, 390, 430]) {
+    await check(`mobile ${width}px: scrollable board edges and hint remain accessible`, async () => {
+      const A = await open(width);
+      try {
+        const { page } = A;
+        await page.goto(origin + URL_PATH);
+        await boardReady(page);
+        assert.equal(await page.locator('.sol-tile').count(), 144);
+        assert.ok(await fits(page), 'document must not overflow horizontally');
+        const board = page.locator('#board-container');
+        const edges = await board.evaluate((el) => {
+          const max = el.scrollWidth - el.clientWidth;
+          el.scrollLeft = 0;
+          const left = el.scrollLeft;
+          el.scrollLeft = max;
+          const right = el.scrollLeft;
+          return { max, left, right };
+        });
+        assert.ok(edges.max >= 0, 'invalid board scroll extent');
+        assert.ok(Math.abs(edges.right - edges.max) <= 2, 'right board edge unreachable');
+        assert.ok(Math.abs(edges.left) <= 2, 'left board edge unreachable');
+        await page.click('#btn-hint');
+        assert.deepEqual(A.errs, [], 'page errors');
+        assert.deepEqual(A.external, [], 'external requests');
+      } finally { await A.ctx.close(); }
+    });
+  }
+
   await check('service-worker: direct visit to Solitaire installs worker, upgrades legacy cache, and precaches assets', async () => {
     const S = await open(375);
     const { page } = S;

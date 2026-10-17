@@ -310,16 +310,19 @@ function togglePause() {
 // Responsive Board Auto-scaling
 function adjustScale() {
   if (!boardContainer || !boardViewport) return;
-  const containerW = boardContainer.clientWidth - 40;
+  const scrollSize = document.getElementById('board-scroll-size');
+  if (!scrollSize) return;
   const baseW = 960;
-  if (containerW < baseW) {
-    const scale = Math.max(0.35, containerW / baseW);
-    boardViewport.style.transform = `scale(${scale})`;
-    boardContainer.style.minHeight = `${Math.round(560 * scale + 40)}px`;
-  } else {
-    boardViewport.style.transform = 'scale(1)';
-    boardContainer.style.minHeight = '600px';
-  }
+  const baseH = 560;
+  const availableW = Math.max(0, boardContainer.clientWidth - (window.innerWidth <= 768 ? 20 : 60));
+  // Mobile tiles remain touch-friendly: 52x68 tiles render at least ~42x54.
+  // The board scrolls horizontally instead of shrinking to fit a narrow phone.
+  const minScale = window.innerWidth <= 768 ? 0.81 : 0.35;
+  const scale = availableW < baseW ? Math.max(minScale, availableW / baseW) : 1;
+  boardViewport.style.transform = `scale(${scale})`;
+  scrollSize.style.width = `${Math.round(baseW * scale)}px`;
+  scrollSize.style.height = `${Math.round(baseH * scale)}px`;
+  boardContainer.style.minHeight = `${Math.round(baseH * scale + 40)}px`;
 }
 
 window.addEventListener('resize', adjustScale);
