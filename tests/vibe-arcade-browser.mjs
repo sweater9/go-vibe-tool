@@ -161,6 +161,9 @@ await check('320px: largest boards fit and cells stay >= 24px; generation time f
 await check('keyboard: arrow keys solve Vibeline; Tab/Space/Enter operate Twofold; buttons reachable by Tab', async () => {
   const c = await open({ w: 390 }); const { page } = c; const puz = puzzle('vl', 1);
   await startLevel(page, 'vl');
+  // startLevel is activated by a button; the game deliberately ignores arrow keys
+  // while a button has focus. Move focus to the non-interactive game board first.
+  await page.evaluate(() => { const board = document.querySelector('#host .board'); board.setAttribute('tabindex', '-1'); board.focus(); });
   for (let i = 0; i < puz.N; i++) {
     const a = i === 0 ? null : puz.sol[i] - puz.sol[i - 1];
     await page.keyboard.press(i === 0 ? 'ArrowRight' : a === 1 ? 'ArrowRight' : a === -1 ? 'ArrowLeft' : a === puz.n ? 'ArrowDown' : 'ArrowUp');
