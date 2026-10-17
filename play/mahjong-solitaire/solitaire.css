@@ -223,7 +223,7 @@
 /* Interactive States */
 .sol-tile.free:hover {
   border-color: #0d9488;
-  transform: translate(calc(var(--base-x) - 2px), calc(var(--base-y) - 3px));
+  transform: translate(-2px, -3px);
   z-index: 1000 !important;
 }
 
@@ -231,7 +231,7 @@
   background: #fef3c7 !important;
   border-color: #f59e0b !important;
   border-width: 3px;
-  transform: translate(calc(var(--base-x) - 3px), calc(var(--base-y) - 5px));
+  transform: translate(-3px, -5px);
   box-shadow: -4px 6px 12px rgba(245, 158, 11, 0.5) !important;
   z-index: 1001 !important;
 }
