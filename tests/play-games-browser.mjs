@@ -264,7 +264,7 @@ try {
     const c = await ctxFor({ w: 390, h: 844, touch: true, init: [fixDate(noon(2026, 10, 12))] }); const p = c.page;
     await p.goto(base + 'play/2048/', { waitUntil: 'networkidle' });
     await p.evaluate(async () => { await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => { navigator.serviceWorker.addEventListener('controllerchange', r, { once: true }); setTimeout(r, 8000); }); });
-    await p.waitForFunction(async () => { const names = await caches.keys(); for (const n of names) { const c = await caches.open(n); const k = (await c.keys()).map(r => new URL(r.url).pathname); if (PLAY_OFFLINE_ASSETS.every(x => k.includes(x))) return true; } return false; }, null, { timeout: 30000 });
+    await p.waitForFunction(async assets => { const names = await caches.keys(); for (const n of names) { const c = await caches.open(n); const k = (await c.keys()).map(r => new URL(r.url).pathname); if (assets.every(x => k.includes(x))) return true; } return false; }, [...PLAY_OFFLINE_ASSETS, '/play/vibe-arcade/index.html', '/play/vibe-arcade/site-chrome.css'], { timeout: 30000 }); // assets are passed in: the callback runs in the page, not in Node
     await stopServer();
     try {
       await p.goto(base + 'play/2048/', { waitUntil: 'domcontentloaded' }); await p.waitForSelector('.g2048-tile'); await p.keyboard.press('ArrowLeft'); assert.ok(await p.locator('#score').isVisible());
