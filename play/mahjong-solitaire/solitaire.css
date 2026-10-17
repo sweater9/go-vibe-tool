@@ -144,7 +144,8 @@
   position: relative;
   width: 960px;
   height: 560px;
-  transform-origin: center center;
+  /* Scaled board must begin at the wrapper's top-left for accurate scrolling. */
+  transform-origin: top left;
   transition: transform 0.2s ease;
 }
 
