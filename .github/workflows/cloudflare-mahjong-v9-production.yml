@@ -16,7 +16,7 @@ concurrency:
   group: govibetool-v9-production
   cancel-in-progress: false
 env:
-  RELEASE_SHA: a85e4695a139c56456c743d607a79f76ff8abda8
+  RELEASE_SHA: 5161a126e4da12b82044bedddb8ed6438f58a85e
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: a85e4695a139c56456c743d607a79f76ff8abda8
+          ref: 5161a126e4da12b82044bedddb8ed6438f58a85e
           persist-credentials: false
       - name: Verify immutable V9 release and production configuration
         run: |
@@ -67,7 +67,7 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo '::error::Missing CLOUDFLARE_ACCOUNT_ID'; exit 1; }
       - uses: actions/checkout@v4
         with:
-          ref: a85e4695a139c56456c743d607a79f76ff8abda8
+          ref: 5161a126e4da12b82044bedddb8ed6438f58a85e
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
