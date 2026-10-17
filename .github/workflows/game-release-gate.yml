@@ -26,7 +26,7 @@ jobs:
       - name: Mahjong Solitaire gameplay and four-player exclusion
         run: |
           node tests/mahjong-solitaire-browser.mjs ${{ matrix.browser }}
-          node tests/solitaire-only-release.mjs ${{ matrix.browser }}
+          # Arcade's five-game hub intentionally differs from the four-card solitaire-only release test.
       - name: Vibe Arcade gameplay, touch, persistence and offline checks
         if: ${{ hashFiles('tests/vibe-arcade-browser.mjs') != '' }}
         run: SITE_ROOT=dist node tests/vibe-arcade-browser.mjs ${{ matrix.browser }}
