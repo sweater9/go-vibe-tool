@@ -129,8 +129,15 @@
   padding: 30px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
   touch-action: manipulation;
+}
+
+.board-scroll-size {
+  position: relative;
+  flex: 0 0 auto;
+  width: 960px;
+  height: 560px;
 }
 
 .board-viewport {
