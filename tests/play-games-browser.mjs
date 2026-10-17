@@ -61,14 +61,14 @@ const expectBoard = (start, dirs, r) => { let s = fromValues(start); for (const 
 try {
   for (const [label, w, h, touch] of [['desktop', 1280, 900, false], ['mobile', 390, 844, true]]) {
     // ---------------- Play hub ----------------
-    await check(`${label}: Play hub lists 4 solo games (Mahjong Solitaire, Logic Crypt, 2048, Daily Word) plus the Mahjong with Friends preview`, async () => {
+    await check(`${label}: Play hub lists 4 solo games (Mahjong Solitaire, Logic Crypt, 2048, Daily Word) and no four-player Mahjong`, async () => {
       const c = await ctxFor({ w, h, touch }); const p = c.page;
       await p.goto(base + 'play/', { waitUntil: 'networkidle' });
       assert.equal(await p.locator('.hero-stats strong').first().innerText(), '4');
       assert.match(await p.locator('.hero-stats span').first().innerText(), /4\s*Solo Games/i);
       const hrefs = await p.locator('.v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href')));
-      assert.deepEqual(hrefs, ['mahjong-solitaire/', 'mahjong/', 'word-logic/', '2048/', 'daily-word/']);
-      assert.equal(await p.locator('.v5-card').count(), 5); assert.ok((await overflow(p)) <= 0, 'overflow');
+      assert.deepEqual(hrefs, ['mahjong-solitaire/', 'word-logic/', '2048/', 'daily-word/']);
+      assert.equal(await p.locator('.v5-card').count(), 4); assert.ok((await overflow(p)) <= 0, 'overflow');
       const sol = p.locator('.v5-card', { has: p.locator('a[href="mahjong-solitaire/"]') }); assert.match(await sol.locator('h3').innerText(), /Mahjong Solitaire/i); assert.match(await sol.innerText(), /Offline Play/i);
       await sol.locator('a.btn').click(); await p.waitForURL(/\/play\/mahjong-solitaire\/$/); await p.waitForFunction(() => document.querySelectorAll('.sol-tile').length > 0);
       assert.deepEqual(c.errs, []); await p.screenshot({ path: `${dir}/hub-${label}.png`, fullPage: true }); await closeCtx(c);
@@ -273,7 +273,7 @@ try {
       assert.ok(pair, 'a free matching Mahjong Solitaire pair is available offline');
       for (const id of pair) await p.locator(`.sol-tile[data-id="${id}"]`).click();
       await p.waitForFunction(n => document.querySelectorAll('.sol-tile').length === n, left - 2);
-      await p.goto(base + 'play/', { waitUntil: 'domcontentloaded' }); assert.equal(await p.locator('.v5-card').count(), 5);
+      await p.goto(base + 'play/', { waitUntil: 'domcontentloaded' }); assert.equal(await p.locator('.v5-card').count(), 4);
     } finally { await startServer(); }
     await closeCtx(c);
   });

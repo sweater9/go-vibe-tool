@@ -17,6 +17,7 @@
     "test:v4:browser": "node tests/knowledge-v4-browser.mjs",
     "test:mahjong": "node --test tests/mahjong-engine.mjs tests/mahjong-integration.mjs tests/mahjong-solitaire.mjs",
     "test:mahjong:solitaire": "node --test tests/mahjong-solitaire.mjs",
+    "test:solitaire-only": "node tests/solitaire-only-release.mjs",
     "start:mahjong": "node multiplayer/server.mjs",
     "test:mahjong:browser": "node tests/mahjong-browser.mjs",
     "build": "node scripts/build-static.mjs",

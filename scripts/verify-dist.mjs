@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MAX_ASSET_BYTES, MAX_ASSET_FILES, FORBIDDEN_TOP_LEVEL, FORBIDDEN_ROOT_FILES } from './site-manifest.mjs';
+import { MAX_ASSET_BYTES, MAX_ASSET_FILES, FORBIDDEN_TOP_LEVEL, FORBIDDEN_ROOT_FILES, UNRELEASED_SITE_PATHS } from './site-manifest.mjs';
 
 function listFiles(dir, base = dir) { const out = []; for (const e of fs.readdirSync(dir, { withFileTypes: true })) { const p = path.join(dir, e.name); if (e.isDirectory()) out.push(...listFiles(p, base)); else out.push(path.relative(base, p).split(path.sep).join('/')); } return out; }
 const isLocal = u => u && !/^([a-z][a-z0-9+.-]*:|\/\/|#|mailto:|tel:|data:|javascript:)/i.test(u);
@@ -14,6 +14,7 @@ export function verifyDist(dist, { root } = {}) {
   for (const f of files) { const b = fs.statSync(path.join(dist, f)).size; totalBytes += b; if (b > largest.bytes) largest = { file: f, bytes: b }; if (b > MAX_ASSET_BYTES) errors.push(`${f} is ${(b / 1048576).toFixed(1)} MiB, over the ${MAX_ASSET_BYTES / 1048576} MiB per-file limit`); }
   if (files.length > MAX_ASSET_FILES) errors.push(`${files.length} files exceeds the ${MAX_ASSET_FILES} file limit`);
   for (const f of files) { const top = f.split('/')[0]; if (f.includes('/node_modules/') || f.includes('/.git/') || FORBIDDEN_TOP_LEVEL.includes(top) && f.includes('/')) errors.push(`forbidden path in output: ${f}`); if (!f.includes('/') && FORBIDDEN_ROOT_FILES.includes(f) && f !== '.assetsignore') errors.push(`forbidden root file in output: ${f}`); if (/\.(md|py)$/i.test(f)) errors.push(`non-site file in output: ${f}`); if (/(^|\/)workerd$/.test(f)) errors.push(`binary in output: ${f}`); }
+  for (const u of UNRELEASED_SITE_PATHS) { if (files.some(f => f === u || f.startsWith(u + '/'))) errors.push(`unreleased path is in the output: ${u}/`); }
   if (/(^|\/)multiplayer\//.test(files.join('\n'))) errors.push('multiplayer backend code must not be in the output');
   for (const f of files) { if (/\.(js|mjs)$/.test(f) && /from\s+['"][^'"]*multiplayer\/server/.test(fs.readFileSync(path.join(dist, f), 'utf8'))) errors.push(`${f} imports the Mahjong server`); }
 
@@ -35,7 +36,8 @@ export function verifyDist(dist, { root } = {}) {
   if (!sw) errors.push('sw.js missing from output');
   const precache = [...sw.matchAll(/"(\.\/[^"]*)"/g)].map(m => m[1]);
   for (const a of precache) { const p = a.slice(2); if (!hasPath(p)) errors.push(`service worker precaches a file that is not in the output: ${a}`); }
-  const need = ['./index.html', './labs/index.html', './labs/ai/index.html', './labs/cyber/index.html', './labs/science/index.html', './labs/finance/index.html', './labs/workflow/index.html', './labs/api-playground/index.html', './play/index.html', './play/mahjong/index.html', './play/2048/index.html', './play/daily-word/index.html', './labs/shared/kit.js'];
+  const need = ['./index.html', './labs/index.html', './labs/ai/index.html', './labs/cyber/index.html', './labs/science/index.html', './labs/finance/index.html', './labs/workflow/index.html', './labs/api-playground/index.html', './play/index.html', './play/mahjong-solitaire/index.html', './play/2048/index.html', './play/daily-word/index.html', './labs/shared/kit.js'];
+  for (const a of precache) { if (UNRELEASED_SITE_PATHS.some(u => a.startsWith('./' + u + '/'))) errors.push(`service worker precaches an unreleased path: ${a}`); }
   for (const n of need) if (!precache.includes(n)) errors.push(`service worker does not precache ${n}`);
 
   if (set.has('sitemap.xml')) { for (const m of fs.readFileSync(path.join(dist, 'sitemap.xml'), 'utf8').matchAll(/<loc>https:\/\/govibetool\.com\/([^<]*)<\/loc>/g)) { const p = m[1]; if (!hasPath(p)) errors.push(`sitemap URL has no page in the output: /${p}`); } }

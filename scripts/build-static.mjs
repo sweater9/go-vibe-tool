@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ROOT_FILES, ROOT_FILE_PATTERN, SITE_DIRS, EXCLUDE_DIR_NAMES, EXCLUDE_FILE_PATTERNS, isTestTwin, ASSETS_IGNORE } from './site-manifest.mjs';
+import { ROOT_FILES, ROOT_FILE_PATTERN, SITE_DIRS, EXCLUDE_DIR_NAMES, EXCLUDE_FILE_PATTERNS, isTestTwin, ASSETS_IGNORE, UNRELEASED_SITE_PATHS } from './site-manifest.mjs';
 import { verifyDist } from './verify-dist.mjs';
 
 // This acceptance candidate must never become a Git-triggered host deployment.
@@ -25,7 +25,7 @@ function walk(relDir) {
   for (const ent of fs.readdirSync(path.join(root, relDir), { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
     const rel = path.posix.join(relDir, ent.name);
     if (ent.isSymbolicLink()) { skipped.push(rel + ' (symlink)'); continue; }
-    if (ent.isDirectory()) { if (EXCLUDE_DIR_NAMES.has(ent.name)) { skipped.push(rel + '/'); continue; } walk(rel); continue; }
+    if (ent.isDirectory()) { if (UNRELEASED_SITE_PATHS.includes(rel)) { skipped.push(rel + '/ (unreleased)'); continue; } if (EXCLUDE_DIR_NAMES.has(ent.name)) { skipped.push(rel + '/'); continue; } walk(rel); continue; }
     if (EXCLUDE_FILE_PATTERNS.some(p => p.test(ent.name)) || isTestTwin(rel, exists)) { skipped.push(rel); continue; }
     copyFile(rel);
   }

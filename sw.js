@@ -1,4 +1,4 @@
-const CACHE="govibetool-v8-9";
+const CACHE="govibetool-v8-10";
 const LEGACY_CACHE="govibetool-v2-7";
 // Owned by the scoped worker in /tools/v9-media/ (offline OCR/PDF engines). A global upgrade must not purge it.
 const MEDIA_CACHE_PREFIX="gvt-v9-media-";
@@ -344,10 +344,6 @@ const ASSETS=[
   "./labs/finance/finance-engine.js",
   "./labs/finance/finance-app.js",
   "./play/index.html",
-  "./play/mahjong/index.html",
-  "./play/mahjong/mahjong.css",
-  "./play/mahjong/config.js",
-  "./play/mahjong/mahjong.mjs",
   "./play/mahjong-solitaire/index.html",
   "./play/mahjong-solitaire/solitaire.css",
   "./play/mahjong-solitaire/solitaire.js",
