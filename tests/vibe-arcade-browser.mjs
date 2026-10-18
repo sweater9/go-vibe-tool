@@ -111,7 +111,7 @@ async function solveTwofold(page, puz, tap) {
 }
 const solve = (page, code, puz, mode, tap) => code === 'vl' ? solveVibeline(page, puz, mode) : code === 'ca' ? solveCarve(page, puz, mode) : solveTwofold(page, puz, tap);
 const startLevel = async (page, code) => { await page.click(`[data-act="level"][data-g="${code}"]`); await page.waitForSelector('#host .board'); };
-const startDaily = async (page, code) => { await page.click(`[data-act="daily"][data-g="${code}"]`); await page.waitForSelector('#host .board'); };
+const startDaily = async (page, code) => { const choice = page.locator(`[data-act="daily"][data-g="${code}"]`); if (!(await choice.isVisible())) await page.click('[data-act="choose-daily"]'); await choice.click(); await page.waitForSelector('#host .board'); };
 const won = page => page.locator('#result').isVisible();
 const GAME = { vl: 'Vibeline', tw: 'Twofold', ca: 'Carve' };
 
