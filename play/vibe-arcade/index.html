@@ -88,6 +88,7 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
 .list li.gcard > .btn { width: min(100%, 180px); min-height: 44px; margin-top: 12px; }
 .gcard .gmeta { line-height: 1.5; }
 .gcard > .btn { align-self: center; margin-top: 10px; text-align: center; text-decoration: none; }
+.gcard > .btn.primary { background: var(--surface); color: var(--fg); border-color: var(--line); }
 .gcard .gname, .gcard p, .gcard .gmeta { text-align: left; }
 .list li.gcard { align-items: stretch; }
 @media (max-width: 480px) { .gcard > .btn { min-width: 150px; } }
@@ -197,6 +198,7 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
       <div class="stat"><span>Hints</span><b id="hints">0</b></div>
       <div class="stat"><span id="modeLabel">Level</span><b id="modeVal">1</b></div>
     </section>
+    <section class="card" aria-label="How to play"><h3>How to play</h3><ul class="rules" id="rules"></ul></section>
     <div id="host"></div>
     <p class="status" id="status" role="status" aria-live="polite"></p>
     <div class="controls">
@@ -225,7 +227,6 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
       <ol class="lb" id="lbList"></ol>
       <p class="note" id="lbNote"></p>
     </section>
-    <ul class="rules" id="rules"></ul>
   </section>
 </main>
 <footer class="gvt-foot">
@@ -784,8 +785,8 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
     html += '</ul></section>' +
       '<section class="card"><h3>New games · Crown Grid &amp; Loopcraft</h3>' +
       '<p class="note">Two fresh logic challenges with progressive levels. Your progress stays on this device.</p>' +
-      '<ul class="list"><li class="gcard"><div><div class="gname">Crown Grid</div><p>Place one crown per row, column and colored region. No touching.</p></div><a class="btn primary small" href="new-games.html#crown">Play Crown Grid →</a></li>' +
-      '<li class="gcard"><div><div class="gname">Loopcraft</div><p>Connect edges into a single loop using number clues.</p></div><a class="btn primary small" href="new-games.html#loop">Play Loopcraft →</a></li></ul></section>' +
+      '<ul class="list"><li class="gcard"><div><div class="gname">Crown Grid</div><p>Place one crown per row, column and colored region. No touching.</p><div class="gmeta">Progressive levels · Logic puzzle</div></div><a class="btn small" href="new-games.html#crown">Start</a></li>' +
+      '<li class="gcard"><div><div class="gname">Loopcraft</div><p>Connect edges into a single loop using number clues.</p><div class="gmeta">Progressive levels · Logic puzzle</div></div><a class="btn small" href="new-games.html#loop">Start</a></li></ul></section>' +
       '<section class="card"><h3>Badges · ' + Object.keys(P.badges).length + '/' + BADGES.length + '</h3><div class="badges">';
     BADGES.forEach(function (b) { html += '<div class="badge ' + (P.badges[b.id] ? 'on' : 'off') + '"><b>' + b.name + '</b><span>' + b.desc + '</span></div>'; });
     html += '</div></section>';
