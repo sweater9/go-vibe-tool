@@ -13,6 +13,13 @@
   </head>
   <body>
     <main>
+      <style>
+        /* Embedded tools inherit the parent workspace shell, without duplicate navigation. */
+        body.embedded main { max-width: 100%; padding: 16px; }
+        body.embedded main > a, body.embedded #title, body.embedded #nav { display: none; }
+        body.embedded main > p:first-of-type { font-size: 14px; line-height: 1.55; }
+        body.embedded #downloads a { display: inline-block; margin: 12px 0; padding: 12px 16px; border-radius: 10px; }
+      </style>
       <a href="../../">GoVibeTool · All categories</a>
       <h1 id="title">V9 Local Media Tools</h1>
       <p>
@@ -39,6 +46,7 @@
         <p id="offlineStatus" role="status"></p>
       </details>
     </main>
+    <script>if (window.parent !== window) document.body.classList.add("embedded");</script>
     <script src="../../v9-utilities-core.js"></script>
     <script src="media-core.js"></script>
     <script type="module" src="media.js"></script>
