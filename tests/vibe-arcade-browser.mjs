@@ -251,7 +251,7 @@ await check('badges + ranks: Ten down, All-rounder, Tracer rank toast', async ()
 /* =============== 4. daily challenge + streak =============== */
 await check('daily: deterministic puzzle by weekday, XP bonus, streak 1 -> 2, replay gives no XP and no double count', async () => {
   const d1 = '2026-10-12', d2 = '2026-10-13'; const c = await open({ w: 390, day: d1 }); const { page } = c;
-  assert.match(await page.textContent('#hub'), /Today’s challenge/); await startDaily(page, 'vl');
+  assert.match(await page.textContent('#hub'), /Play Daily Challenge/); await startDaily(page, 'vl');
   assert.equal(await page.textContent('#modeLabel'), 'Daily'); await solve(page, 'vl', dailyPuzzle('vl', d1)); assert.ok(await won(page), 'daily vl not solved');
   const lv = DAILY_LEVEL[dowOf(d1)]; assert.match(await page.textContent('#resultSub'), new RegExp(`\\+${Math.max(5, 20 + Math.min(80, 2 * lv) + 10 + 25)} XP.*streak 1 day`));
   let p = await profile(page); assert.equal(p.streak.count, 1); assert.equal(p.streak.last, d1); assert.ok(p.daily[d1].vl);
