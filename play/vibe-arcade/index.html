@@ -755,14 +755,17 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
       '<div class="bar" aria-hidden="true"><i style="width:' + pct + '%"></i></div>' +
       '<div class="streakrow"><div><span class="streakn">' + sv.n + '</span> <span class="gmeta">day streak' + (sv.done ? ' · today done' : sv.n ? ' · play today to keep it' : '') + '</span></div>' +
       '<span class="pips" title="A free streak freeze is earned every 5 days, up to 2">' + pips + ' freezes</span></div></section>' +
-      '<section class="card"><h3>Today’s challenge</h3><ul class="list">';
+      '<section class="card"><div class="rankrow"><div><h3>Daily challenge</h3><p class="note">One shared puzzle per game each day · ' + GAMES[ORDER[0]].cfg(dl).name + ' difficulty</p></div>' +
+      '<button class="btn primary small" type="button" data-act="choose-daily" aria-controls="dailyChoices" aria-expanded="false">Play Daily Challenge</button></div>' +
+      '<p class="note">Complete any daily puzzle to build your streak.</p>' +
+      '<div id="dailyChoices" hidden><p class="note">Choose your daily game:</p><ul class="list">';
     ORDER.forEach(function (c) {
       var G = GAMES[c], d = P.daily[today] && P.daily[today][c];
-      html += '<li><div><div class="gname">' + G.name + '</div><div class="gmeta">' + G.cfg(dl).label + '</div></div>' +
+      html += '<li><div class="gname">' + G.name + '</div>' +
         (d ? '<span class="done">Done ' + fmt(d.t) + '</span> <button class="btn small" data-act="daily" data-g="' + c + '">Replay</button>'
           : '<button class="btn primary small" data-act="daily" data-g="' + c + '">Play</button>') + '</li>';
     });
-    html += '</ul><p class="note">Finishing any daily puzzle counts for your streak. Everyone gets the same puzzles each day.</p></section>' +
+    html += '</ul></div></section>' +
       '<section class="card"><h3>Levels</h3><ul class="list">';
     ORDER.forEach(function (c) {
       var G = GAMES[c], lv = P.games[c].level;
@@ -1056,9 +1059,18 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
   // ---------- wiring ----------
   $('#hub').addEventListener('click', function (e) {
     var b = e.target.closest('[data-act]'); if (!b) return;
+    var act = b.getAttribute('data-act');
+    if (act === 'choose-daily') {
+      var choices = $('#dailyChoices');
+      choices.hidden = !choices.hidden;
+      b.setAttribute('aria-expanded', String(!choices.hidden));
+      b.textContent = choices.hidden ? 'Play Daily Challenge' : 'Hide Daily Games';
+      return;
+    }
     var c = b.getAttribute('data-g');
-    if (b.getAttribute('data-act') === 'daily') openGame(c, 'daily', 0, null);
-    else openGame(c, 'level', P.games[c].level, null);
+    if (!c || !P.games[c]) return;
+    if (act === 'daily') openGame(c, 'daily', 0, null);
+    else if (act === 'level') openGame(c, 'level', P.games[c].level, null);
   });
   $('#back').addEventListener('click', showHub);
   $('#undo').addEventListener('click', function () { if (cur && cur.ctl) cur.ctl.undo(); });
