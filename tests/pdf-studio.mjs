@@ -21,6 +21,14 @@ test('PDF Studio exposes editing and persistent PDF export',()=>{
  assert.match(js,/a\.download="govibe-edited\.pdf"/);
  assert.match(js,/window\.addEventListener\("pagehide",clearDownload\)/);
 });
+test('PDF Studio offers browser-local merge and split downloads',()=>{
+ for(const id of ['mergeFile','split']) assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(js,/combined\.copyPages\(incoming,incoming\.getPageIndices\(\)\)/);
+ assert.match(js,/PDFDocument\.create\(\)/);
+ assert.match(js,/single\.copyPages\(doc,\[index\]\)/);
+ assert.match(js,/govibe-page-/);
+ assert.match(js,/finally\{e\.target\.value=""\}/);
+});
 test('PDF Studio provides mobile layout and no nested iframe',()=>{
  assert.match(css,/@media\(max-width:700px\)/);
  assert.doesNotMatch(html,/<iframe\b/i);
