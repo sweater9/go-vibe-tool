@@ -129,12 +129,12 @@
           <article class="v5-card">
             <div class="v5-card-meta">
               <span class="v5-badge featured" style="background:#ccfbf1; color:#0f766e;">Logic Puzzles</span>
-              <span class="v5-badge live">3 Games + Daily</span>
+              <span class="v5-badge live"><span id="arcade-game-count">5</span> Games + Daily</span>
             </div>
             <h3>Vibe Arcade</h3>
-            <p>Three original logic puzzles with endless levels: Vibeline, Twofold and Carve. Take on a daily challenge, build streaks, earn XP and badges, and share a challenge link. Progress stays on your device.</p>
+            <p>Five logic puzzles: Vibeline, Twofold, Carve, Crown Grid and Loopcraft. Take on a daily challenge, build streaks, earn XP and badges, and share a challenge link. Progress stays on your device.</p>
             <div class="v5-card-meta">
-              <span class="v5-badge">Vibeline / Twofold / Carve</span>
+              <span class="v5-badge" id="arcade-game-list" data-games="Vibeline,Twofold,Carve,Crown Grid,Loopcraft">Vibeline / Twofold / Carve / Crown Grid / Loopcraft</span>
               <span class="v5-badge">Daily Challenge</span>
               <span class="v5-badge">Streaks &amp; Badges</span>
               <span class="v5-badge">Offline Play</span>
@@ -185,5 +185,15 @@
       <span>Version 5.0 Release Candidate</span>
     </div>
   </footer>
+  <script>
+    // The arcade inventory is declared once in data-games; count follows it automatically.
+    const arcadeInventory = document.getElementById("arcade-game-list");
+    const arcadeCount = document.getElementById("arcade-game-count");
+    if (arcadeInventory && arcadeCount) {
+      const games = (arcadeInventory.dataset.games || "").split(",").map(name => name.trim()).filter(Boolean);
+      arcadeCount.textContent = String(games.length);
+      arcadeInventory.textContent = games.join(" / ");
+    }
+  </script>
 </body>
 </html>
