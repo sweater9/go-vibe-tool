@@ -153,3 +153,18 @@ body.embedded main>a,body.embedded #title,body.embedded #nav{display:none}
 body.embedded main>p:first-of-type{font-size:14px;line-height:1.55}
 body.embedded #downloads a{display:inline-block;margin:12px 0;padding:12px 16px;border-radius:10px;background:#17634d;color:white;font-weight:700}
 body.embedded #preview canvas{max-width:100%;height:auto}
+
+/* Screenshot Beautifier: dedicated workspace rather than a shared utility menu. */
+body.beautifier main{max-width:1280px}
+body.beautifier main>a,body.beautifier main>#title,body.beautifier #nav,body.beautifier main>p:first-of-type{display:none}
+body.beautifier #tool{margin:0}
+.beautifier-head{margin:8px 0 24px}.beautifier-head h2{font-size:clamp(24px,3vw,36px);margin:0 0 6px}.beautifier-head p{color:#b9c9da;margin:0}
+.beautifier-layout{display:grid;grid-template-columns:minmax(280px,390px) minmax(0,1fr);gap:20px;align-items:start}
+.beautifier-controls,.beautifier-preview{background:#182638;border:1px solid #455c74;border-radius:16px;padding:22px;min-width:0}
+.beautifier-controls h3,.beautifier-preview h3{margin:0 0 16px;font-size:18px}.beautifier-controls h3:not(:first-child){margin-top:24px}
+.beautifier-controls label{min-width:0;margin:10px 0}.beautifier-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}.beautifier-fields label{min-width:0}.beautifier-fields label:nth-child(1){grid-column:1/-1}.beautifier-fields input[type=color]{width:100%;height:48px;padding:4px;cursor:pointer}.beautifier-fields input[type=range]{width:100%;padding:10px 0;accent-color:#64c8ff}
+.beautifier-render{width:100%;background:#17765a;border-color:#5ed4ac;font-weight:700;margin-top:18px}
+.beautifier-preview #preview{display:grid;place-items:center;min-height:320px;background:repeating-conic-gradient(#233447 0% 25%,#1d2b3b 0% 50%) 50%/24px 24px;border:1px solid #526b83;border-radius:12px;overflow:hidden;padding:18px}
+.beautifier-preview #preview canvas{width:auto;max-width:100%;height:auto;max-height:65vh;object-fit:contain;box-shadow:0 18px 42px #0008}.beautifier-empty{text-align:center;color:#c1d1e2;max-width:340px}.beautifier-tip{font-size:14px;color:#b9c9da}
+body.beautifier #downloads a{margin:10px 0;padding:14px 20px;background:#17765a;color:white;border-color:#5ed4ac;border-radius:10px;font-weight:700}
+@media(max-width:800px){.beautifier-layout{grid-template-columns:1fr}.beautifier-controls,.beautifier-preview{padding:16px}.beautifier-preview #preview{min-height:220px}}
