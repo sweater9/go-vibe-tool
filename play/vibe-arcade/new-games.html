@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0F8F80"><title>Crown Grid & Loopcraft — Vibe Arcade</title>
+<meta name="description" content="Two free logic games: Crown Grid and Loopcraft. Play progressive puzzles offline with no account.">
+<link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#112033;background:#e8edf3}*{box-sizing:border-box}body{margin:0;padding:20px 14px 60px}main{max-width:660px;margin:auto}a{color:#086c62}header{display:flex;align-items:center;justify-content:space-between;gap:12px}h1{font-size:clamp(26px,5vw,38px);margin:16px 0 8px}h2{font-size:20px;margin:0 0 8px}p{line-height:1.55}.muted{color:#566679}.card{background:#f7f9fb;border:1px solid #c3ceda;border-radius:18px;padding:20px;margin-top:18px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}button,.button{border:1px solid #a8bac8;background:#fff;color:#112033;border-radius:10px;padding:11px 16px;font:600 16px system-ui;cursor:pointer;text-decoration:none}button.primary{background:#0f8f80;border-color:#0f8f80;color:#fff}button:focus-visible,a:focus-visible{outline:3px solid #0f8f80;outline-offset:3px}button:disabled{opacity:.45;cursor:default}.pill{font-size:13px;background:#e3efed;border-radius:20px;padding:6px 12px}.grid{display:grid;max-width:500px;margin:20px auto;touch-action:manipulation}.crown-cell{aspect-ratio:1;min-width:0;border:1px solid #8da3b2;display:grid;place-items:center;font-size:clamp(19px,5vw,33px);padding:0;position:relative;border-radius:0}.crown-cell.crown{color:#112033}.crown-cell.blocked{color:#6d7580}.crown-cell[data-region="0"]{background:#d9e8f8}.crown-cell[data-region="1"]{background:#f7dfdf}.crown-cell[data-region="2"]{background:#f9edc8}.crown-cell[data-region="3"]{background:#dcecd8}.crown-cell[data-region="4"]{background:#e9ddf6}.crown-cell[data-region="5"]{background:#d4eceb}.crown-cell[data-region="6"]{background:#f4dfcb}.crown-cell[data-region="7"]{background:#e5e9ef}.crown-cell.bad{box-shadow:inset 0 0 0 3px #b3372b}.loop{position:relative;max-width:500px;aspect-ratio:1;margin:20px auto;display:grid;grid-template-columns:repeat(var(--n),1fr);grid-template-rows:repeat(var(--n),1fr);border:0}.loop-cell{position:relative;display:grid;place-items:center;font-size:clamp(18px,4vw,26px);background:#fff;color:#112033}.edge{position:absolute;z-index:2;border:0;background:#c7d2da;border-radius:0;padding:0;min-width:0;min-height:0}.edge.on{background:#0f8f80}.edge.h{height:8px;left:0;right:0;top:-4px;width:100%}.edge.v{width:8px;top:0;bottom:0;left:-4px;height:100%}.edge.bottom{top:auto;bottom:-4px}.edge.right{left:auto;right:-4px}.edge:focus-visible{outline:3px solid #f09b25;z-index:5}.loop-cell.error{background:#ffe0df}.status{min-height:28px;font-weight:600}.success{color:#087668}.error-text{color:#a32820}[hidden]{display:none!important}@media(max-width:400px){.card{padding:14px}.edge.h{height:7px}.edge.v{width:7px}}
+</style></head><body><main><header><a href="../vibe-arcade/">← Vibe Arcade</a><span class="pill">Free · Offline · No login</span></header>
+<h1>New logic challenges</h1><p class="muted">Two more ways to stretch your thinking. Each game remembers your progress on this device.</p>
+<section class="card" id="chooser"><h2>Choose a game</h2><div class="actions"><button class="primary" data-open="crown">♛ Crown Grid</button><button class="primary" data-open="loop">⬡ Loopcraft</button></div><p class="muted">Crown Grid: one crown per row, column, and color region. Crowns cannot touch diagonally.</p><p class="muted">Loopcraft: draw one closed loop. Each number tells you how many sides of its square belong to the loop.</p></section>
+<section class="card" id="play" hidden><div class="actions"><button id="back">← Games</button><span id="level" class="pill"></span></div><h2 id="title"></h2><p id="rules" class="muted"></p><div id="board" aria-label="Puzzle board"></div><p id="status" class="status" role="status" aria-live="polite"></p><div class="actions"><button id="undo">Undo</button><button id="reset">Reset</button><button id="next" class="primary" hidden>Next level →</button></div></section>
+</main><script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const KEYS={crown:'vibe-crown-level-v1',loop:'vibe-loop-level-v1'};
+let game='',level=1,state=null,history=[],solved=false;
+function saved(g){try{return Math.max(1,Math.min(999,Number(localStorage.getItem(KEYS[g]))||1));}catch(e){return 1}}
+function persist(g,v){try{localStorage.setItem(KEYS[g],String(v))}catch(e){}}
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296}}
+function shuffle(a,r){for(let i=a.length-1;i>0;i--){let j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function makeCrown(lv){
+ const n=lv<9?5:lv<22?6:7,r=rng(331+lv*1777);
+ // Each colored diagonal band is a region. Find a valid crown arrangement.
+ const options=[];function walk(row,cols,regions,placement){if(row===n){options.push(placement.slice());return}for(let col=0;col<n;col++){let reg=(row+col)%n;if(cols.has(col)||regions.has(reg)||row&&Math.abs(placement[row-1]-col)<=1)continue;cols.add(col);regions.add(reg);placement.push(col);walk(row+1,cols,regions,placement);placement.pop();cols.delete(col);regions.delete(reg)}}
+ walk(0,new Set(),new Set(),[]);if(!options.length)throw Error('No crown board');
+ const target=options[Math.floor(r()*options.length)],blocked=new Set();
+ // Reveal enough forbidden squares that the puzzle has one solution.
+ let candidates=[];for(let row=0;row<n;row++)for(let col=0;col<n;col++)if(target[row]!==col)candidates.push(row*n+col);
+ shuffle(candidates,r);
+ function countSolutions(){let count=0;function rec(row,cols,regions,prev){if(row===n){count++;return}for(let col=0;col<n;col++){let region=(row+col)%n;if(blocked.has(row*n+col)||cols.has(col)||regions.has(region)||Math.abs(prev-col)<=1)continue;cols.add(col);regions.add(region);rec(row+1,cols,regions,col);cols.delete(col);regions.delete(region);if(count>1)return}}rec(0,new Set(),new Set(),-9);return count}
+ for(const k of candidates){if(countSolutions()===1)break;blocked.add(k)}
+ return {n,blocked,marks:new Set(),target};
+}
+function makeLoop(lv){
+ const n=lv<8?4:lv<20?5:6,r=rng(902+lv*2003);
+ // A rectangle forms a guaranteed valid single closed loop.
+ const x=Math.floor(r()*(n-2)),y=Math.floor(r()*(n-2)),w=2+Math.floor(r()*(n-x-1)),h=2+Math.floor(r()*(n-y-1));
+ const target=new Set();
+ for(let c=x;c<x+w;c++){target.add('h:'+y+':'+c);target.add('h:'+(y+h)+':'+c)}
+ for(let row=y;row<y+h;row++){target.add('v:'+row+':'+x);target.add('v:'+row+':'+(x+w))}
+ const clues=[];for(let row=0;row<n;row++)for(let col=0;col<n;col++){let edges=['h:'+row+':'+col,'h:'+(row+1)+':'+col,'v:'+row+':'+col,'v:'+row+':'+(col+1)];let val=edges.filter(e=>target.has(e)).length;clues.push(r()<(lv<5?.95:lv<15?.8:.7)?val:null)}
+ return {n,clues,edges:new Set(),target};
+}
+function start(g,lv){game=g;level=lv;solved=false;history=[];state=g==='crown'?makeCrown(lv):makeLoop(lv);$('chooser').hidden=true;$('play').hidden=false;$('next').hidden=true;$('level').textContent='Level '+lv;$('title').textContent=g==='crown'?'Crown Grid':'Loopcraft';$('rules').textContent=g==='crown'?'Tap a square to place a crown; tap again to remove it. One per row, column and color region. No crowns may touch diagonally. Crossed squares are unavailable.':'Tap grid edges to draw or erase a line. Match every visible clue and create exactly one closed loop.';$('status').textContent='';render();window.scrollTo({top:0,behavior:'instant'})}
+function snapshot(){history.push(game==='crown'?new Set(state.marks):new Set(state.edges));if(history.length>150)history.shift()}
+function update(){render();validate()}
+function render(){
+ const root=$('board');root.innerHTML='';const n=state.n;
+ if(game==='crown'){const grid=document.createElement('div');grid.className='grid';grid.style.gridTemplateColumns='repeat('+n+',1fr)';
+ for(let row=0;row<n;row++)for(let col=0;col<n;col++){let k=row*n+col,b=document.createElement('button');b.className='crown-cell'+(state.marks.has(k)?' crown':'')+(state.blocked.has(k)?' blocked':'');b.dataset.region=(row+col)%n;b.textContent=state.blocked.has(k)?'×':state.marks.has(k)?'♛':'';b.disabled=solved||state.blocked.has(k);b.setAttribute('aria-label','Row '+(row+1)+' column '+(col+1)+(state.marks.has(k)?' crown':''));b.addEventListener('click',()=>{snapshot();if(state.marks.has(k))state.marks.delete(k);else state.marks.add(k);update()});grid.appendChild(b)}root.appendChild(grid);
+ }else{const grid=document.createElement('div');grid.className='loop';grid.style.setProperty('--n',n);
+ for(let row=0;row<n;row++)for(let col=0;col<n;col++){const cell=document.createElement('div');cell.className='loop-cell';cell.textContent=state.clues[row*n+col]??'';function edge(kind,rr,cc,side){let id=kind+':'+rr+':'+cc,b=document.createElement('button');b.className='edge '+(kind==='h'?'h':'v')+(side?' '+side:'')+(state.edges.has(id)?' on':'');b.setAttribute('aria-label',(kind==='h'?'Horizontal':'Vertical')+' edge '+(rr+1)+','+(cc+1));b.setAttribute('aria-pressed',String(state.edges.has(id)));b.disabled=solved;b.addEventListener('click',()=>{snapshot();if(state.edges.has(id))state.edges.delete(id);else state.edges.add(id);update()});cell.appendChild(b)}edge('h',row,col,'');edge('v',row,col,'');if(row===n-1)edge('h',n,col,'bottom');if(col===n-1)edge('v',row,n,'right');grid.appendChild(cell)}root.appendChild(grid)}
+}
+function validate(){
+ if(solved)return;
+ if(game==='crown'){
+ const n=state.n,marks=[...state.marks];let bad=false;
+ for(let i=0;i<marks.length;i++)for(let j=i+1;j<marks.length;j++){let a=Math.floor(marks[i]/n),b=Math.floor(marks[j]/n),x=marks[i]%n,y=marks[j]%n;if(a===b||x===y||(a+x)%n===(b+y)%n||Math.abs(a-b)<=1&&Math.abs(x-y)<=1)bad=true}
+ $('status').textContent=bad?'Crowns conflict — check rows, columns, regions and diagonals.':marks.length+'/'+n+' crowns placed';
+ if(!bad&&marks.length===n)win();
+ }else{
+ const n=state.n,E=state.edges;let wrong=false,complete=true;
+ for(let row=0;row<n;row++)for(let col=0;col<n;col++){const clue=state.clues[row*n+col];if(clue===null)continue;let count=['h:'+row+':'+col,'h:'+(row+1)+':'+col,'v:'+row+':'+col,'v:'+row+':'+(col+1)].filter(k=>E.has(k)).length;if(count>clue)wrong=true;if(count!==clue)complete=false}
+ let adj=new Map();for(const e of E){let [kind,rs,cs]=e.split(':'),r=+rs,c=+cs,a,b;if(kind==='h'){a=r+','+c;b=r+','+(c+1)}else{a=r+','+c;b=(r+1)+','+c}for(const [v,u] of [[a,b],[b,a]]){if(!adj.has(v))adj.set(v,[]);adj.get(v).push(u)}}
+ let closed=E.size>=4&&[...adj.values()].every(a=>a.length===2);
+ if(closed){const seen=new Set(),stack=[adj.keys().next().value];while(stack.length){let v=stack.pop();if(seen.has(v))continue;seen.add(v);stack.push(...adj.get(v))}closed=seen.size===adj.size}
+ $('status').textContent=wrong?'Some clues have too many lines.':closed&&!complete?'Loop closed, but some clues do not match.':'Connect edges into one loop and satisfy the clues.';
+ if(!wrong&&complete&&closed)win();
+ }
+}
+function win(){solved=true;persist(game,Math.max(saved(game),level+1));$('status').textContent='Excellent! Level '+level+' complete.';$('status').className='status success';$('next').hidden=false;render();$('next').scrollIntoView({block:'nearest',behavior:'smooth'});$('next').focus({preventScroll:true})}
+document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{ $('status').className='status';start(b.dataset.open,saved(b.dataset.open))}));
+$('back').addEventListener('click',()=>{$('play').hidden=true;$('chooser').hidden=false;game=''});
+$('reset').addEventListener('click',()=>{if(solved)return;snapshot();if(game==='crown')state.marks.clear();else state.edges.clear();$('status').className='status';update()});
+$('undo').addEventListener('click',()=>{if(solved||!history.length)return;const last=history.pop();if(game==='crown')state.marks=last;else state.edges=last;update()});
+$('next').addEventListener('click',()=>{if(solved)start(game,level+1)});
+const hash=location.hash.slice(1);if(hash==='crown'||hash==='loop')start(hash,saved(hash));
+})();
+</script></body></html>
