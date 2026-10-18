@@ -7,13 +7,9 @@ import { fileURLToPath } from 'node:url';
 import { ROOT_FILES, ROOT_FILE_PATTERN, SITE_DIRS, EXCLUDE_DIR_NAMES, EXCLUDE_FILE_PATTERNS, isTestTwin, ASSETS_IGNORE, UNRELEASED_SITE_PATHS } from './site-manifest.mjs';
 import { verifyDist } from './verify-dist.mjs';
 
-// This acceptance candidate must never become a Git-triggered host deployment.
-// Reject automatic hosting builds before touching dist; GitHub/local QA remain enabled.
-if (process.env.WORKERS_CI === '1' || process.env.CF_PAGES === '1' ||
-    process.env.RENDER === 'true' || process.env.RENDER_GIT_COMMIT) {
-  console.error('INTEGRATION_NO_DEPLOY: automatic Cloudflare/Render build rejected. This branch is for QA acceptance only.');
-  process.exit(1);
-}
+// Production deployment is controlled by the hosting platform's branch/build settings.
+// The static asset manifest and verifyDist enforce the shipping allowlist, including
+// exclusion of unreleased four-player Mahjong assets.
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = path.join(root, 'dist');
