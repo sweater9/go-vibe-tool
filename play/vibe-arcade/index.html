@@ -750,7 +750,7 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
     for (var i = 0; i < 2; i++) pips += '<span class="pip' + (i < P.streak.freezes ? ' on' : '') + '"></span>';
     var html = '' +
       '<header class="top"><p class="eyebrow">Daily puzzles · endless levels</p><h1>Vibe Arcade</h1>' +
-      '<p class="lede">Three logic games. Play today’s challenge to keep your streak, then climb the levels.</p></header>' +
+      '<p class="lede">Five logic games. Play today’s challenge to keep your streak, then climb the levels.</p></header>' +
       '<section class="card"><div class="rankrow"><span class="rankname">' + ri.name + '</span><span class="xp">' + P.xp + ' XP' + (ri.next ? ' · ' + (ri.next - P.xp) + ' to ' + ri.nextName : '') + '</span></div>' +
       '<div class="bar" aria-hidden="true"><i style="width:' + pct + '%"></i></div>' +
       '<div class="streakrow"><div><span class="streakn">' + sv.n + '</span> <span class="gmeta">day streak' + (sv.done ? ' · today done' : sv.n ? ' · play today to keep it' : '') + '</span></div>' +
@@ -772,7 +772,12 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
       html += '<li class="gcard"><div style="min-width:0"><div class="gname">' + G.name + '</div><p>' + G.tag + '</p><div class="gmeta">Level ' + lv + ' · ' + G.cfg(lv).label + ' · ' + P.games[c].cleared + ' cleared</div></div>' +
         '<button class="btn small" data-act="level" data-g="' + c + '">' + (lv === 1 ? 'Start' : 'Continue') + '</button></li>';
     });
-    html += '</ul></section><section class="card"><h3>Badges · ' + Object.keys(P.badges).length + '/' + BADGES.length + '</h3><div class="badges">';
+    html += '</ul></section>' +
+      '<section class="card"><h3>New games · Crown Grid &amp; Loopcraft</h3>' +
+      '<p class="note">Two fresh logic challenges with progressive levels. Your progress stays on this device.</p>' +
+      '<ul class="list"><li class="gcard"><div><div class="gname">Crown Grid</div><p>Place one crown per row, column and colored region. No touching.</p></div><a class="btn primary small" href="new-games.html#crown">Play Crown Grid →</a></li>' +
+      '<li class="gcard"><div><div class="gname">Loopcraft</div><p>Connect edges into a single loop using number clues.</p></div><a class="btn primary small" href="new-games.html#loop">Play Loopcraft →</a></li></ul></section>' +
+      '<section class="card"><h3>Badges · ' + Object.keys(P.badges).length + '/' + BADGES.length + '</h3><div class="badges">';
     BADGES.forEach(function (b) { html += '<div class="badge ' + (P.badges[b.id] ? 'on' : 'off') + '"><b>' + b.name + '</b><span>' + b.desc + '</span></div>'; });
     html += '</div></section>';
     $('#hub').innerHTML = html;
