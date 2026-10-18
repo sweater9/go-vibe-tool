@@ -82,7 +82,11 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
 .gmeta { font: 500 12px var(--mono); color: var(--muted); letter-spacing: .04em; }
 .done { font: 600 13px var(--mono); color: var(--thread); font-variant-numeric: tabular-nums; }
 .gcard { display: flex; flex-direction: column; gap: 6px; width: 100%; align-items: stretch; }
-.gcard > div { width: 100%; }
+.gcard > div { width: 100%; display: grid; grid-template-rows: auto minmax(3em, auto) auto; align-content: start; row-gap: 6px; }
+/* Keep the three level entries and their actions on the same visual rhythm. */
+.list li.gcard { padding-block: 18px; }
+.list li.gcard > .btn { width: min(100%, 180px); min-height: 44px; margin-top: 12px; }
+.gcard .gmeta { line-height: 1.5; }
 .gcard > .btn { align-self: center; margin-top: 10px; text-align: center; text-decoration: none; }
 .gcard .gname, .gcard p, .gcard .gmeta { text-align: left; }
 .list li.gcard { align-items: stretch; }
