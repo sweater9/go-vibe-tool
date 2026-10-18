@@ -1,3 +1,4 @@
+if (window.parent !== window) document.body.classList.add("embedded");
 const $ = (s) => document.querySelector(s);
 const titles = {
   "cubic-bezier": "Cubic-Bezier Easing Curve",
