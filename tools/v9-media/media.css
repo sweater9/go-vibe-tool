@@ -146,3 +146,10 @@ audio {
 [hidden] {
   display: none !important;
 }
+
+/* Embedded workspace: styles live in this same-origin file to satisfy CSP. */
+body.embedded main{max-width:100%;padding:16px}
+body.embedded main>a,body.embedded #title,body.embedded #nav{display:none}
+body.embedded main>p:first-of-type{font-size:14px;line-height:1.55}
+body.embedded #downloads a{display:inline-block;margin:12px 0;padding:12px 16px;border-radius:10px;background:#17634d;color:white;font-weight:700}
+body.embedded #preview canvas{max-width:100%;height:auto}
