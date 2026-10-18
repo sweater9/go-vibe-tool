@@ -3,7 +3,7 @@ pdfjs.GlobalWorkerOptions.workerSrc=new URL("../v9-media/vendor/pdf/pdf.worker.m
 const {PDFDocument,StandardFonts,degrees,rgb}=window.PDFLib;
 const $=id=>document.getElementById(id);
 let bytes=null,doc=null,preview=null,index=0,downloadUrl=null,renderTask=null;
-const controls=["prev","next","rotate","remove","addText","save"];
+const controls=["prev","next","rotate","remove","addText","save","split","mergeFile"];
 function message(s){$("status").textContent=s}
 function clearDownload(){if(downloadUrl)URL.revokeObjectURL(downloadUrl);downloadUrl=null;$("download").replaceChildren()}
 function buttons(){const ready=!!doc,n=doc?.getPageCount()||0;for(const id of controls)$(id).disabled=!ready;$("prev").disabled=!ready||index===0;$("next").disabled=!ready||index>=n-1;$("remove").disabled=!ready||n===1;$("pageInfo").textContent=ready?`${index+1} / ${n}`:"No PDF opened"}
@@ -17,5 +17,8 @@ $("rotate").onclick=()=>change(()=>{const p=doc.getPage(index);p.setRotation(deg
 $("remove").onclick=()=>change(()=>{doc.removePage(index);index=Math.min(index,doc.getPageCount()-1)});
 $("addText").onclick=()=>change(async()=>{const value=$("text").value.trim();if(!value)throw Error("Enter text first.");const page=doc.getPage(index);const font=await doc.embedFont(StandardFonts.Helvetica);page.drawText(value,{x:36,y:page.getHeight()-50,size:14,font,color:rgb(0,0,0),maxWidth:Math.max(100,page.getWidth()-72),lineHeight:18})});
 $("save").onclick=async()=>{try{message("Exporting PDF…");clearDownload();const data=await doc.save();const blob=new Blob([data],{type:"application/pdf"});downloadUrl=URL.createObjectURL(blob);const a=document.createElement("a");a.href=downloadUrl;a.download="govibe-edited.pdf";a.textContent=`Download edited PDF (${Math.ceil(blob.size/1024)} KB)`;$("download").append(a);message("PDF ready. Select Download edited PDF to save it.")}catch(e){message("Export failed: "+e.message)}};
+function downloadable(data,name,label){clearDownload();const blob=new Blob([data],{type:"application/pdf"});downloadUrl=URL.createObjectURL(blob);const a=document.createElement("a");a.href=downloadUrl;a.download=name;a.textContent=label+" ("+Math.ceil(blob.size/1024)+" KB)";$("download").append(a);return a}
+$("mergeFile").addEventListener("change",async e=>{const file=e.target.files[0];if(!file||!doc)return;try{if(file.size>25*1024*1024)throw Error("Maximum file size is 25 MB.");message("Merging locally…");const incoming=await PDFDocument.load(new Uint8Array(await file.arrayBuffer()),{ignoreEncryption:false});const pages=await doc.copyPages(incoming,incoming.getPageIndices());if(!pages.length)throw Error("The second PDF has no pages.");pages.forEach(page=>doc.addPage(page));clearDownload();await refresh();message("Merged "+pages.length+" page(s). Export to download the combined PDF.")}catch(err){message("Could not merge PDF: "+err.message)}finally{e.target.value=""}});
+$("split").onclick=async()=>{try{if(!doc)return;message("Preparing selected page…");const single=await PDFDocument.create();const [page]=await single.copyPages(doc,[index]);single.addPage(page);downloadable(await single.save(),"govibe-page-"+(index+1)+".pdf","Download page "+(index+1));message("Selected page ready to download.")}catch(err){message("Could not split PDF: "+err.message)}};
 window.addEventListener("pagehide",clearDownload);
 buttons();
