@@ -1034,8 +1034,14 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
       var c = cellFromEvent(e);
       if (c >= 0 && c !== drag.e) { drag.e = c; render(); }
     });
-    function finish() {
+    function finish(e) {
       if (!drag) return;
+      // Some browsers coalesce or drop the last pointermove before pointerup.
+      // Resolve the actual release coordinate so a fast drag still includes its end cell.
+      if (e) {
+        var released = cellFromEvent(e);
+        if (released >= 0) drag.e = released;
+      }
       var d = drag; drag = null;
       var q = bbox(d.s, d.e), changed = true;
       if (d.s === d.e) {
