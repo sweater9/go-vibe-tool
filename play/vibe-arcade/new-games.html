@@ -20,7 +20,7 @@ function persist(g,v){try{localStorage.setItem(KEYS[g],String(v))}catch(e){}}
 function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t^=t+Math.imul(t^t>>>7,61|t);return((t^t>>>14)>>>0)/4294967296}}
 function shuffle(a,r){for(let i=a.length-1;i>0;i--){let j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function makeCrown(lv){
- const n=lv<9?5:lv<22?6:7,r=rng(331+lv*1777);
+ const n=lv<12?5:7,r=rng(331+lv*1777);
  // Each colored diagonal band is a region. Find a valid crown arrangement.
  const options=[];function walk(row,cols,regions,placement){if(row===n){options.push(placement.slice());return}for(let col=0;col<n;col++){let reg=(row+col)%n;if(cols.has(col)||regions.has(reg)||row&&Math.abs(placement[row-1]-col)<=1)continue;cols.add(col);regions.add(reg);placement.push(col);walk(row+1,cols,regions,placement);placement.pop();cols.delete(col);regions.delete(reg)}}
  walk(0,new Set(),new Set(),[]);if(!options.length)throw Error('No crown board');
