@@ -25,3 +25,21 @@ test('PDF Studio provides mobile layout and no nested iframe',()=>{
  assert.match(css,/@media\(max-width:700px\)/);
  assert.doesNotMatch(html,/<iframe\b/i);
 });
+
+test('Screenshot Beautifier uses dedicated UI with CSP-compliant embedded styling',()=>{
+ const html=fs.readFileSync(new URL('../tools/v9-media/index.html',import.meta.url),'utf8');
+ const media=fs.readFileSync(new URL('../tools/v9-media/media.js',import.meta.url),'utf8');
+ const styles=fs.readFileSync(new URL('../tools/v9-media/media.css',import.meta.url),'utf8');
+ assert.doesNotMatch(html,/<script(?![^>]*src=)[^>]*>/i);
+ assert.doesNotMatch(html,/<style[\\s>]/i);
+ assert.match(media,/classList\.add\("beautifier"\)/);
+ assert.match(media,/beautifier-preview/);
+ assert.match(media,/Generate preview &amp; PNG/);
+ assert.match(styles,/body\.beautifier #nav/);
+ assert.match(styles,/body\.embedded main/);
+});
+test('Arcade game launch actions use the primary theme colour',()=>{
+ const arcade=fs.readFileSync(new URL('../play/vibe-arcade/index.html',import.meta.url),'utf8');
+ assert.match(arcade,/\.gcard > \.btn, \.list \[data-act="level"\]/);
+ assert.match(arcade,/background: var\(--thread\); color: var\(--on-thread\)/);
+});
