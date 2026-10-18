@@ -330,7 +330,7 @@ function pdfMode(mode,button){pdfClearDownload();pdfAction=mode;button.parentEle
 function parsePageRanges(value,max){
  const pages=new Set();for(const part of value.split(",")){const p=part.trim();if(!p)continue;if(p.includes("-")){let[a,b]=p.split("-").map(Number);if(!Number.isInteger(a)||!Number.isInteger(b)||a<1||b<a||b>max)throw Error("Invalid page range: "+p);for(let i=a;i<=b;i++)pages.add(i-1)}else{const n=Number(p);if(!Number.isInteger(n)||n<1||n>max)throw Error("Invalid page: "+p);pages.add(n-1)}}if(!pages.size)throw Error("Choose at least one page.");return[...pages]
 }
-async let pdfResultUrl=null;
+let pdfResultUrl=null;
 function pdfClearDownload(){
  if(pdfResultUrl){URL.revokeObjectURL(pdfResultUrl);pdfResultUrl=null}
  const area=$("#pdfDownloadArea");if(area)area.classList.add("hidden");
