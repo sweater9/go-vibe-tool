@@ -74,7 +74,9 @@ async function open({ w = 390, h = 844, touch = false, reduced = false, dark = f
 }
 const profile = p => p.evaluate(() => JSON.parse(localStorage.getItem('vibearcade:v1') || 'null'));
 const overflow = p => p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-const box = async p => (await p.locator('.board').boundingBox());
+/* The instructions sit above the board, so on short viewports the lower rows start below the fold. Input outside the
+   viewport is never delivered, so scroll the whole board into view before computing coordinates (as a player would). */
+const box = async p => { await p.locator('.board').evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest' })); return p.locator('.board').boundingBox(); };
 const center = (b, n, c) => ({ x: b.x + ((c % n) + .5) / n * b.width, y: b.y + (Math.floor(c / n) + .5) / n * b.height });
 
 /* Pointer drag. mode "touch" dispatches real touch events through CDP (Chromium only), otherwise the mouse. */
@@ -98,6 +100,7 @@ async function solveCarve(page, puz, mode) {
 async function solveTwofold(page, puz, tap) {
   /* Once a page has received CDP touch events, mixing in Playwright's own tap() leaves a stuck touch point (the
      next taps become multi-touch and are dropped). So Chromium touch runs use CDP taps throughout. */
+  await box(page);
   const cdp = tap && engine === 'chromium' ? await page.context().newCDPSession(page) : null;
   for (let i = 0; i < puz.N; i++) {
     if (puz.given[i]) continue; const cell = page.locator(`.tcell[data-i="${i}"]`);
@@ -206,6 +209,21 @@ await check('Twofold: tap cycles dot/ring/empty, fixed squares locked, error hig
   const before = await page.locator('.tcell svg').count(); await page.click('#hint'); assert.equal(await page.textContent('#hints'), '1');
   assert.ok(await page.locator('.tcell svg').count() >= before, 'hint fills a square');
   assert.deepEqual(c.errs, []); await c.ctx.close();
+});
+
+await check('Carve: a drag whose pointermoves were all coalesced/dropped still includes the release cell', async () => {
+  for (const pointerType of ['mouse', 'touch']) {
+    const c = await open({ w: 390 }); const { page } = c; await startLevel(page, 'ca');
+    const puz = puzzle('ca', 1), r = puz.sol.find(x => x.h * x.w > 2), b = await box(page);
+    const a = center(b, puz.n, r.r * puz.n + r.c), z = center(b, puz.n, (r.r + r.h - 1) * puz.n + r.c + r.w - 1);
+    /* pointerdown then pointerup at another cell with no pointermove in between: the browser delivered only the endpoints */
+    await page.locator('.board').evaluate((el, [a, z, pointerType]) => {
+      const ev = (type, p, buttons) => el.dispatchEvent(new PointerEvent(type, { pointerId: 7, pointerType, isPrimary: true, bubbles: true, cancelable: true, clientX: p.x, clientY: p.y, buttons }));
+      ev('pointerdown', a, 1); ev('pointerup', z, 0);
+    }, [a, z, pointerType]);
+    assert.equal(await page.textContent('#progress'), `${r.h * r.w}/${puz.N}`, `${pointerType} drag lost its end cell`);
+    assert.deepEqual(c.errs, []); await c.ctx.close();
+  }
 });
 
 await check('Carve: drag draws, tap removes, overlap replaces, Undo/Reset/Hint, wrong rectangle flagged', async () => {
