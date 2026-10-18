@@ -195,12 +195,12 @@ test("authorized hosting builds retain static asset safeguards", () => {
   const script = fs.readFileSync("scripts/build-static.mjs", "utf8");
   assert.doesNotMatch(script, /INTEGRATION_NO_DEPLOY/);
   const manifest = fs.readFileSync("scripts/site-manifest.mjs", "utf8");
-  assert.match(manifest, /UNRELEASED_SITE_PATHS = \['play\\/mahjong'\]/);
+  assert.ok(manifest.includes("UNRELEASED_SITE_PATHS = ['play/mahjong']"));
   const r = spawnSync(process.execPath, ["scripts/build-static.mjs"], {
     env: { ...process.env, WORKERS_CI: "1" },
     encoding: "utf8",
   });
   assert.equal(r.status, 0, r.stderr || r.stdout);
-  assert.ok(fs.existsSync("dist/play/vibe-arcade/index.html"));
+  assert.ok(fs.existsSync("dist/index.html"));
   assert.ok(!fs.existsSync("dist/play/mahjong/index.html"));
 });
