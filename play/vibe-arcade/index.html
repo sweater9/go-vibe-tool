@@ -88,7 +88,10 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
 .list li.gcard > .btn { width: min(100%, 180px); min-height: 44px; margin-top: 12px; }
 .gcard .gmeta { line-height: 1.5; }
 .gcard > .btn { align-self: center; margin-top: 10px; text-align: center; text-decoration: none; }
-.gcard > .btn.primary { background: var(--surface); color: var(--fg); border-color: var(--line); }
+.gcard > .btn.primary { background: var(--thread); color: var(--on-thread); border-color: var(--thread); }
+/* Game entry actions match the Daily Challenge primary CTA. */
+.gcard > .btn, .list [data-act="level"], .list [data-act="daily"] { background: var(--thread); color: var(--on-thread); border-color: var(--thread); font-weight: 700; }
+.gcard > .btn:hover:not(:disabled), .list [data-act="level"]:hover:not(:disabled), .list [data-act="daily"]:hover:not(:disabled) { filter: brightness(1.08); }
 .gcard .gname, .gcard p, .gcard .gmeta { text-align: left; }
 .list li.gcard { align-items: stretch; }
 @media (max-width: 480px) { .gcard > .btn { min-width: 150px; } }
