@@ -709,6 +709,13 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
     $('#resultSub').textContent = res;
     $('#again').textContent = cur.mode === 'daily' ? 'Back to arcade' : 'Next level';
     $('#result').hidden = false;
+    // Make the next-level action visible immediately after solving on small screens.
+    // Focus without implicit scrolling, then move the result into view explicitly.
+    window.requestAnimationFrame(function () {
+      if (!cur || !cur.solved || $('#result').hidden) return;
+      $('#result').scrollIntoView({ block: 'center', behavior: 'auto' });
+      $('#again').focus({ preventScroll: true });
+    });
     var msg = 'I cleared ' + G0.name + (cur.mode === 'daily' ? ' daily' : ' level ' + cur.level) + ' in ' + fmt(t) + (h ? ' with ' + h + (h === 1 ? ' hint' : ' hints') : ' with no hints') + '. Can you beat it?';
     var link = challengeLink(secs), T = encodeURIComponent(msg), U = encodeURIComponent(link);
     $('#sx').href = 'https://twitter.com/intent/tweet?text=' + T + '&url=' + U;
