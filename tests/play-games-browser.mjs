@@ -68,7 +68,7 @@ try {
       const c = await ctxFor({ w, h, touch }); const p = c.page;
       await p.goto(base + 'play/', { waitUntil: 'networkidle' });
       assert.equal(await p.locator('.hero-stats strong').first().innerText(), String(PLAY_GAME_COUNT));
-      assert.match(await p.locator('.hero-stats span').first().innerText(), new RegExp(`${PLAY_GAME_COUNT}\\s*Solo Games`, 'i'));
+      assert.match(await p.locator('.hero-stats span').first().innerText(), new RegExp(`${PLAY_GAME_COUNT}\\s*Games`, 'i'));
       const hrefs = await p.locator('.v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href')));
       assert.deepEqual(hrefs, PLAY_GAME_HREFS);
       assert.equal(await p.locator('.v5-card').count(), PLAY_GAME_COUNT); assert.equal(await p.locator('a[href="mahjong/"]').count(), 0, 'no multiplayer Mahjong link'); assert.ok((await overflow(p)) <= 0, 'overflow');
