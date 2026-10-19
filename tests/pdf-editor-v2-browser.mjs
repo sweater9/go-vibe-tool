@@ -56,6 +56,7 @@ async function session(w) {
   S.setText = async t => { await page.fill('#runText', t); await page.waitForTimeout(250); };
   S.select = async (start, end) => page.evaluate(([s, e]) => { const t = document.getElementById('runText'); t.focus(); t.setSelectionRange(s, e); t.dispatchEvent(new Event('select')); }, [start, end]);
   S.apply = async () => { await page.waitForFunction(() => !document.getElementById('runApply').disabled); await page.locator('#runApply').click(); await page.waitForFunction(() => document.getElementById('runApply').disabled); await S.settle(); };
+  S.hidePages = async () => { if (S.mobile && await page.evaluate(() => document.body.classList.contains('pages-open'))) { await page.locator('#pagesToggle').click(); await page.waitForTimeout(250); } };
   S.goPage = async n => { await S.showPages(); await page.locator('#tabPages').click(); await page.locator('#thumbs .thumb-main').nth(n - 1).click(); await S.settle(); };
   S.exportBytes = async () => {
     await page.locator('#download').click(); await page.waitForSelector('#downloadLink:not([hidden])'); await S.settle();
@@ -216,6 +217,23 @@ for (const w of WIDTHS) {
     await S.open(fx.lo, 'report.pdf'); await S.tool('edittext'); await S.pickBlock('Total revenue'); await S.setText((await page.inputValue('#runText')).replace('1,204,500', '1,300,000')); await S.apply();
     const bytes = await S.exportBytes(); await S.reopen(bytes, 'again.pdf'); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 3);
     const b = await S.blocks(); assert.ok(b.some(x => /1,300,000/.test(x.text) && x.editable)); const st = await page.evaluate(() => window.pdfEditorDebug.state()); assert.equal(st.pages.length, 3); assert.equal(st.links.length, 2); assert.equal(st.outline.length, 3, 'top-level bookmarks'); assert.equal(st.textEdits.length, 0);
+  });
+
+  await check(`${tag}: editing a line twice keeps only the latest text; Restore original removes the edit completely`, async () => {
+    await S.open(fx.std, 'std.pdf'); await S.tool('edittext'); await S.pickBlock('Total due'); await S.setText('Total payable'); await S.apply();
+    await S.pickBlock('Total payable'); await S.setText('Balance'); await S.apply(); let st = await page.evaluate(() => window.pdfEditorDebug.state()); assert.equal(st.textEdits.length, 1); assert.equal(st.textEdits[0].text, 'Balance');
+    let bytes = await S.exportBytes(); let nt = nospace((await pdfjsInfo(page, bytes)).texts[0]); assert.ok(nt.includes('Balance') && !nt.includes('Totalpayable') && !nt.includes('Totaldue'));
+    await S.pickBlock('Balance'); await page.locator('#runRevert').click(); await S.settle(); st = await page.evaluate(() => window.pdfEditorDebug.state()); assert.equal(st.textEdits.length, 0);
+    bytes = await S.exportBytes(); nt = nospace((await pdfjsInfo(page, bytes)).texts[0]); assert.ok(nt.includes('Totaldue') && !nt.includes('Balance'));
+  });
+
+  await check(`${tag}: text edits work on pages inserted from another PDF and on rotated pages`, async () => {
+    await S.open(fx.std, 'std.pdf'); await S.showPages(); await page.locator('#pgInsert').click(); await page.setInputFiles('#insertInput', { name: 'report.pdf', mimeType: 'application/pdf', buffer: fx.lo }); await page.waitForFunction(() => /Inserted 3 pages/.test(document.getElementById('status').textContent)); await S.settle(); await S.hidePages();
+    await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).some(b => /Quarterly Report|This report/.test(b.text))); await S.pickBlock('This report'); await S.setText('This inserted page was edited.'); await S.apply();
+    await S.showPages(); await page.locator('#tabPages').click(); await page.locator('#pgRotR').click(); await S.settle(); await S.hidePages(); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 3);
+    const b = (await S.blocks()).find(x => /Quarterly/.test(x.text)); assert.ok(b, 'blocks missing after rotation'); await S.clickAt(b.box.x + b.box.w / 2, b.box.y + b.box.h / 2); await page.waitForFunction(() => /Quarterly/.test((window.pdfEditorDebug.v2.draft() || {}).text || ''));
+    const bytes = await S.exportBytes(); const j = await pdfjsInfo(page, bytes); assert.equal(j.pages, 5); assert.ok(j.texts.some(t => /This inserted page was edited/.test(t))); assert.ok(/INVOICE/.test(j.texts[0]));
+    needTools('pypdf'); assert.equal(pypdfInspect(bytes).outline.length, 0, 'bookmarks of an inserted document are documented as not imported'); assert.ok(pypdfInspect(bytes).links.length >= 0);
   });
 
   await check(`${tag}: P1 content together with edits: new text and an inserted, resized image survive export next to an existing-text edit`, async () => {
