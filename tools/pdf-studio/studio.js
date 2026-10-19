@@ -59,12 +59,14 @@ async function render(){
 function toViewport(x,y){return viewport.convertToViewportPoint(x,y)}
 function noteCorners(n){const a=n.rot*Math.PI/180,c=Math.cos(a),s=Math.sin(a),w=Math.max(8,Math.min(n.width,n.cap)),top=n.size*.95,bottom=-(n.lines-1)*n.size*1.3-n.size*.3;
  return [[0,top],[w,top],[w,bottom],[0,bottom]].map(([u,v])=>toViewport(n.x+u*c-v*s,n.y+u*s+v*c))}
-function drawOverlay(){const layer=$("overlay");layer.replaceChildren();if(!viewport||!doc)return;
- const sx=$("canvas").clientWidth/$("canvas").width||1;
- const spot=(cls,px,py,label)=>{const d=document.createElement("div");d.className=cls;d.style.left=(px*sx)+"px";d.style.top=(py*sx)+"px";if(label)d.title=label;layer.append(d);return d};
+// The overlay is a second canvas drawn in the page canvas's pixel space, so positioning needs no inline styles (the page CSP forbids them).
+function drawOverlay(){const layer=$("overlay"),canvas=$("canvas");layer.width=canvas.width;layer.height=canvas.height;
+ const g=layer.getContext("2d");g.clearRect(0,0,layer.width,layer.height);layer.dataset.selection="0";layer.dataset.marker="0";
+ if(!viewport||!doc)return;
  const note=currentNote();
- if(note){const pts=noteCorners(note),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),box=spot("noteBox",Math.min(...xs),Math.min(...ys));box.style.width=((Math.max(...xs)-Math.min(...xs))*sx)+"px";box.style.height=((Math.max(...ys)-Math.min(...ys))*sx)+"px"}
- if(marker){const[px,py]=toViewport(marker.x,marker.y);spot("marker",px,py,"Text position")}}
+ if(note){const pts=noteCorners(note),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]),x=Math.min(...xs)-3,y=Math.min(...ys)-3,w=Math.max(...xs)-Math.min(...xs)+6,h=Math.max(...ys)-Math.min(...ys)+6;
+  g.fillStyle="rgba(29,111,224,.10)";g.fillRect(x,y,w,h);g.lineWidth=2;g.strokeStyle="#1d6fe0";g.setLineDash([6,4]);g.strokeRect(x,y,w,h);g.setLineDash([]);layer.dataset.selection="1"}
+ if(marker){const[px,py]=toViewport(marker.x,marker.y);g.beginPath();g.arc(px,py,9,0,Math.PI*2);g.fillStyle="rgba(229,72,77,.25)";g.fill();g.lineWidth=2;g.strokeStyle="#e5484d";g.stroke();g.beginPath();g.arc(px,py,11,0,Math.PI*2);g.lineWidth=2;g.strokeStyle="#fff";g.stroke();layer.dataset.marker="1"}}
 function drawNotesList(){const list=$("notes");list.replaceChildren();
  const here=pageNotes();
  if(!here.length){const p=document.createElement("p");p.className="hint";p.textContent="No text on this page yet. Type text, tap the page to choose a position, then Add text.";list.append(p);return}
@@ -94,7 +96,7 @@ $("file").addEventListener("change",e=>{const file=e.target.files[0];if(!file)re
   if(next.getPageCount()<1)throw Error("PDF has no pages.");
   doc=next;ids=doc.getPageIndices().map(()=>++idSeq);notes=[];selected=null;marker=null;undoStack=[];index=0;
   await refresh();message(`Opened ${file.name}. Nothing has been uploaded.`)}
- catch(err){doc=null;preview=null;ids=[];notes=[];undoStack=[];selected=null;marker=null;viewport=null;$("pages").replaceChildren();$("notes").replaceChildren();$("overlay").replaceChildren();$("canvas").width=0;buttons();message("Could not open PDF: "+friendly(err))}})});
+ catch(err){doc=null;preview=null;ids=[];notes=[];undoStack=[];selected=null;marker=null;viewport=null;$("pages").replaceChildren();$("notes").replaceChildren();$("overlay").width=0;$("canvas").width=0;buttons();message("Could not open PDF: "+friendly(err))}})});
 $("prev").onclick=()=>goTo(index-1);
 $("next").onclick=()=>goTo(index+1);
 // ---- page operations ----

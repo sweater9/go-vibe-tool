@@ -55,7 +55,7 @@ async function session(w) {
   const page = await ctx.newPage(); page.setDefaultTimeout(20000);
   const errs = [], external = [];
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
-  page.on('console', m => { if (m.type() === 'error' && !/favicon/.test(m.text())) errs.push('console: ' + m.text()); });
+  page.on('console', m => { if (m.type() === 'error' && !/favicon/.test(m.text())) errs.push('console: ' + m.text() + ' @ ' + m.location().url + ':' + m.location().lineNumber); });
   page.on('request', r => { const u = r.url(); if (!u.startsWith(origin) && !u.startsWith('blob:') && !u.startsWith('data:')) external.push(u); });
   const tap = l => touch ? l.tap() : l.click();
   const status = () => page.textContent('#status');
@@ -120,7 +120,7 @@ for (const w of WIDTHS) {
   await check(`${tag}: text lands at top-left by default, successive notes do not overlap, tapped position is honoured`, async () => {
     await S.open(files.A);
     await S.add('FIRSTNOTE'); await S.add('SECONDNOTE');
-    await S.tapPage(.5, .5); assert.equal(await page.locator('#overlay .marker').count(), 1, 'no position marker'); await S.add('TAPPED');
+    await S.tapPage(.5, .5); assert.equal(await page.locator('#overlay[data-marker="1"]').count(), 1, 'no position marker'); await S.add('TAPPED');
     const pg = (await inspect(page, await S.exportBytes()))[0];
     const a = find(pg, /FIRSTNOTE/), b = find(pg, /SECONDNOTE/), t = find(pg, /TAPPED/);
     assert.ok(a && b && t, 'notes missing: ' + JSON.stringify(pg.items.map(i => i.t)));
@@ -131,7 +131,7 @@ for (const w of WIDTHS) {
   });
 
   await check(`${tag}: select, edit, resize, move and delete a note`, async () => {
-    await S.tap(page.locator('#notes button', { hasText: 'TAPPED' })); assert.equal(await page.locator('#overlay .noteBox').count(), 1, 'no selection box');
+    await S.tap(page.locator('#notes button', { hasText: 'TAPPED' })); assert.equal(await page.locator('#overlay[data-selection="1"]').count(), 1, 'no selection box');
     await page.fill('#text', 'EDITED'); await page.fill('#noteSize', '30'); await S.act('#updateNote');
     let pg = (await inspect(page, await S.exportBytes()))[0];
     assert.ok(!find(pg, /TAPPED/) && find(pg, /EDITED/), 'edit not applied'); assert.ok(near(find(pg, /EDITED/).a, 30, 1), 'size not applied');

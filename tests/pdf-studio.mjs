@@ -38,6 +38,8 @@ test('PDF Studio editor supports positioned, editable text, undo and guarded edi
  assert.match(js,/encodeText\(value\)/); // unsupported characters are rejected before anything is changed
  assert.match(js,/password-protected/);
  assert.match(css,/#overlay\{[^}]*pointer-events:none/);
+ assert.doesNotMatch(js,/\.style\.(left|top|width|height)\s*=/); // overlay is a canvas, not styled elements
+ assert.match(html,/font-src 'self' blob: data:/); // pdf.js loads embedded fonts from blob:/data: URLs
  assert.doesNotMatch(html,/style="/); // CSP style-src 'self' forbids inline style attributes
 });
 test('PDF Studio provides mobile layout and no nested iframe',()=>{
