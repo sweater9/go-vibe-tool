@@ -168,7 +168,7 @@ for (const w of WIDTHS) {
   await check(`${tag}: bookmarks: read, rename, add, reorder, nest, delete; destinations verified in the exported file`, async () => {
     await S.open(fx.lo, 'report.pdf'); assert.match(await S.status(), /4 bookmarks/); await S.showPages(); await page.locator('#tabBookmarks').click();
     await page.waitForFunction(() => document.querySelectorAll('#bmList .bm-row').length === 4);
-    const rows = () => page.evaluate(() => [...document.querySelectorAll('#bmList .bm-row')].map(r => r.querySelector('.bm-title').textContent + '@' + r.getAttribute('aria-level')));
+    const rows = () => page.evaluate(() => [...document.querySelectorAll('#bmList .bm-row')].map(r => r.querySelector('.bm-title').textContent + '@' + (Number(r.dataset.depth) + 1)));
     assert.deepEqual(await rows(), ['Revenue@1', 'Costs@1', 'Hosting detail@2', 'Outlook@1']);
     await page.locator('#bmList .bm-row', { hasText: 'Revenue' }).locator('.bm-go').click(); await page.locator('#bmList .bm-actions button', { hasText: 'Rename' }).click(); await page.fill('#bmRename', 'Revenue summary'); await page.locator('#bmList .bm-actions button', { hasText: 'Save' }).click(); await S.settle();
     await S.showPages(); await page.locator('#tabBookmarks').click();
@@ -182,6 +182,15 @@ for (const w of WIDTHS) {
     const j = await pdfjsInfo(page, bytes); assert.deepEqual(j.outline.map(o => `${o.depth}:${o.title}:${o.hasDest}`), ['0:Revenue summary:true', '0:Outlook:true', '0:Costs:true', '1:Cost appendix:true']);
     needTools('pypdf'); const info = pypdfInspect(bytes); assert.deepEqual(info.outline.map(o => `${o.depth}:${o.title}:${o.page}`), ['0:Revenue summary:1', '0:Outlook:3', '0:Costs:2', '1:Cost appendix:2']);
     assert.deepEqual(poppler(bytes).errors, []);
+  });
+
+  await check(`${tag}: undo and redo cover bookmarks and links`, async () => {
+    await S.open(fx.lo, 'report.pdf'); await S.showPages(); await page.locator('#tabBookmarks').click();
+    await page.locator('#bmList .bm-row', { hasText: 'Costs' }).locator('.bm-go').click(); await page.locator('#bmList .bm-actions button', { hasText: 'Delete' }).click(); await S.settle();
+    let n = await page.evaluate(() => window.pdfEditorDebug.v2.outline().length); assert.equal(n, 2); await page.locator('#undo').click(); await S.settle(); n = await page.evaluate(() => window.pdfEditorDebug.v2.outline().length); assert.equal(n, 3);
+    await page.locator('#redo').click(); await S.settle(); n = await page.evaluate(() => window.pdfEditorDebug.v2.outline().length); assert.equal(n, 2); await page.locator('#undo').click(); await S.settle();
+    await S.goPage(1); await S.tool('link'); await page.locator('#linkList button', { hasText: 'example.com/data' }).click(); await page.locator('#linkRemove').click(); await S.settle(); assert.equal(await page.locator('#linkList button').count(), 1);
+    await page.locator('#undo').click(); await S.settle(); assert.equal(await page.locator('#linkList button').count(), 2);
   });
 
   await check(`${tag}: page operations keep bookmarks and links valid (reorder, delete, extract)`, async () => {

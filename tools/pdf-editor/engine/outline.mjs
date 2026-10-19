@@ -75,6 +75,5 @@ export function writeOutline(P, doc, tree, pageFor) {
   };
   const top = build(tree, rootRef); root.set(PDFName.of('First'), top.first); root.set(PDFName.of('Last'), top.last); root.set(PDFName.of('Count'), P.PDFNumber.of(visibleCount({ children: tree })));
   ctx.assign(rootRef, root); doc.catalog.set(PDFName.of('Outlines'), rootRef);
-  if (!doc.catalog.has(PDFName.of('PageMode'))) doc.catalog.set(PDFName.of('PageMode'), PDFName.of('UseOutlines'));
   return { warnings, written };
 }

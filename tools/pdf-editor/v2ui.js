@@ -82,11 +82,18 @@ export function createV2(ctx) {
       btn.addEventListener("click", () => selectBlock(bl).catch(fail)); li.append(btn); ul.append(li);
     });
   }
-  async function selectBlock(bl) {
-    if (draft && draft.dirty) await applyDraft(true);
+  async function selectBlock(bl, at = null) {
+    if (draft && draft.dirty && draft.blockId !== bl.id) { try { await applyDraft(true); } catch (e) { fail(e); return; } }
     const b = blocksFor, ed = editFor(b.src.id, b.page, bl.id);
     draft = { src: b.src.id, page: b.page, blockId: bl.id, block: bl, text: ed ? ed.text : bl.text, props: ed ? ed.props.slice() : Array.from({ length: bl.text.length }, () => null), align: ed ? ed.align : null, dirty: false, hasEdit: !!ed };
-    renderDraft(); renderBlockList(); scheduleOverlay(); const t = $("runText"); if (bl.editable && getTool() === "edittext") { t.focus(); t.select(); }
+    renderDraft(); renderBlockList(); scheduleOverlay(); const t = $("runText");
+    if (bl.editable && getTool() === "edittext") { t.focus(); const w = at ? wordAt(bl, at) : null; if (w) t.setSelectionRange(w[0], w[1]); else t.select(); syncFormatControls(); }
+  }
+  /* the word under a click: [start, end) in the block text */
+  function wordAt(bl, u) {
+    const along = ((u[0] - bl.origin[0]) * bl.dir[0] + (u[1] - bl.origin[1]) * bl.dir[1]) / (bl.userScale || 1); let idx = -1, pos = 0;
+    for (const e of bl.entries) { if (along >= e.x && along < e.x + e.w) { idx = pos; break; } pos += e.ch.length; }
+    if (idx < 0) return null; const t = bl.text; if (/\s/.test(t[idx])) return null; let a = idx, b = idx + 1; while (a > 0 && !/\s/.test(t[a - 1])) a--; while (b < t.length && !/\s/.test(t[b])) b++; return [a, b];
   }
   function renderDraft() {
     const d = draft, t = $("runText"), fmt = $("runFmt");
@@ -166,7 +173,7 @@ export function createV2(ctx) {
   async function pick(u) {
     const bl = await blockAt(u);
     if (!bl) { say("No text found there. Tap directly on existing text, or choose a line from the list."); return; }
-    await selectBlock(bl); if (!bl.editable) say(blockReason(bl.reason), true);
+    await selectBlock(bl, u); if (!bl.editable) say(blockReason(bl.reason), true);
   }
 
   /* ================================================================ links */
@@ -229,11 +236,11 @@ export function createV2(ctx) {
     const ul = $("bmList"); ul.replaceChildren(); const flat = O.flatten(outline());
     $("bmEmpty").hidden = flat.length > 0;
     flat.forEach(({ node, depth }) => {
-      const li = document.createElement("li"); li.className = "bm-row"; li.setAttribute("role", "treeitem"); li.setAttribute("aria-level", String(depth + 1)); li.dataset.depth = String(Math.min(depth, 6)); li.dataset.id = node.id;
+      const li = document.createElement("li"); li.className = "bm-row"; li.dataset.depth = String(Math.min(depth, 6)); li.dataset.id = node.id;
       const sel = bmSel === node.id; li.classList.toggle("sel", sel);
       const go = document.createElement("button"); go.type = "button"; go.className = "bm-go"; go.setAttribute("aria-pressed", String(sel));
       const pn = pageNumOf(node), label = document.createElement("span"); label.className = "bm-title"; label.textContent = node.title || "Untitled"; const pg = document.createElement("span"); pg.className = "bm-page"; pg.textContent = node.dest ? (pn ? `p. ${pn}` : "page removed") : node.uri ? "link" : "no page";
-      go.append(label, pg); go.addEventListener("click", () => { bmSel = node.id; bmEditing = false; const keepOpen = document.body.classList.contains("pages-open"); renderBookmarks(); if (pn) Promise.resolve(goTo(pn - 1)).then(() => { if (keepOpen) { document.body.classList.add("pages-open"); $("pagesToggle").setAttribute("aria-expanded", "true"); } renderBookmarks(); }); }); li.append(go);
+      go.setAttribute("aria-label", `${node.title || "Untitled"}, ${node.dest ? (pn ? "page " + pn : "page removed") : "no page"}${depth ? ", sub-bookmark level " + (depth + 1) : ""}`); go.append(label, pg); go.addEventListener("click", () => { bmSel = node.id; bmEditing = false; const keepOpen = document.body.classList.contains("pages-open"); renderBookmarks(); if (pn) Promise.resolve(goTo(pn - 1)).then(() => { if (keepOpen) { document.body.classList.add("pages-open"); $("pagesToggle").setAttribute("aria-expanded", "true"); } renderBookmarks(); }); }); li.append(go);
       if (sel) li.append(bmActions(node));
       ul.append(li);
     });
@@ -311,7 +318,7 @@ export function createV2(ctx) {
     syncSource, exportExtras, verifyExport, drawOverlay, pick, finishLink,
     async pageChanged() { draft = null; linkSel = null; renderDraft(); renderLinks(); if (getTool() === "edittext") await loadBlocks(); else { blocksFor = null; } },
     async toolChanged() { const t = getTool(); if (t === "edittext") { renderDraft(); await loadBlocks(); } if (t === "link") renderLinks(); },
-    refresh() { renderBookmarks(); renderLinks(); renderBlockList(); },
+    refresh() { renderBookmarks(); renderLinks(); if (draft && !draft.dirty && blocksFor) { const bl = draft.block; draft = null; selectBlock(bl).catch(() => {}); } else renderBlockList(); },
     afterReload() { engines.forEach(e => e.analyses && e.analyses.clear && void 0); },
     editedCount: () => getState().textEdits.length,
     debug: { blocks: () => blocksFor && blocksFor.blocks.map(b => ({ id: b.id, text: b.text, editable: b.editable, reason: b.reason, box: b.box })), draft: () => draft && { text: draft.text, dirty: draft.dirty }, links: () => getState().links, outline: () => getState().outline },
