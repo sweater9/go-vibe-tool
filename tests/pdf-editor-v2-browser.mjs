@@ -9,7 +9,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { HAVE, pdftotext, pdffonts, pypdfInspect, poppler, words, render, colourIn, imageCount } from './helpers/pdf-verify.mjs';
-import { committed, noUnicode, scanned, stdInvoice, mixedImage, formXObject, bigDocument, tinyPng } from './helpers/pdf-fixtures.mjs';
+import { committed, noUnicode, scanned, stdInvoice, mixedImage, formXObject, bigDocument, tinyPng, paragraphDoc } from './helpers/pdf-fixtures.mjs';
 const pw = await import(process.env.PLAYWRIGHT_PACKAGE || 'playwright');
 const engine = process.argv[2] || 'chromium';
 const dir = process.env.PDF_QA_ARTIFACTS || `artifacts/pdf-editor-v2-${engine}`;
@@ -32,7 +32,7 @@ async function check(name, fn) {
 }
 const needTools = (what = 'poppler') => { const ok = what === 'poppler' ? HAVE.poppler : what === 'pypdf' ? HAVE.pypdf : HAVE.poppler && HAVE.pypdf; if (!ok) { if (REQUIRE) throw new Error(`required tool missing: ${what}`); const e = new Error(`${what} is not installed`); e.skip = true; throw e; } };
 const compact = s => s.replace(/\s+/g, ' ').trim(), nospace = s => s.replace(/\s+/g, '');
-const fx = { mixed: Buffer.from(await mixedImage(P)), form: Buffer.from(formXObject()), big: Buffer.from(bigDocument(120)), chrome: Buffer.from(committed('chrome-invoice.pdf')), lo: Buffer.from(committed('lo-report.pdf')), std: Buffer.from(stdInvoice()), enc: Buffer.from(committed('encrypted.pdf')), nounicode: Buffer.from(noUnicode()), scan: Buffer.from(scanned()) };
+const fx = { para: Buffer.from(paragraphDoc()), mixed: Buffer.from(await mixedImage(P)), form: Buffer.from(formXObject()), big: Buffer.from(bigDocument(120)), chrome: Buffer.from(committed('chrome-invoice.pdf')), lo: Buffer.from(committed('lo-report.pdf')), std: Buffer.from(stdInvoice()), enc: Buffer.from(committed('encrypted.pdf')), nounicode: Buffer.from(noUnicode()), scan: Buffer.from(scanned()) };
 
 async function session(w) {
   const mobile = w <= 460, touch = mobile && realTouch;
@@ -135,6 +135,23 @@ for (const w of WIDTHS) {
     assert.ok(compact(pdftotext(bytes, 1)).includes('Consulting services'));
   });
 
+  await check(`${tag}: paragraph reflow: edit a wrapped paragraph as a whole, lines re-wrap in the original font; too-long text is refused; restore works`, async () => {
+    await S.open(fx.para, 'para.pdf'); await S.tool('edittext'); await S.pickBlock('committee');
+    await page.waitForSelector('#runParaRow:not([hidden])'); await page.locator('#runPara').check(); await page.waitForTimeout(300);
+    const full = await page.inputValue('#runText'); assert.ok(full.startsWith('The committee reviewed') && full.endsWith('next month.'), full);
+    await S.setText(full.replace('agreed that spending on equipment should be postponed', 'decided to postpone equipment spending')); await page.waitForTimeout(600);
+    assert.match(await page.textContent('#runWarn'), /Uses \d of 5 lines/);
+    await S.apply(); const bytes = await S.exportBytes(); await fs.writeFile(`${dir}/paragraph-${w}.pdf`, bytes); needTools('poppler');
+    const t = compact(pdftotext(bytes, 1)); assert.ok(t.includes('decided to postpone equipment spending') && !t.includes('agreed that spending'), t);
+    assert.ok(t.includes('Budget Review') && t.includes('Finance Office') && t.includes('Right column text'));
+    // a text that needs more than the five lines is refused with a reason and cannot be applied
+    await S.setText(full + ' ' + 'extra words that will not fit '.repeat(10)); await page.waitForTimeout(700);
+    assert.match(await page.textContent('#runWarn'), /more lines/); assert.ok(await page.locator('#runApply').isDisabled());
+    await S.setText(full.replace('committee', 'board')); await page.waitForTimeout(500); await S.apply();
+    await page.locator('#runRevert').click(); await S.settle(); assert.equal(await page.evaluate(() => window.pdfEditorDebug.v2.edits ? window.pdfEditorDebug.v2.edits() : 0), 0);
+    const back = await S.exportBytes(); needTools('poppler'); assert.ok(compact(pdftotext(back, 1)).includes('The committee reviewed'));
+  });
+
   await check(`${tag}: clicking the page selects the text under the pointer`, async () => {
     await S.open(fx.std, 'std.pdf'); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 3);
     const b = (await S.blocks()).find(x => /Bill to/.test(x.text)); await S.clickAt(b.box.x + b.box.w / 2, b.box.y + b.box.h / 2);
@@ -144,6 +161,7 @@ for (const w of WIDTHS) {
   await check(`${tag}: text that cannot be edited is explained; scanned and password-protected files are handled gracefully`, async () => {
     await S.open(fx.nounicode, 'nounicode.pdf'); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length === 1);
     await page.locator('#blockList button').first().click(); await page.waitForTimeout(200); assert.match(await page.textContent('#runInfo'), /no Unicode mapping/); assert.equal(await page.locator('#runText').isDisabled(), true); assert.equal(await page.locator('#runApply').isDisabled(), true);
+    assert.match(await page.textContent('#blockList li[data-summary=locked]'), /1 of 1 text lines on this page cannot be edited: 1 × .*no Unicode mapping/);
     await S.open(fx.scan, 'scan.pdf'); await S.tool('edittext'); await page.waitForFunction(() => document.getElementById('blockList').textContent.includes('No selectable text')); assert.match(await page.textContent('#blockList'), /OCR/);
     await page.goto(`${origin}/tools/pdf-editor/`); await page.setInputFiles('#fileInput', { name: 'enc.pdf', mimeType: 'application/pdf', buffer: fx.enc }); await page.waitForFunction(() => !document.getElementById('welcomeError').hidden); assert.match(await page.textContent('#welcomeError'), /password-protected or encrypted/);
   });

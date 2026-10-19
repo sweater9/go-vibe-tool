@@ -108,7 +108,7 @@ Every P0 feature is checked on the **exported bytes**, using parsers that do not
 
 Everything below is implemented in `tools/pdf-editor/engine/*` and `tools/pdf-editor/v2ui.js`. "Verified" means checked on the
 **exported bytes** by tools that share no code with the editor (Poppler, pypdf, PDF.js) — see `tests/pdf-editor-v2-engine.mjs`
-(Node, 39 tests) and `tests/pdf-editor-v2-browser.mjs` (Chromium, Firefox, WebKit; 1440 px and 390 px).
+(Node, 45 tests) and `tests/pdf-editor-v2-browser.mjs` (Chromium, Firefox, WebKit; 1440 px and 390 px).
 
 | Requirement | Status | Evidence |
 |---|---|---|
@@ -133,7 +133,7 @@ whose fill was never set explicitly left all later text in that colour. It is fi
   it is drawn with the matching standard font (Helvetica, Times or Courier), and the panel says which characters. Characters
   outside WinAnsi that the embedded font lacks are refused.
 * Bold, italic and a different family on text in an embedded font switch those characters to a standard font (the subset cannot be made bold).
-* Editing is per line, without reflow across lines. A longer replacement warns; "Move the rest of the line along" shifts closely
+* Editing is per line by default. A wrapped paragraph (lines sharing a left edge, font, size, colour and leading, with nothing else inside its width) can be edited as a whole: its words are re-wrapped onto the paragraph's existing lines with the original font and colour (`engine/reflow.mjs`). Reflow never adds lines, so text that needs more lines is refused, justified paragraphs become ragged-right (the editor says so), and paragraphs with mixed fonts or colours are only offered line by line. Within a single line, a longer replacement warns; "Move the rest of the line along" shifts closely
   following text, but underlines, boxes and link rectangles that were drawn separately are not moved.
 * Not editable, with a reason shown: Type 3 fonts, composite fonts without ToUnicode or with other CMaps, vertical writing,
   invisible OCR text, text drawn with stroke/clip render modes. Scanned pages show "no selectable text" (no OCR). Encrypted files are refused.

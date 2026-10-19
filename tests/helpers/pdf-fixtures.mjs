@@ -85,3 +85,12 @@ export function bigDocument(pages = 150) {
   const ps = []; for (let i = 0; i < pages; i++) { let c = ''; for (let l = 0; l < 40; l++) c += `BT /F2 11 Tf 56 ${760 - l * 17} Td (Page ${i + 1} line ${l + 1}: the quick brown fox jumps over the lazy dog 0123456789) Tj ET\n`; ps.push({ content: c }); }
   return new Uint8Array(buildPdf({ pages: ps, fonts: STD_FONTS }));
 }
+
+/* A wrapped paragraph (5 lines, ragged right), a heading, a short address list and a two-column row, all Times/Helvetica standard fonts. */
+export function paragraphDoc() {
+  const L = ['The committee reviewed the annual budget and agreed that spending', 'on equipment should be postponed until the next quarter because the', 'current suppliers have not yet confirmed their delivery dates and the', 'cost estimates may change before the final approval is given by the', 'board of directors next month.'];
+  let c = 'BT /F1 18 Tf 72 720 Td (Budget Review) Tj ET\nBT /F2 12 Tf 14 TL 72 690 Td\n' + L.map(l => `(${l}) Tj T*`).join('\n') + '\nET\n';
+  c += 'BT /F2 12 Tf 72 560 Td (Contact) Tj 0 -14 Td (Finance Office) Tj 0 -14 Td (12 Main St) Tj ET\n';
+  c += 'BT /F2 12 Tf 72 500 Td (Left column text) Tj 250 0 Td (Right column text) Tj ET\n';
+  return new Uint8Array(buildPdf({ pages: [{ content: c }], fonts: STD_FONTS }));
+}

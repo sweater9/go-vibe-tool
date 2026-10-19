@@ -7,12 +7,13 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { applyTextEdits, measureEdit, FontLibrary, analyzePage, scanUsage, EditError } from '../tools/pdf-editor/engine/edit.mjs';
+import { detectParagraphs, paragraphOf, paragraphText, reflowParagraph } from '../tools/pdf-editor/engine/reflow.mjs';
 import { readLinks } from '../tools/pdf-editor/engine/links.mjs';
 import * as O from '../tools/pdf-editor/engine/outline.mjs';
 import { bakeDocument } from '../tools/pdf-editor/bake.mjs';
 import { makeFontMetrics } from '../tools/pdf-editor/model.mjs';
 import { HAVE, pdftotext, pdffonts, words, render, diffPixels, colourIn, pypdfInspect, poppler, pageCount } from './helpers/pdf-verify.mjs';
-import { committed, stdInvoice, hardCases, ocrLayer, scanned, noUnicode, mixedImage, formXObject, bigDocument } from './helpers/pdf-fixtures.mjs';
+import { committed, stdInvoice, hardCases, ocrLayer, scanned, noUnicode, mixedImage, formXObject, bigDocument, paragraphDoc } from './helpers/pdf-fixtures.mjs';
 
 const P = createRequire(import.meta.url)(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'vendor', 'pdf-lib.min.js'));
 const popplerTest = (name, fn) => test(name, { skip: HAVE.poppler ? false : 'SKIPPED: poppler-utils not installed' }, fn);
@@ -289,4 +290,50 @@ bothTest('multilingual file: ligature line and CJK text are edited in place; del
   let r = await edit(bytes, 0, 'Ligatures:', t => t.replace('office', 'offices').replace('café', 'café au lait')); let t = compact(pdftotext(r.bytes, 1)); assert.ok(/offices affluent/.test(t) && /café au lait/.test(t), t);
   r = await edit(bytes, 0, '你好世界', '你好'); t = pdftotext(r.bytes, 1); assert.ok(t.includes('你好') && !t.includes('世界'), 'deleted CJK characters still in the file'); assert.ok(!pypdfInspect(r.bytes).texts[0].includes('世界'));
   assert.deepEqual(poppler(r.bytes).errors, []); assert.equal(diffPixels(render(bytes, 1), render(r.bytes, 1), 100, [{ x0: 200, y0: 0, x1: 612, y1: 60 }]), 0, 'text elsewhere changed');
+});
+
+
+/* ------------------------------------------------------------------ paragraph reflow */
+async function reflowEdit(bytes, find, change) {
+  const a = await blocksOf(bytes, 0), paras = detectParagraphs(a.blocks), para = paragraphOf(paras, findBlock(a.blocks, find).id);
+  assert.ok(para, `no paragraph around "${find}"; found: ${paras.map(p => p.blocks.length)}`);
+  const text = change(paragraphText(para)), r = await reflowParagraph(P, a.doc, a.lib, para, text);
+  const out = await applyTextEdits(P, bytes, r.edits.map(e => ({ page: 0, ...e })));
+  return { para, r, out, text };
+}
+test('reflow: only genuinely wrapped paragraphs are offered (not headings, address lists or columns)', async () => {
+  const a = await blocksOf(paragraphDoc(), 0), paras = detectParagraphs(a.blocks);
+  assert.equal(paras.length, 1, `expected 1 paragraph, got ${paras.map(p => p.blocks.map(b => b.text))}`);
+  assert.equal(paras[0].blocks.length, 5);
+  assert.ok(paragraphText(paras[0]).startsWith('The committee reviewed') && paragraphText(paras[0]).endsWith('next month.'));
+  for (const t of ['Budget Review', 'Finance Office', 'Left column text']) assert.equal(paragraphOf(paras, findBlock(a.blocks, t).id), null, t);
+});
+bothTest('reflow: a shorter sentence re-wraps within the same lines, keeps the font, and leaves everything else identical', async () => {
+  const src = paragraphDoc(), { out, r } = await reflowEdit(src, 'committee', t => t.replace('agreed that spending on equipment should be postponed', 'decided to postpone equipment spending'));
+  assert.ok(r.usedLines <= r.totalLines);
+  const txt = compact(pdftotext(out.bytes, 1));
+  assert.ok(txt.includes('decided to postpone equipment spending'), txt);
+  assert.ok(!txt.includes('agreed that spending'), 'old words must be gone from the file');
+  assert.ok(txt.includes('Budget Review') && txt.includes('Finance Office') && txt.includes('Left column text') && txt.includes('Right column text'));
+  assert.deepEqual(pdffonts(out.bytes).map(f => f.name), pdffonts(src).map(f => f.name), 'no font was added or swapped');
+  const before = render(src, 1), after = render(out.bytes, 1); assert.ok(diffPixels(before, after, 100, [{ x0: 60, y0: 84, x1: 560, y1: 170 }]) === 0, 'pixels outside the paragraph must not change');
+});
+bothTest('reflow: a longer sentence that still fits reflows onto later lines; words in order, none lost', async () => {
+  const src = paragraphDoc(), add = 'Members asked. ';
+  const { out, text } = await reflowEdit(src, 'committee', t => add + t.replace('next month.', 'next month.'));
+  const got = compact(pdftotext(out.bytes, 1)); const wantWords = compact(text).split(' ');
+  const idx = wantWords.map(w => got.indexOf(w)); assert.ok(idx.every(i => i >= 0), 'every word present');
+  assert.ok(got.includes('Members asked.'), got);
+  });
+test('reflow: text needing more lines than the paragraph has is refused with a reason, nothing is changed', async () => {
+  const a = await blocksOf(paragraphDoc(), 0), para = detectParagraphs(a.blocks)[0];
+  await assert.rejects(() => reflowParagraph(P, a.doc, a.lib, para, paragraphText(para) + ' ' + 'additional words that will certainly not fit '.repeat(8)), e => e.code === 'overflow' && /more lines/.test(e.message));
+});
+test('reflow: unchanged text produces no edits', async () => {
+  const a = await blocksOf(paragraphDoc(), 0), para = detectParagraphs(a.blocks)[0];
+  const r = await reflowParagraph(P, a.doc, a.lib, para, paragraphText(para)); assert.ok(r.edits.length <= para.blocks.length);
+});
+test('reflow: a typed character that is not in WinAnsi is refused, a word wider than the paragraph is refused', async () => {
+  const a = await blocksOf(paragraphDoc(), 0), para = detectParagraphs(a.blocks)[0];
+  await assert.rejects(() => reflowParagraph(P, a.doc, a.lib, para, 'W'.repeat(120)), e => e.code === 'longword');
 });

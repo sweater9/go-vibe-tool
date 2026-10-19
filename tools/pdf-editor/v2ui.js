@@ -4,6 +4,7 @@
    editor through the `ctx` object, so editor.js keeps its own state private. */
 import { FontLibrary, analyzePage, scanUsage, applyTextEdits, measureEdit } from "./engine/edit.mjs";
 import { blockReason } from "./engine/textmodel.mjs";
+import { detectParagraphs, paragraphOf, paragraphText, reflowParagraph } from "./engine/reflow.mjs";
 import { readLinks, normalizeUri, normRect } from "./engine/links.mjs";
 import * as O from "./engine/outline.mjs";
 import { topOfPage } from "./engine/dest.mjs";
@@ -22,7 +23,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 export function createV2(ctx) {
   const { PDFLib, $, say, fail, guard, friendly, commit, getState, getCur, getVp, getScale, getDpr, curPage, srcOf, setTool, getTool, goTo, scheduleOverlay } = ctx;
   const engines = new Map(); let blocksFor = null, draft = null, loadToken = 0, measureTimer = 0, measureSeq = 0;
-  let linkSel = null, bmSel = null, bmEditing = false;
+  let linkSel = null, bmSel = null, bmEditing = false, pdraft = null, paraTimer = 0, paraSeq = 0;
 
   /* ================================================================ engine */
   async function engineFor(src) {
@@ -59,7 +60,7 @@ export function createV2(ctx) {
     const src = srcOf(p); const first = !engines.has(src.id); if (first) say("Reading the fonts in this PDF…");
     let res; try { res = await analysisOf(src, p.idx); } catch (e) { blocksFor = null; renderBlockList(); fail(new Error("This page could not be analysed for text editing: " + friendly(e))); return; }
     if (token !== loadToken) return;
-    blocksFor = { src, page: p.idx, pid: p.id, blocks: res.a.blocks, doCount: res.a.interp.doCount, a: res.a, hidden: 0 }; renderBlockList(); scheduleOverlay();
+    blocksFor = { src, page: p.idx, pid: p.id, blocks: res.a.blocks, paras: detectParagraphs(res.a.blocks), doCount: res.a.interp.doCount, a: res.a, hidden: 0 }; renderBlockList(); scheduleOverlay();
     if (res.a.interp.doCount > 0) { // text drawn inside Form XObjects is not part of the page content stream the engine edits: count it so the limit is visible
       try {
         const page = await src.pdf.getPage(p.idx + 1), tc = await page.getTextContent(), words = t => t.split(/\s+/).map(w => w.replace(/[^\p{L}\p{N}]/gu, "")).filter(w => w.length > 1);
@@ -75,6 +76,8 @@ export function createV2(ctx) {
     if (!b) { const li = document.createElement("li"); li.className = "hint"; li.textContent = curPage() && curPage().blank ? "Blank pages have no existing text." : "Loading text…"; ul.append(li); return; }
     if (!b.blocks.length) { const li = document.createElement("li"); li.className = "hint"; li.textContent = "No selectable text on this page. It may be a scanned image; V2 does not include OCR."; ul.append(li); return; }
     if (b.hidden > 2) { const li = document.createElement("li"); li.className = "hint"; li.textContent = `About ${b.hidden} words on this page are drawn inside embedded form objects (XObjects) and cannot be edited here.`; ul.append(li); }
+    const locked = new Map(); for (const bl of b.blocks) if (!bl.editable) locked.set(bl.reason, (locked.get(bl.reason) || 0) + 1);
+    if (locked.size) { const li = document.createElement("li"); li.className = "hint warn-list"; li.dataset.summary = "locked"; const total = [...locked.values()].reduce((a, c) => a + c, 0); li.textContent = `${total} of ${b.blocks.length} text lines on this page cannot be edited: ` + [...locked].map(([r, n]) => `${n} × ${blockReason(r).replace(/\.$/, "")}`).join("; ") + ". They are marked 🔒 and left exactly as they are."; ul.append(li); }
     b.blocks.slice(0, 300).forEach(bl => {
       const li = document.createElement("li"), btn = document.createElement("button"); btn.type = "button"; btn.dataset.block = bl.id;
       const ed = editFor(b.src.id, b.page, bl.id); btn.setAttribute("aria-pressed", String(!!draft && draft.blockId === bl.id));
@@ -83,10 +86,11 @@ export function createV2(ctx) {
     });
   }
   async function selectBlock(bl, at = null) {
+    if (pdraft && pdraft.dirty && !pdraft.para.ids.includes(bl.id)) { try { await applyPara(); } catch (e) { fail(e); return; } }
     if (draft && draft.dirty && draft.blockId !== bl.id) { try { await applyDraft(true); } catch (e) { fail(e); return; } }
-    const b = blocksFor, ed = editFor(b.src.id, b.page, bl.id);
+    pdraft = null; const b = blocksFor, ed = editFor(b.src.id, b.page, bl.id);
     draft = { src: b.src.id, page: b.page, blockId: bl.id, block: bl, text: ed ? ed.text : bl.text, props: ed ? ed.props.slice() : Array.from({ length: bl.text.length }, () => null), align: ed ? ed.align : null, reflow: ed ? !!ed.reflow : undefined, dirty: false, hasEdit: !!ed };
-    renderDraft(); renderBlockList(); scheduleOverlay(); const t = $("runText");
+    renderDraft(); renderBlockList(); scheduleOverlay(); if (blocksFor.paras) { const pa = paragraphOf(blocksFor.paras, bl.id); if (pa && groupEdits(b.src.id, b.page, pa.ids).some(x => x.group === pa.id)) { await enterPara(); return; } } const t = $("runText");
     if (bl.editable && getTool() === "edittext") { t.focus(); const w = at ? wordAt(bl, at) : null; if (w) t.setSelectionRange(w[0], w[1]); else t.select(); syncFormatControls(); }
   }
   /* the word under a click: [start, end) in the block text */
@@ -96,8 +100,9 @@ export function createV2(ctx) {
     if (idx < 0) return null; const t = bl.text; if (/\s/.test(t[idx])) return null; let a = idx, b = idx + 1; while (a > 0 && !/\s/.test(t[a - 1])) a--; while (b < t.length && !/\s/.test(t[b])) b++; return [a, b];
   }
   function renderDraft() {
-    const d = draft, t = $("runText"), fmt = $("runFmt");
-    if (!d) { t.value = ""; t.disabled = true; fmt.disabled = true; $("runApply").disabled = true; $("runRevert").disabled = true; $("runInfo").textContent = "Select a line of text on the page, or choose one from the list below."; $("runNote").textContent = ""; showWarn(""); return; }
+    if (pdraft) { renderPara(); return; }
+    const d = draft, t = $("runText"), fmt = $("runFmt"); const para = d && d.block.editable && blocksFor ? paragraphOf(blocksFor.paras || [], d.blockId) : null; $("runParaRow").hidden = !para; $("runParaHint").hidden = !para; $("runPara").checked = false;
+    if (!d) { $("runParaRow").hidden = true; $("runParaHint").hidden = true; t.value = ""; t.disabled = true; fmt.disabled = true; $("runApply").disabled = true; $("runRevert").disabled = true; $("runInfo").textContent = "Select a line of text on the page, or choose one from the list below."; $("runNote").textContent = ""; showWarn(""); return; }
     const ok = d.block.editable; t.disabled = !ok; fmt.disabled = !ok; if (document.activeElement !== t) t.value = d.text;
     $("runApply").disabled = !ok || !d.dirty; $("runRevert").disabled = !(d.hasEdit || d.dirty);
     $("runInfo").textContent = ok ? "This changes the text in the PDF itself. It stays real, searchable text; nothing is covered or flattened." : blockReason(d.block.reason);
@@ -113,7 +118,7 @@ export function createV2(ctx) {
   function showWarn(msg, bad = false) { const w = $("runWarn"); w.hidden = !msg; w.textContent = msg || ""; w.classList.toggle("bad", bad); }
   function selectionRange() { const t = $("runText"); let s = t.selectionStart ?? 0, e = t.selectionEnd ?? 0; if (s === e) { s = 0; e = draft.text.length; } return [s, e]; }
   function patchFormat(patch) {
-    if (!draft || !draft.block.editable) return; const [s, e] = selectionRange();
+    if (pdraft || !draft || !draft.block.editable) return; const [s, e] = selectionRange();
     for (let i = s; i < e; i++) draft.props[i] = { ...(draft.props[i] || {}), ...patch };
     draft.dirty = !isPlain(draft) || draft.hasEdit; renderDraft(); scheduleOverlay();
   }
@@ -155,12 +160,57 @@ export function createV2(ctx) {
     draft = null; await selectBlock(d.block); say("This line was restored to its original text.");
   }
 
+
+  /* ---- paragraph mode: the whole wrapped paragraph is one text; words are re-wrapped onto its existing lines ---- */
+  const groupEdits = (src, page, ids) => getState().textEdits.filter(x => x.src === src && x.page === page && ids.includes(x.blockId));
+  async function enterPara() {
+    const d = draft; if (!d || !blocksFor) return; const para = paragraphOf(blocksFor.paras || [], d.blockId); const box = $("runPara");
+    if (!para) { box.checked = false; return; }
+    const ex = groupEdits(d.src, d.page, para.ids), grouped = ex.filter(x => x.group === para.id);
+    if (ex.length !== grouped.length) { box.checked = false; say("Some lines of this paragraph were edited one by one. Restore them first to edit the paragraph as a whole.", true); return; }
+    if (d.dirty) { box.checked = false; say("Apply or restore your change to this line first, then edit the whole paragraph.", true); return; }
+    pdraft = { src: d.src, page: d.page, para, orig: paragraphText(para), text: grouped.length ? grouped[0].paraText : paragraphText(para), dirty: false, hasEdit: grouped.length > 0 };
+    renderDraft(); measureParaSoon(); scheduleOverlay();
+  }
+  function exitPara() { pdraft = null; const bl = draft && draft.block; draft = null; if (bl) selectBlock(bl).catch(fail); }
+  function renderPara() {
+    const p = pdraft, t = $("runText"); t.disabled = false; if (document.activeElement !== t) t.value = p.text; $("runFmt").disabled = true; $("runReflowRow").hidden = true; $("runReflowHint").hidden = true;
+    $("runParaRow").hidden = false; $("runParaHint").hidden = false; $("runPara").checked = true;
+    $("runApply").disabled = !p.dirty || !!p.error; $("runRevert").disabled = !(p.hasEdit || p.dirty);
+    $("runInfo").textContent = `Editing a paragraph of ${p.para.blocks.length} lines. Formatting stays as in the PDF; to change fonts or colours, edit line by line.`;
+    $("runNote").textContent = p.result ? p.result.notes.join(" ") : "";
+  }
+  function measureParaSoon() { clearTimeout(paraTimer); paraTimer = setTimeout(() => measurePara().catch(() => {}), 150); }
+  async function measurePara() {
+    const p = pdraft; if (!p) return; const seq = ++paraSeq, src = engines.get(p.src);
+    try {
+      const r = await reflowParagraph(PDFLib, src.doc, src.lib, p.para, p.text); if (seq !== paraSeq || pdraft !== p) return; p.result = r; p.error = null;
+      const msgs = [`Uses ${r.usedLines} of ${r.totalLines} lines.`]; if (p.para.justified && p.text !== p.orig) msgs.push("This paragraph is justified in the PDF; the re-wrapped lines are left-aligned with a ragged right edge.");
+      showWarn(p.dirty ? msgs.join(" ") : ""); renderPara();
+    } catch (e) { if (seq !== paraSeq || pdraft !== p) return; p.result = null; p.error = friendly(e); showWarn(p.error, true); renderPara(); }
+  }
+  async function applyPara() {
+    const p = pdraft; if (!p || !p.dirty) return; const src = engines.get(p.src);
+    const r = await reflowParagraph(PDFLib, src.doc, src.lib, p.para, p.text).catch(e => { throw new Error(friendly(e)); }); const st = getState();
+    await commit(() => {
+      st.textEdits = st.textEdits.filter(x => !(x.src === p.src && x.page === p.page && p.para.ids.includes(x.blockId)));
+      for (const e of r.edits) st.textEdits.push({ id: Date.now() + Math.random(), src: p.src, page: p.page, blockId: e.blockId, text: e.text, props: Array.from({ length: e.text.length }, () => null), align: null, engine: { page: p.page, blockId: e.blockId, text: e.text, align: null, reflow: false, fmt: [] }, reflow: false, widthUser: 0, notes: r.notes, group: p.para.id, paraText: p.text });
+    }, { reload: true });
+    p.dirty = false; p.hasEdit = r.edits.length > 0; renderDraft(); renderBlockList(); scheduleOverlay();
+    say(r.edits.length ? `The paragraph was re-wrapped onto ${r.usedLines} of its ${r.totalLines} lines.${r.notes.length ? " " + r.notes.join(" ") : ""}` : "That paragraph is back to its original text.");
+  }
+  async function revertPara() {
+    const p = pdraft; if (!p) return; const st = getState();
+    if (p.hasEdit) await commit(() => { st.textEdits = st.textEdits.filter(x => !(x.src === p.src && x.page === p.page && p.para.ids.includes(x.blockId))); }, { reload: true });
+    pdraft = null; const bl = draft && draft.block; draft = null; if (bl) await selectBlock(bl); say("This paragraph was restored to its original text.");
+  }
+
   /* ---- overlay and picking ---- */
   function drawOverlay(g, k) {
     const vp = getVp(); if (!vp) return; const tool = getTool();
     if (tool === "edittext" && blocksFor && blocksFor.pid === curPage()?.id) {
       for (const bl of blocksFor.blocks) {
-        const sel = draft && draft.blockId === bl.id, ed = editFor(blocksFor.src.id, blocksFor.page, bl.id); g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+        const sel = (draft && draft.blockId === bl.id) || (pdraft && pdraft.para.ids.includes(bl.id)), ed = editFor(blocksFor.src.id, blocksFor.page, bl.id); g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
         let q = bl.quad; if (ed && ed.widthUser && bl.userScale) { const L = ed.widthUser, o = bl.quad[0], ux = bl.dir[0], uy = bl.dir[1]; const w0 = Math.hypot(bl.quad[1][0] - o[0], bl.quad[1][1] - o[1]), dx = ux * (L - w0), dy = uy * (L - w0); q = [bl.quad[0], [bl.quad[1][0] + dx, bl.quad[1][1] + dy], [bl.quad[2][0] + dx, bl.quad[2][1] + dy], bl.quad[3]]; }
         g.beginPath(); q.forEach(([x, y], i) => { const [a, b] = vp.toDisplay(x, y); i ? g.lineTo(a * k, b * k) : g.moveTo(a * k, b * k); }); g.closePath();
         if (!bl.editable) { g.setLineDash([3 * k, 3 * k]); g.strokeStyle = "rgba(120,130,145,.8)"; g.lineWidth = 1 * k; g.stroke(); }
@@ -302,16 +352,17 @@ export function createV2(ctx) {
 
   /* ================================================================ wiring */
   const bind = () => {
-    $("runText").addEventListener("input", () => { if (!draft) return; retext($("runText").value); draft.dirty = true; renderDraftLight(); });
+    $("runText").addEventListener("input", () => { if (pdraft) { pdraft.text = $("runText").value; pdraft.dirty = pdraft.text !== pdraft.orig || pdraft.hasEdit; renderPara(); measureParaSoon(); return; } if (!draft) return; retext($("runText").value); draft.dirty = true; renderDraftLight(); });
     $("runText").addEventListener("keyup", syncFormatControls); $("runText").addEventListener("click", syncFormatControls); $("runText").addEventListener("select", syncFormatControls);
-    $("runText").addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); applyDraft().catch(fail); } });
+    $("runText").addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); (pdraft ? applyPara() : applyDraft()).catch(fail); } });
     $("runFont").addEventListener("change", () => patchFormat({ family: $("runFont").value || undefined }));
     $("runSize").addEventListener("input", () => { const v = Number($("runSize").value); if (Number.isFinite(v) && v >= 2 && v <= 400) patchFormat({ size: v }); });
     $("runBold").addEventListener("click", () => patchFormat({ bold: $("runBold").getAttribute("aria-pressed") !== "true" })); $("runItalic").addEventListener("click", () => patchFormat({ italic: $("runItalic").getAttribute("aria-pressed") !== "true" }));
     $("runColor").addEventListener("input", () => patchFormat({ color: $("runColor").value }));
     for (const a of ["left", "center", "right"]) $("runAnchor" + a[0].toUpperCase()).addEventListener("click", () => { if (!draft) return; draft.align = draft.align === a ? null : a; draft.dirty = true; renderDraft(); });
     $("runReflow").addEventListener("change", () => { if (!draft) return; draft.reflow = $("runReflow").checked; draft.dirty = !isPlain(draft) || draft.hasEdit; renderDraft(); });
-    $("runApply").addEventListener("click", guard(() => applyDraft())); $("runRevert").addEventListener("click", guard(revertDraft));
+    $("runApply").addEventListener("click", guard(() => pdraft ? applyPara() : applyDraft())); $("runRevert").addEventListener("click", guard(() => pdraft ? revertPara() : revertDraft()));
+    $("runPara").addEventListener("change", guard(async () => { if ($("runPara").checked) await enterPara(); else exitPara(); }));
     for (const el of document.querySelectorAll("input[name=linkKind]")) el.addEventListener("change", () => { if (linkSel) { linkSel.rec.kind = el.value; renderLinks(); } });
     $("linkApply").addEventListener("click", guard(saveLink)); $("linkRemove").addEventListener("click", guard(removeLink)); $("linkUri").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); saveLink().catch(fail); } });
     $("bmAdd").addEventListener("click", guard(addBookmark)); $("bmNewTitle").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addBookmark().catch(fail); } });
@@ -322,14 +373,14 @@ export function createV2(ctx) {
   bind();
 
   return {
-    async onOpen(doc, src) { const st = getState(); const unsupported = loadDocumentExtras(doc, src, st, true); engines.clear(); draft = null; linkSel = null; bmSel = null; blocksFor = null; renderBookmarks(); renderLinks(); renderDraft(); return { links: st.links.length, bookmarks: O.countItems(st.outline), unsupported }; },
+    async onOpen(doc, src) { const st = getState(); const unsupported = loadDocumentExtras(doc, src, st, true); engines.clear(); draft = null; pdraft = null; linkSel = null; bmSel = null; blocksFor = null; renderBookmarks(); renderLinks(); renderDraft(); return { links: st.links.length, bookmarks: O.countItems(st.outline), unsupported }; },
     onInsert(doc, src) { loadDocumentExtras(doc, src, getState(), false); },
     syncSource, exportExtras, verifyExport, drawOverlay, pick, finishLink,
-    async pageChanged() { draft = null; linkSel = null; renderDraft(); renderLinks(); if (getTool() === "edittext") await loadBlocks(); else { blocksFor = null; } },
+    async pageChanged() { draft = null; pdraft = null; linkSel = null; renderDraft(); renderLinks(); if (getTool() === "edittext") await loadBlocks(); else { blocksFor = null; } },
     async toolChanged() { const t = getTool(); if (t === "edittext") { renderDraft(); await loadBlocks(); } if (t === "link") renderLinks(); },
     refresh() { renderBookmarks(); renderLinks(); if (draft && !draft.dirty && blocksFor) { const bl = draft.block; draft = null; selectBlock(bl).catch(() => {}); } else renderBlockList(); },
     afterReload() { engines.forEach(e => e.analyses && e.analyses.clear && void 0); },
     editedCount: () => getState().textEdits.length,
-    debug: { blocks: () => blocksFor && blocksFor.blocks.map(b => ({ id: b.id, text: b.text, editable: b.editable, reason: b.reason, box: b.box })), draft: () => draft && { text: draft.text, dirty: draft.dirty }, links: () => getState().links, outline: () => getState().outline },
+    debug: { blocks: () => blocksFor && blocksFor.blocks.map(b => ({ id: b.id, text: b.text, editable: b.editable, reason: b.reason, box: b.box })), draft: () => draft && { text: draft.text, dirty: draft.dirty }, links: () => getState().links, edits: () => getState().textEdits.length, outline: () => getState().outline },
   };
 }
