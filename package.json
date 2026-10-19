@@ -37,7 +37,8 @@
     "test:v9:browser": "node tests/v9-agent1-browser.mjs",
     "test:v9:media:browser": "node tests/v9-media-browser.mjs chromium",
     "test:v9:dist": "node scripts/build-static.mjs && node tests/v9-agent1-dist.mjs",
-    "test:pdf-studio": "node --test tests/pdf-studio.mjs tests/pdf-editor-model.mjs && node tests/homepage-scripts-parse.mjs",
+    "test:pdf-studio": "node --test tests/pdf-studio.mjs tests/pdf-editor-model.mjs tests/pdf-editor-v2-engine.mjs && node tests/homepage-scripts-parse.mjs",
+    "test:pdf-editor:v2:browser": "node tests/pdf-editor-v2-browser.mjs",
     "test:pdf-editor:browser": "node tests/pdf-editor-app-browser.mjs",
     "test:pdf-editor:live": "node tests/pdf-editor-live-load.mjs"
   }
