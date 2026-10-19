@@ -56,7 +56,9 @@ try{
    assert.equal(tiles.length,9);
    for(const t of tiles){assert.equal(t.href,'?category='+t.id,'tile link '+t.id);
     const r=await cctx.request.get(base+t.href);assert.ok(r.ok(),'category URL status '+t.id+' '+r.status());
-    await cp.locator(`.cat-tile[data-cat="${t.id}"]`).click();await cp.waitForSelector('#categoryTools .toolcard');
+    await cp.locator(`.cat-tile[data-cat="${t.id}"]`).click();
+    // Firefox can drop a click that lands while the home view is still settling; click again once.
+    try{await cp.waitForSelector('#categoryTools .toolcard',{timeout:3000})}catch{await cp.locator(`.cat-tile[data-cat="${t.id}"]`).click();await cp.waitForSelector('#categoryTools .toolcard')}
     const ids=await cp.locator('#categoryTools .toolcard').evaluateAll(e=>e.map(x=>x.dataset.tool));
     assert.ok(ids.length>0,'empty '+t.id);assert.equal(new Set(ids).size,ids.length,'duplicate within '+t.id);
     assert.equal(String(ids.length),await cp.locator('#categoryView .cv-count b').innerText(),'view count '+t.id);
