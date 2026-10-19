@@ -26,9 +26,11 @@ test('PDF Editor export keeps original pages, embeds edits as vector content and
  assert.doesNotMatch(bake,/toDataURL|rasteri[sz]e\(|getImageData/,'the export must never rasterise pages');
  assert.match(js,/getPageCount\(\) !== expected/); assert.match(js,/URL\.createObjectURL/); assert.match(js,/a\.download = fname|\.download = fname/); assert.match(js,/pagehide/);
 });
-test('Existing-text editing is genuine content-stream editing, limited to fonts that can be rewritten, and overlays are labelled as overlays',()=>{
- assert.match(textedit,/subset-font/); assert.match(textedit,/composite-font/); assert.match(textedit,/custom-encoding/); assert.match(textedit,/Tj/); assert.match(textedit,/TJ/);
- assert.match(html,/Cover and retype \(visual overlay\)/); assert.match(js,/not secure redaction/); assert.match(js,/not editing and it is not redaction/);
+test('Existing-text editing is genuine content-stream editing (V2 engine); nothing is covered and unsupported text is explained',()=>{
+ const eng=(n)=>fs.readFileSync(new URL('../tools/pdf-editor/engine/'+n,import.meta.url),'utf8'),tm=eng('textmodel.mjs'),ed=eng('edit.mjs'),fo=eng('fonts.mjs');
+ assert.match(tm,/no-unicode-map/); assert.match(tm,/invisible/); assert.match(tm,/type3/); assert.match(ed,/TJ/); assert.match(ed,/Nothing is covered, flattened or rasterised/); assert.match(fo,/ToUnicode/);
+ assert.doesNotMatch(html,/Cover and retype/); assert.doesNotMatch(js,/meta: "cover"/); assert.doesNotMatch(js,/\blocateRun\b|\bapplyEdits\b/);
+ assert.match(js,/v2\.verifyExport/); assert.match(js,/did not pass the content check/);
 });
 test('PDF Editor discovery adds one tile next to Private PDF Tools and opens its own page',()=>{
  assert.match(register,/"pdf-editor", "PDF & Tables", "PDF Editor"/); assert.match(register,/tools\/pdf-editor\//); assert.match(register,/findIndex\(\(t\) => t\[0\] === "pdf-studio"\)/);

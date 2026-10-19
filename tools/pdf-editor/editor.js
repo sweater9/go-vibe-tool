@@ -2,7 +2,7 @@ import * as pdfjs from "../v9-media/vendor/pdf/pdf.min.mjs";
 import { createState, History, clone, uid, norm, clamp, makeViewport, axes, frameToUser, userToFrame, isFrame, frameHeight, layoutText, fontKey,
   makeFontMetrics, rotatePages, deletePages, movePage, blankPage, bounds, hitTest, translate, resizeFrame, rotateFrame, handlePoints, NOTE_SIZE, FAMILIES } from "./model.mjs";
 import { bakeDocument } from "./bake.mjs";
-import { locateRun, applyEdits, reasonText } from "./textedit.mjs";
+import { createV2 } from "./v2ui.js";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL("../v9-media/vendor/pdf/pdf.worker.min.mjs", import.meta.url).href;
 const PDFLib = window.PDFLib;
@@ -13,8 +13,8 @@ const PDFJS_OPTS = { isEvalSupported: false, disableFontFace: true, standardFont
 const $ = id => document.getElementById(id);
 const CSS_UNITS = 96 / 72, MAX_BYTES = 50 * 1024 * 1024, MAX_IMAGE = 20 * 1024 * 1024, MAX_PIXELS = 36e6;
 const ZOOM_STEPS = [25, 50, 75, 100, 125, 150, 200, 300, 400];
-const TOOLS = ["select", "text", "image", "rect", "ellipse", "line", "arrow", "draw", "highlight", "underline", "strike", "note", "edittext"];
-const KEYS = { v: "select", t: "text", i: "image", r: "rect", o: "ellipse", l: "line", a: "arrow", d: "draw", h: "highlight", u: "underline", k: "strike", n: "note", e: "edittext" };
+const TOOLS = ["select", "text", "image", "rect", "ellipse", "line", "arrow", "draw", "highlight", "underline", "strike", "note", "edittext", "link"];
+const KEYS = { v: "select", t: "text", i: "image", r: "rect", o: "ellipse", l: "line", a: "arrow", d: "draw", h: "highlight", u: "underline", k: "strike", n: "note", e: "edittext", g: "link" };
 const HELP = {
   select: "Click an object to select it. Drag to move it, use the handles to resize or rotate. Drag empty space to scroll.",
   text: "Click or drag on the page to add a text box, then type in the panel.",
@@ -23,7 +23,8 @@ const HELP = {
   line: "Drag on the page to draw a line.", arrow: "Drag on the page to draw an arrow.", draw: "Draw freehand with your finger, pen or mouse.",
   highlight: "Drag across text to highlight it.", underline: "Drag across text to underline it.", strike: "Drag across text to strike it through.",
   note: "Tap the page to place a comment note.",
-  edittext: "Tap existing text. Text in simple standard fonts can be changed in the PDF itself; other text can only be covered and retyped as an overlay.",
+  edittext: "Tap a line of text to change it in the PDF itself: replace words, numbers or amounts, delete text, or change its font, size, colour and alignment. Edits stay real, searchable text.",
+  link: "Drag a rectangle (or tap a line of text) to make a link. Tap an existing link to edit or remove it.",
 };
 const TYPE_LABEL = { text: "Text", image: "Image", rect: "Rectangle", ellipse: "Oval", line: "Line", arrow: "Arrow", draw: "Drawing", highlight: "Highlight", underline: "Underline", strike: "Strike-through", note: "Note" };
 
@@ -32,7 +33,7 @@ let state = createState(); const hist = new History(); const sources = new Map()
 let fonts = null, tool = "select", selId = null, cur = 0, scale = CSS_UNITS, fitMode = true, vp = null, dprEff = 1;
 let pageToken = 0, thumbToken = 0, renderTask = null, busy = false, srcSeq = 0, version = 0, exportedVersion = 0, downloadUrl = null;
 const selPages = new Set(), thumbCache = new Map(), textCache = new Map(), pointers = new Map();
-let drag = null, propsClosed = false, rafPending = false, lastCoalesce = { key: "", t: 0 }, runPick = null, docName = "document.pdf";
+let lastReport = null; let drag = null, propsClosed = false, rafPending = false, lastCoalesce = { key: "", t: 0 }, docName = "document.pdf";
 const defaults = { text: { font: "Helvetica", size: 18, color: "#000000", bold: false, italic: false, align: "left" }, stroke: "#d92d20", width: 2, fill: null, mark: "#ffe14d", opacity: 1 };
 const overlay = $("overlay"), pageCanvas = $("pageCanvas"), markLayer = $("markLayer"), stage = $("stage"), octx = overlay.getContext("2d"), mctx = markLayer.getContext("2d");
 
@@ -65,38 +66,40 @@ async function readPdf(file) {
   let pdf;
   try { pdf = await pdfjs.getDocument({ data: bytes.slice(), ...PDFJS_OPTS }).promise; }
   catch (e) { throw new Error(e && e.name === "PasswordException" ? "This PDF is password-protected" : "Failed to parse PDF"); }
-  try { await PDFLib.PDFDocument.load(bytes, { updateMetadata: false }); }
+  let lib;
+  try { lib = await PDFLib.PDFDocument.load(bytes, { updateMetadata: false }); }
   catch (e) { pdf.destroy(); throw new Error(/encrypt/i.test(e.message) ? "This PDF is encrypted" : "Failed to parse PDF"); }
   const id = "s" + (++srcSeq), entries = [];
   for (let i = 1; i <= pdf.numPages; i++) { const p = await pdf.getPage(i); entries.push({ idx: i - 1, view: p.view.slice(), baseRot: p.rotate || 0 }); }
-  return { src: { id, name: file.name, bytes, effBytes: bytes, pdf, sig: "" }, entries };
+  return { src: { id, name: file.name, bytes, effBytes: bytes, pdf, sig: "" }, entries, lib };
 }
 const openPicker = input => { input.value = ""; input.click(); };
 async function openDocument(file) {
   if (version !== exportedVersion && state.pages.length && !confirm("Open a different PDF? Your unsaved edits will be lost.")) return;
-  const { src, entries } = await readPdf(file);
+  const { src, entries, lib } = await readPdf(file);
   for (const s of sources.values()) s.pdf.destroy();
   sources.clear(); assets.clear(); thumbCache.clear(); textCache.clear(); selPages.clear(); hist.clear(); clearDownload();
   state = createState(); sources.set(src.id, src); docName = file.name;
   state.pages = entries.map(e => ({ id: uid(state), src: src.id, idx: e.idx, rot: 0, baseRot: e.baseRot, view: e.view, blank: false }));
-  cur = 0; selId = null; runPick = null; version = 0; exportedVersion = 0; fitMode = true;
+  cur = 0; selId = null; version = 0; exportedVersion = 0; fitMode = true;
   fonts = fonts || await makeFontMetrics(PDFLib);
   document.body.classList.remove("no-doc");
   $("fileName").textContent = file.name; $("fileName").title = file.name; document.title = file.name + " · PDF Editor · GoVibeTool";
-  await describeDocument(src);
+  const extras = await v2.onOpen(lib, src); await describeDocument(src, extras);
   setTool("select"); await afterChange({ reload: true });
-  say(`Opened ${file.name} (${state.pages.length} page${state.pages.length === 1 ? "" : "s"}). Nothing was uploaded.`);
+  say(`Opened ${file.name} (${state.pages.length} page${state.pages.length === 1 ? "" : "s"}${extras.links ? `, ${extras.links} link${extras.links === 1 ? "" : "s"}` : ""}${extras.bookmarks ? `, ${extras.bookmarks} bookmark${extras.bookmarks === 1 ? "" : "s"}` : ""}). Nothing was uploaded.`);
 }
-async function describeDocument(src) {
+async function describeDocument(src, extras = {}) {
   const notes = [];
+  if (extras.unsupported) notes.push(`${extras.unsupported} bookmark${extras.unsupported === 1 ? " uses" : "s use"} an action type the editor cannot keep (it will be dropped when bookmarks are saved).`);
   if (findBytes(src.bytes, "/ByteRange")) notes.push("This PDF contains a digital signature. Any edit invalidates it.");
   try { const f = await src.pdf.getFieldObjects(); if (f && Object.keys(f).length) notes.push("This PDF has form fields. They are kept when you edit, rotate, delete or reorder its pages, but not when you extract pages or insert pages from another PDF."); } catch { /* optional */ }
   notes.push("Export keeps the original pages as they are (no re-rendering), and adds your edits on top.");
   $("docNotes").textContent = notes.join(" ");
 }
 async function insertDocument(file) {
-  const { src, entries } = await readPdf(file);
-  sources.set(src.id, src);
+  const { src, entries, lib } = await readPdf(file);
+  sources.set(src.id, src); v2.onInsert(lib, src);
   hist.record(state);
   const at = cur + 1, add = entries.map(e => ({ id: uid(state), src: src.id, idx: e.idx, rot: 0, baseRot: e.baseRot, view: e.view, blank: false }));
   state.pages.splice(at, 0, ...add); cur = at; version++;
@@ -105,11 +108,11 @@ async function insertDocument(file) {
 /* Rebuild each source's effective bytes when its recorded text edits changed (also after undo/redo). */
 async function syncSources() {
   for (const s of sources.values()) {
-    const edits = state.edits.filter(e => e.src === s.id), sig = JSON.stringify(edits);
+    const edits = state.textEdits.filter(e => e.src === s.id), sig = JSON.stringify(edits.map(e => e.engine));
     if (sig === s.sig) continue;
-    const bytes = edits.length ? await applyEdits(PDFLib, s.bytes, edits.map(e => ({ page: e.page, from: e.from, to: e.to, occurrence: e.occurrence }))) : s.bytes;
-    const pdf = await pdfjs.getDocument({ data: bytes.slice(), ...PDFJS_OPTS }).promise;
-    s.pdf.destroy(); s.pdf = pdf; s.effBytes = bytes; s.sig = sig;
+    let res; try { res = await v2.syncSource(s, state); } catch (e) { throw new Error(friendly(e)); }
+    const pdf = await pdfjs.getDocument({ data: res.bytes.slice(), ...PDFJS_OPTS }).promise;
+    s.pdf.destroy(); s.pdf = pdf; s.effBytes = res.bytes; s.sig = sig; s.notes = res.notes; textCache.delete(`${s.id}`); itemsFor = "";
   }
 }
 
@@ -208,6 +211,7 @@ function drawOverlay() {
   const k = dprEff; octx.setTransform(1, 0, 0, 1, 0, 0); octx.clearRect(0, 0, overlay.width, overlay.height); mctx.setTransform(1, 0, 0, 1, 0, 0); mctx.clearRect(0, 0, markLayer.width, markLayer.height);
   // Highlights go on their own layer that multiplies with the page, like the exported file does.
   for (const o of pageObjects()) drawObject(o.type === "highlight" ? mctx : octx, o);
+  v2.drawOverlay(octx, k);
   const o = selObj(); overlay.dataset.selection = o ? "1" : "0"; overlay.dataset.marker = "0";
   if (o && !(drag && drag.kind === "create")) {
     const geo = selectionGeometry(o), g = octx; g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
@@ -276,7 +280,7 @@ async function afterChange({ reload = false, pages = false } = {}) {
   if (reload) await syncSources();
   if (cur >= state.pages.length) cur = state.pages.length - 1; if (cur < 0) cur = 0;
   if (reload || pages) { await renderThumbs(); await renderPage(); } else { drawOverlay(); refreshThumbBadges(); }
-  updateButtons(); syncProps(); renderObjList(); markCurrentThumb();
+  updateButtons(); syncProps(); renderObjList(); markCurrentThumb(); if (pages) await v2.pageChanged(); v2.refresh();
 }
 function refreshThumbBadges() { [...$("thumbs").children].forEach((li, i) => { const p = state.pages[i]; if (!p) return; const n = state.objects.filter(o => o.page === p.id).length; let b = li.querySelector(".badge"); if (n) { if (!b) { b = document.createElement("span"); b.className = "badge"; li.prepend(b); } b.textContent = String(n); b.title = `${n} edit${n > 1 ? "s" : ""} on this page`; } else if (b) b.remove(); }); }
 async function commit(mutate, flags = {}) { hist.record(state); version++; clearDownload(); mutate(); await afterChange(flags); }
@@ -286,8 +290,8 @@ async function commitCoalesced(key, mutate, flags = {}) {
   if (!same) { hist.record(state); version++; } clearDownload(); mutate(); await afterChange(flags);
 }
 async function restore(snap) {
-  const seq = Math.max(state.seq, snap.seq); state.pages = snap.pages; state.objects = snap.objects; state.edits = snap.edits; state.seq = seq; version++; clearDownload();
-  if (!selObj()) selId = null; selPages.clear(); await afterChange({ reload: true });
+  const seq = Math.max(state.seq, snap.seq); state.pages = snap.pages; state.objects = snap.objects; state.edits = snap.edits || []; state.textEdits = snap.textEdits || []; state.links = snap.links || []; state.outline = snap.outline || []; state.outlineDirty = !!snap.outlineDirty; state.seq = seq; version++; clearDownload();
+  if (!selObj()) selId = null; selPages.clear(); await afterChange({ reload: true }); v2.refresh();
 }
 const undo = guard(async () => { if (busy) return; const s = hist.undo(state); if (s) { await restore(s); say("Undone."); } });
 const redo = guard(async () => { if (busy) return; const s = hist.redo(state); if (s) { await restore(s); say("Redone."); } });
@@ -299,18 +303,20 @@ function updateButtons() {
 }
 
 /* ---------- navigation and zoom ---------- */
-const goTo = guard(async i => { if (i < 0 || i >= state.pages.length) return; cur = i; selId = null; runPick = null; markCurrentThumb(); await renderPage(); syncProps(); renderObjList(); stage.scrollTop = 0; document.body.classList.remove("pages-open"); $("pagesToggle").setAttribute("aria-expanded", "false"); });
+const goTo = guard(async i => { if (i < 0 || i >= state.pages.length) return; cur = i; selId = null; markCurrentThumb(); await renderPage(); syncProps(); renderObjList(); await v2.pageChanged(); stage.scrollTop = 0; document.body.classList.remove("pages-open"); $("pagesToggle").setAttribute("aria-expanded", "false"); });
 function setZoom(pct) { fitMode = false; scale = CSS_UNITS * pct / 100; renderPage(); }
 function stepZoom(dir) { const pct = scale / CSS_UNITS * 100, next = dir > 0 ? ZOOM_STEPS.find(z => z > pct + 1) : [...ZOOM_STEPS].reverse().find(z => z < pct - 1); if (next) setZoom(next); }
 let resizeTimer = 0; addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (fitMode && vp) renderPage(); }, 150); });
 
+const v2 = createV2({ PDFLib, $, say, fail, guard, friendly, commit, getState: () => state, getCur: () => cur, getVp: () => vp, getScale: () => scale, getDpr: () => dprEff, curPage, srcOf, setTool: t => setTool(t), getTool: () => tool, goTo: i => goTo(i), scheduleOverlay });
+
 /* ---------- tools ---------- */
 function setTool(t) {
-  tool = t; runPick = null;
+  tool = t;
   for (const b of document.querySelectorAll(".tool")) b.setAttribute("aria-pressed", String(b.dataset.tool === t));
   overlay.className = "tool-" + t; $("toolHelp").textContent = HELP[t] || "";
   if (t !== "select" && t !== "edittext") selId = null;
-  propsClosed = false; syncProps(); renderObjList(); drawOverlay();
+  propsClosed = false; syncProps(); renderObjList(); drawOverlay(); v2.toolChanged().catch(fail);
 }
 for (const b of document.querySelectorAll(".tool")) b.addEventListener("click", () => { if (b.dataset.tool === "image") { setTool("image"); openPicker($("imageInput")); return; } setTool(b.dataset.tool); });
 
@@ -357,10 +363,11 @@ overlay.addEventListener("pointerdown", e => {
     if (hit) { selId = hit.id; drag = { kind: "move", start: u, orig: clone(hit), id: hit.id, recorded: false, pid: e.pointerId }; syncProps(); renderObjList(); drawOverlay(); if (e.detail === 2 && hit.type === "text") $("propText").focus(); return; }
     selId = null; syncProps(); renderObjList(); drawOverlay(); drag = { kind: "pan", sx: e.clientX, sy: e.clientY, left: stage.scrollLeft, top: stage.scrollTop, pid: e.pointerId }; return;
   }
-  if (tool === "edittext") { drag = null; pickRun(u).catch(fail); return; }
+  if (tool === "edittext") { drag = null; v2.pick(u).catch(fail); return; }
   if (tool === "note") { drag = null; createNote(u).catch(fail); return; }
   if (tool === "draw") { drag = { kind: "create", type: "draw", pts: [u], pid: e.pointerId, preview: (g, k) => { g.save(); g.strokeStyle = defaults.stroke; g.lineWidth = defaults.width * scale * k; g.lineCap = g.lineJoin = "round"; g.globalAlpha = defaults.opacity; g.beginPath(); drag.pts.forEach((q, i) => { const [x, y] = vp.toDisplay(...q); i ? g.lineTo(x * k, y * k) : g.moveTo(x * k, y * k); }); g.stroke(); g.restore(); } }; return; }
   const dragRect = (g, k, fillStyle) => { const a = drag.d0, b = drag.d1 || drag.d0; g.save(); g.strokeStyle = "#2057d6"; g.fillStyle = fillStyle || "rgba(32,87,214,.12)"; g.setLineDash([6 * k, 4 * k]); g.lineWidth = 1.5 * k; const x = Math.min(a[0], b[0]) * k, y = Math.min(a[1], b[1]) * k, w = Math.abs(b[0] - a[0]) * k, h = Math.abs(b[1] - a[1]) * k; g.fillRect(x, y, w, h); g.strokeRect(x, y, w, h); g.restore(); };
+  if (tool === "link") { drag = { kind: "create", type: "link", d0: d, d1: d, pid: e.pointerId, preview: (g, k) => dragRect(g, k, "rgba(32,87,214,.18)") }; return; }
   if (tool === "line" || tool === "arrow") { drag = { kind: "create", type: tool, d0: d, d1: d, pid: e.pointerId, preview: (g, k) => { g.save(); g.strokeStyle = defaults.stroke; g.lineWidth = defaults.width * scale * k; g.lineCap = "round"; g.beginPath(); g.moveTo(drag.d0[0] * k, drag.d0[1] * k); g.lineTo(drag.d1[0] * k, drag.d1[1] * k); g.stroke(); g.restore(); } }; return; }
   drag = { kind: "create", type: tool, d0: d, d1: d, pid: e.pointerId, preview: (g, k) => dragRect(g, k, tool === "highlight" ? "rgba(255,225,77,.35)" : null) };
 });
@@ -403,6 +410,7 @@ function endPinch() { if (pinch) { clearTimeout(pinch.t); renderPage(); } pinch 
 async function finishCreate(dr, dEnd) {
   const pid = curPage().id; let o = null; const d0 = dr.d0, d1 = dEnd || dr.d1;
   const moved = dr.type === "draw" ? dr.pts.length > 1 : Math.hypot(d1[0] - d0[0], d1[1] - d0[1]) > 6;
+  if (dr.type === "link") { drawOverlay(); await v2.finishLink(d0, d1, moved); return; }
   if (dr.type === "draw") { o = newObj("draw", { points: simplify(dr.pts), ...styleOf() }); if (!moved) o.points = [dr.pts[0]]; }
   else if (dr.type === "line" || dr.type === "arrow") { if (!moved) { drawOverlay(); return; } o = newObj(dr.type, { p1: vp.toUser(...d0), p2: vp.toUser(...d1), ...styleOf() }); }
   else if (dr.type === "rect" || dr.type === "ellipse") { if (!moved) { drawOverlay(); return; } o = newObj(dr.type, { ...frameRect(d0, d1), stroke: defaults.stroke, fill: defaults.fill, width: defaults.width, opacity: defaults.opacity }); }
@@ -456,42 +464,15 @@ let itemsNow = [], itemsFor = "";
 function cachedItems() { return itemsNow; }
 async function primeItems() { const p = curPage(); if (!p) { itemsNow = []; return; } const key = p.id + ":" + srcSig(p.src); if (key === itemsFor) return; itemsFor = key; itemsNow = await textItems(p).catch(() => []); }
 
-/* ---------- existing text ---------- */
-async function pickRun(u) {
-  const p = curPage(); if (p.blank) { say("Blank pages have no existing text."); return; }
-  const items = await textItems(p), hit = [...items].reverse().find(t => u[0] >= t.x0 - 1 && u[0] <= t.x1 + 1 && u[1] >= t.y0 && u[1] <= t.y1);
-  if (!hit) { runPick = null; syncProps(); say("No text found there. Tap directly on existing text."); return; }
-  const loc = await locateRun(PDFLib, srcOf(p).effBytes, p.idx, hit.str, hit.occ);
-  runPick = { hit, loc: { editable: loc.editable, reason: loc.reason, font: loc.font, asciiOnly: loc.asciiOnly }, pid: p.id };
-  syncProps(); $("runText").focus(); $("runText").select();
-}
-$("runApply").addEventListener("click", guard(async () => {
-  if (!runPick || !runPick.loc.editable) return; const p = curPage(), to = $("runText").value;
-  if (!to.trim()) throw new Error("Enter the replacement text."); if (to === runPick.hit.str) { say("The text is unchanged."); return; }
-  const edit = { src: p.src, page: p.idx, from: runPick.hit.str, to, occurrence: runPick.hit.occ };
-  try { await applyEdits(PDFLib, srcOf(p).effBytes, [{ page: edit.page, from: edit.from, to: edit.to, occurrence: edit.occurrence }]); } catch (e) { throw new Error(friendly(e)); }
-  await commit(() => { state.edits.push(edit); }, { reload: true }); runPick = null; syncProps(); say("The text in the PDF was changed. Positions are kept; text is not re-flowed.");
-}));
-$("runCover").addEventListener("click", guard(async () => {
-  if (!runPick) return; const p = curPage(), t = runPick.hit, to = $("runText").value || t.str, rot = totalRot(p), size = clamp(t.size, 6, 200);
-  const [d0x, d0y] = vp.toDisplay(t.x0 - 1, t.y1 + 1), [d1x, d1y] = vp.toDisplay(t.x1 + 1, t.y0 - 1), cover = frameRect([d0x, d0y], [d1x, d1y]);
-  const box = newObj("rect", { ...cover, stroke: null, fill: "#ffffff", width: 0, opacity: 1, meta: "cover" });
-  const txt = newObj("text", { ox: 0, oy: 0, rot, cw: Math.max(40, cover.cw + 40), text: to, font: /times|serif/i.test(t.font) ? "Times" : /courier|mono/i.test(t.font) ? "Courier" : "Helvetica", size, color: "#000000", bold: false, italic: false, align: "left", opacity: 1, meta: "retype" });
-  try { fonts.check(fontKey(txt), to); } catch (e) { throw new Error(friendly(e)); }
-  // put the retyped text's first baseline on the original baseline
-  const { D } = axes(rot), asc = layoutText(txt, fonts).ascent; txt.ox = t.base[0] - D[0] * asc; txt.oy = t.base[1] - D[1] * asc;
-  await commit(() => { state.objects.push(box, txt); selId = txt.id; runPick = null; setTool("select"); }, {});
-  say("Covered and retyped as an overlay. The original text is still inside the PDF file; this is not secure redaction.");
-}));
-
 /* ---------- properties panel ---------- */
-const SECTIONS = ["secEditText", "secText", "secStroke", "secMark", "secNote", "secGeom", "secOpacity", "secActions"];
+const SECTIONS = ["secEditText", "secLink", "secText", "secStroke", "secMark", "secNote", "secGeom", "secOpacity", "secActions"];
 /* Never overwrite a field the user is typing in: its value is already current, and rewriting it would move the caret or clamp half-typed numbers. */
 const setVal = (el, v) => { if (document.activeElement === el) return; v = String(v); if (el.value !== v) el.value = v; };
 function show(id, on) { $(id).hidden = !on; }
 function syncProps() {
   const o = selObj(); let sections = new Set(); const ty = o ? o.type : tool === "select" ? "" : tool;
   if (tool === "edittext") sections.add("secEditText");
+  else if (tool === "link") sections.add("secLink");
   else if (ty === "text") { sections.add("secText"); sections.add("secOpacity"); }
   else if (ty === "rect" || ty === "ellipse") { sections.add("secStroke"); sections.add("secOpacity"); }
   else if (ty === "line" || ty === "arrow" || ty === "draw") { sections.add("secStroke"); sections.add("secOpacity"); }
@@ -503,7 +484,7 @@ function syncProps() {
   for (const id of SECTIONS) show(id, sections.has(id));
   show("secPlace", !o && ["text", "rect", "ellipse", "line", "arrow", "note"].includes(tool));
   show("fillRow", !o ? (tool === "rect" || tool === "ellipse") : (o.type === "rect" || o.type === "ellipse"));
-  $("propsTitle").textContent = o ? TYPE_LABEL[o.type] : tool === "select" ? "Properties" : (tool === "edittext" ? "Edit existing text" : "New " + (TYPE_LABEL[tool] || "object").toLowerCase());
+  $("propsTitle").textContent = o ? TYPE_LABEL[o.type] : tool === "select" ? "Properties" : (tool === "edittext" ? "Edit existing text" : tool === "link" ? "Hyperlinks" : "New " + (TYPE_LABEL[tool] || "object").toLowerCase());
   if (o && o.type === "text") { setVal($("propText"), o.text); $("propFont").value = o.font; setVal($("propSize"), Math.round(o.size * 10) / 10); $("propColor").value = o.color; $("propAlign").value = o.align || "left"; $("propBold").setAttribute("aria-pressed", String(!!o.bold)); $("propItalic").setAttribute("aria-pressed", String(!!o.italic)); }
   else if (!o && tool === "text") { const d = defaults.text; setVal($("propText"), ""); $("propFont").value = d.font; setVal($("propSize"), d.size); $("propColor").value = d.color; $("propAlign").value = d.align; $("propBold").setAttribute("aria-pressed", String(d.bold)); $("propItalic").setAttribute("aria-pressed", String(d.italic)); }
   const st = o || { stroke: defaults.stroke, width: defaults.width, fill: defaults.fill, color: defaults.mark, opacity: defaults.opacity };
@@ -513,14 +494,7 @@ function syncProps() {
   if (o && o.type === "note") setVal($("propNoteText"), o.text);
   if (o && isFrame(o) && vp) { const [gx, gy] = vp.toDisplay(o.ox, o.oy); setVal($("geoX"), (gx / scale).toFixed(1)); setVal($("geoY"), (gy / scale).toFixed(1)); setVal($("geoW"), o.cw.toFixed(1)); setVal($("geoH"), frameHeight(o, fonts).toFixed(1)); $("geoH").disabled = o.type === "text"; setVal($("geoRot"), (Math.round(norm(o.rot - totalRot(curPage())) * 10) / 10).toString()); }
   const op = Math.round((o ? (o.opacity == null ? 1 : o.opacity) : defaults.opacity) * 100); $("propOpacity").value = op; $("opacityVal").textContent = op + "%";
-  // existing-text section
-  const run = runPick && runPick.pid === curPage()?.id ? runPick : null;
-  if (tool === "edittext") {
-    $("runText").disabled = !run; $("runApply").disabled = !run || !run.loc.editable; $("runCover").disabled = !run; if (run) $("runText").value = run.hit.str; else $("runText").value = "";
-    $("runInfo").textContent = !run ? "Tap a line of text on the page." : run.loc.editable ? `This text uses the standard font ${run.loc.font}. It can be changed in the PDF itself: it stays real, searchable text.` : reasonText(run.loc.reason) + " You can still cover it and retype it as an overlay, but the original text stays inside the file.";
-    $("runNote").textContent = run && run.loc.editable ? "The new text keeps the original position and is not re-flowed around neighbouring text." : run ? "Cover and retype is a visual overlay only. It is not editing and it is not redaction." : "";
-  }
-  const phone = matchMedia("(max-width:900px)").matches, placeable = ["text", "rect", "ellipse", "line", "arrow", "note"].includes(tool), wantSheet = !propsClosed && (o || tool === "edittext" || (!phone && tool !== "select" && tool !== "image") || (phone && placeable));
+  const phone = matchMedia("(max-width:900px)").matches, placeable = ["text", "rect", "ellipse", "line", "arrow", "note"].includes(tool), wantSheet = !propsClosed && (o || tool === "edittext" || tool === "link" || (!phone && tool !== "select" && tool !== "image") || (phone && placeable));
   document.body.classList.toggle("props-open", !!wantSheet); document.body.classList.toggle("props-compact", !!(wantSheet && phone && !o && placeable));
   $("textWarn").hidden = true;
 }
@@ -615,12 +589,15 @@ function clearDownload() { if (downloadUrl) { URL.revokeObjectURL(downloadUrl); 
 async function buildPdf(only) {
   fonts = fonts || await makeFontMetrics(PDFLib);
   const srcBytes = {}; for (const s of sources.values()) srcBytes[s.id] = s.effBytes;
-  const bytes = await bakeDocument(PDFLib, { sources: srcBytes, pages: state.pages, objects: state.objects, assets: Object.fromEntries([...assets].map(([k, v]) => [k, { bytes: v.bytes, mime: v.mime }])), fonts, only });
+  const report = {}, extras = v2.exportExtras();
+  const bytes = await bakeDocument(PDFLib, { sources: srcBytes, pages: state.pages, objects: state.objects, assets: Object.fromEntries([...assets].map(([k, v]) => [k, { bytes: v.bytes, mime: v.mime }])), fonts, only, links: extras.links, outline: extras.outline, outlineDirty: extras.outlineDirty, report });
   // Verify the result re-opens, before offering it.
-  const expected = only ? state.pages.filter(p => only.includes(p.id)).length : state.pages.length;
+  const kept = only ? state.pages.filter(p => only.includes(p.id)) : state.pages, expected = kept.length;
   const chk = await PDFLib.PDFDocument.load(bytes); if (chk.getPageCount() !== expected) throw new Error("The exported PDF did not pass the page-count check. Nothing was downloaded.");
+  const problems = await v2.verifyExport(bytes, { pagesList: kept.filter(p => !p.blank), report, rebuiltOutline: !!report.outlineRebuilt });
+  if (problems.length) throw new Error("The exported PDF did not pass the content check (" + problems.join("; ") + "). Nothing was downloaded.");
   const doc = await pdfjs.getDocument({ data: bytes.slice(), ...PDFJS_OPTS }).promise; try { await (await doc.getPage(1)).getTextContent(); } finally { doc.destroy(); }
-  return bytes;
+  lastReport = report; return bytes;
 }
 async function runExport({ only = null, name = null, label = "PDF ready" } = {}) {
   if (busy) return; busy = true; document.body.setAttribute("aria-busy", "true"); say("Building your PDF…");
@@ -630,7 +607,8 @@ async function runExport({ only = null, name = null, label = "PDF ready" } = {})
     const fname = name || `${stripName(docName)}-edited.pdf`, a = $("downloadLink"); a.href = downloadUrl; a.download = fname; a.textContent = `Download ${fname} (${Math.ceil(blob.size / 1024)} KB)`; a.hidden = false;
     const tmp = document.createElement("a"); tmp.href = downloadUrl; tmp.download = fname; document.body.append(tmp); tmp.click(); tmp.remove();
     if (!only) exportedVersion = version;
-    say(`${label}: ${fname}. If your browser did not start the download, use the green link.`);
+    const w = lastReport && lastReport.warnings && lastReport.warnings.length ? " Notes: " + [...new Set(lastReport.warnings)].join(" ") : "";
+    say(`${label}: ${fname}. If your browser did not start the download, use the green link.${w}`);
   } catch (e) { fail(new Error("Export failed: " + friendly(e))); }
   finally { busy = false; document.body.removeAttribute("aria-busy"); }
 }
@@ -671,5 +649,5 @@ stage.addEventListener("wheel", e => { if (e.ctrlKey && state.pages.length) { e.
 addEventListener("beforeunload", e => { if (state.pages.length && version !== exportedVersion) { e.preventDefault(); e.returnValue = ""; } });
 addEventListener("pagehide", clearDownload);
 
-window.pdfEditorDebug = { state: () => clone(state), viewport: () => vp && { scale: vp.scale, width: vp.width, height: vp.height, rotation: vp.rotation }, toDisplay: (x, y) => vp.toDisplay(x, y), tool: () => tool, families: FAMILIES };
+window.pdfEditorDebug = { v2: v2.debug, state: () => clone(state), viewport: () => vp && { scale: vp.scale, width: vp.width, height: vp.height, rotation: vp.rotation }, toDisplay: (x, y) => vp.toDisplay(x, y), tool: () => tool, families: FAMILIES };
 updateButtons();

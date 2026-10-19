@@ -103,7 +103,7 @@ export async function bakeDocument(PDFLib, opts) {
     const recs = opts.links.map(r => ({ ...r })); if (!identity) for (const r of recs) if (r.kind === 'page') r.changed = true;
     const r = writeLinks(PDFLib, out, recs, pagesOf, pageFor, inPlace ? 'in-place' : 'copy'); report.links = r.kept; report.warnings.push(...r.warnings);
   }
-  if (opts.outline && (opts.outlineDirty || !identity || !inPlace)) { const r = writeOutline(PDFLib, out, opts.outline, pageFor); report.bookmarks = r.written; report.warnings.push(...r.warnings); }
+  if (opts.outline && (opts.outlineDirty || !identity || !inPlace)) { const r = writeOutline(PDFLib, out, opts.outline, pageFor); report.bookmarks = r.written; report.outlineRebuilt = true; report.warnings.push(...r.warnings); }
   const bytes = await out.save();
   if (opts.report) Object.assign(opts.report, report);
   return bytes;

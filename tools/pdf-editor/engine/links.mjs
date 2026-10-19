@@ -51,7 +51,7 @@ const border = (P, doc, rec) => doc.context.obj([0, 0, rec.border ? 1 : 0]);
    pagesOf(src, idx) -> output page objects for that source page (empty when removed); pageFor(src, idx) -> first output page.
    mode 'in-place': touch only changed/deleted/new records; 'copy': original annotations are not in the output, recreate all kept records. */
 export function writeLinks(P, doc, records, pagesOf, pageFor, mode) {
-  const warnings = [], { PDFName } = P; let kept = 0;
+  const warnings = [], { PDFName } = P; let kept = 0, droppedOther = 0;
   const removeAnnot = (page, refTag) => {
     const annots = page.node.lookupMaybe(PDFName.of('Annots'), P.PDFArray); if (!annots) return;
     for (let i = annots.size() - 1; i >= 0; i--) { const r = annots.get(i); if (r instanceof P.PDFRef && r.toString() === refTag) annots.remove(i); }
@@ -59,6 +59,7 @@ export function writeLinks(P, doc, records, pagesOf, pageFor, mode) {
   for (const rec of records) {
     const targets = pagesOf(rec.src, rec.page);
     if (rec.deleted || !targets.length) { if (mode === 'in-place' && rec.ref) for (const pg of targets) removeAnnot(pg, rec.ref); continue; }
+    if (mode === 'in-place' && !rec.ref && !rec.isNew && rec.readonly) { kept++; continue; } // direct (non-indirect) annotation: leave exactly as it is
     if (mode === 'in-place' && rec.ref && !rec.changed) { kept++; continue; }
     for (const pg of targets) {
       let a;
@@ -68,11 +69,13 @@ export function writeLinks(P, doc, records, pagesOf, pageFor, mode) {
       a.set(PDFName.of('Rect'), doc.context.obj(normRect(rec.rect))); a.set(PDFName.of('Border'), border(P, doc, rec));
       if (rec.border) a.set(PDFName.of('C'), doc.context.obj([0, 0, 0.9]));
       if (rec.kind === 'other' && mode === 'in-place') { kept++; continue; }
+      if (rec.kind === 'other') { droppedOther++; continue; }
       if (!fillAction(P, doc, a, rec, pageFor, warnings)) { if (mode === 'in-place' && rec.ref) removeAnnot(pg, rec.ref); continue; }
       if (!(mode === 'in-place' && rec.ref)) pg.node.addAnnot(doc.context.register(a));
       kept++;
     }
   }
+  if (droppedOther) warnings.push(`${droppedOther} link${droppedOther > 1 ? 's' : ''} with an action the editor cannot copy (for example a launch or remote-file action) ${droppedOther > 1 ? 'were' : 'was'} not kept in the new file.`);
   return { warnings, kept };
 }
 
