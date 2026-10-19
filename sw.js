@@ -19,6 +19,7 @@ const ASSETS=[
   "./v9-social-card.js",
   "./v9-agent1-tools.js",
   "./tools/v9-media/register.js",
+  "./tools/pdf-editor/register.js",
   "./tools.js",
   "./v2-tools.js",
   "./v21-tools.js",
