@@ -239,6 +239,15 @@ for (const w of WIDTHS) {
     const bytes = await S.exportBytes(); const j = await pdfjsInfo(page, bytes); assert.equal(j.pages, 120); assert.ok(/changed on a late page/.test(j.texts[89]) && !/line 3: the quick/.test(j.texts[89]));
   });
 
+  await check(`${tag}: accessibility: every visible control in the text, link and bookmark panels has an accessible name; one h1; keyboard-only text edit works`, async () => {
+    await S.open(fx.lo, 'report.pdf'); const unnamed = () => page.evaluate(() => [...document.querySelectorAll('#props button, #props input, #props select, #props textarea, #pagesPanel button, #pagesPanel input, #stage button')].filter(el => { const r = el.getBoundingClientRect(), cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && !el.closest('[hidden]'); }).filter(el => { const lab = el.labels && el.labels.length ? [...el.labels].map(l => l.textContent).join('') : ''; const name = (el.getAttribute('aria-label') || '') + (el.getAttribute('aria-labelledby') ? document.getElementById(el.getAttribute('aria-labelledby'))?.textContent || '' : '') + lab + (el.getAttribute('title') || '') + (el.tagName === 'BUTTON' ? el.textContent : ''); return !name.trim(); }).map(el => el.id || el.className || el.tagName));
+    await S.tool('edittext'); await S.pickBlock('This report'); await page.fill('#runText', 'This report is now edited by keyboard only.'); assert.deepEqual(await unnamed(), [], 'edit text panel');
+    await page.locator('#runText').press('Control+Enter'); await page.waitForFunction(() => /text in the PDF was changed/.test(document.getElementById('status').textContent));
+    await S.tool('link'); await page.locator('#linkList button').first().click(); assert.deepEqual(await unnamed(), [], 'link panel');
+    await S.showPages(); await page.locator('#tabBookmarks').click(); await page.locator('#bmList .bm-go').first().click(); assert.deepEqual(await unnamed(), [], 'bookmark panel');
+    assert.equal(await page.locator('h1').count(), 1);
+  });
+
   await check(`${tag}: no console errors, no external requests, no inline styles`, async () => {
     assert.deepEqual(S.errs, []); assert.deepEqual(S.external, []);
     for (const f of ['tools/pdf-editor/index.html', 'tools/pdf-editor/editor.js', 'tools/pdf-editor/v2ui.js']) assert.doesNotMatch(await fs.readFile(path.join(repo, f), 'utf8'), /<style\b|\sstyle\s*=/i, `inline CSS in ${f}`);
