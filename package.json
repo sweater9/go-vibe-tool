@@ -37,6 +37,7 @@
     "test:v9:browser": "node tests/v9-agent1-browser.mjs",
     "test:v9:media:browser": "node tests/v9-media-browser.mjs chromium",
     "test:v9:dist": "node scripts/build-static.mjs && node tests/v9-agent1-dist.mjs",
-    "test:pdf-studio": "node --test tests/pdf-studio.mjs"
+    "test:pdf-studio": "node --test tests/pdf-studio.mjs",
+    "test:pdf-studio:browser": "node tests/pdf-editor-browser.mjs"
   }
 }

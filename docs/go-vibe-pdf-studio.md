@@ -37,3 +37,10 @@ Status: development branch, NOT production released. Existing PDF tools remain u
 - Verify actual download in mobile Safari and desktop; link remains after processing completes.
 - Verify network requests are only same-origin assets, no PDF upload.
 - Build, deploy to preview, run live preview checks, then request production go/no-go.
+
+## Editor status (development branch)
+Implemented: open and preview, page navigation, rotate, delete, reorder, merge, selected-page download, undo, and positioned text.
+Text is placed where the user taps (top-left by default, stepping down so successive items never overlap), can be selected, edited, resized, moved and deleted, and is only baked into the PDF on preview/export. Text is drawn upright for the page rotation it was placed under and then turns with the page like other content.
+Tested by `tests/pdf-editor-browser.mjs` (desktop 1440px and phone 390px; export, re-read and re-open) and `tests/pdf-studio.mjs`.
+
+Known limitations (not release blockers, documented for users): standard Helvetica only, so emoji and non-Latin scripts are rejected with a clear message; no zoom; page list is text buttons, not image thumbnails; password-protected PDFs are refused with a clear message; existing text cannot be edited; no signature/image overlay yet; exported file is always named `govibe-edited.pdf`; file size capped at 25 MB; verified on Chromium in this branch's local run with Firefox/WebKit left to CI, and not yet on a physical iPhone/Android device.

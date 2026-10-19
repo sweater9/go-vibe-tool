@@ -29,6 +29,17 @@ test('PDF Studio offers browser-local merge and split downloads',()=>{
  assert.match(js,/govibe-page-/);
  assert.match(js,/finally\{e\.target\.value=""\}/);
 });
+test('PDF Studio editor supports positioned, editable text, undo and guarded edits',()=>{
+ for(const id of ['undo','text','noteSize','addText','updateNote','moveNote','deleteNote','notes','overlay']) assert.match(html,new RegExp('id="'+id+'"'));
+ assert.match(js,/convertToPdfPoint/); // tap position -> PDF user space, correct under any page rotation
+ assert.match(js,/rotate:degrees\(n\.rot\)/); // text is drawn upright for the page rotation it was placed under
+ assert.match(js,/async function exclusive/); // a double tap cannot interleave two edits
+ assert.match(js,/async function snapshot/);
+ assert.match(js,/encodeText\(value\)/); // unsupported characters are rejected before anything is changed
+ assert.match(js,/password-protected/);
+ assert.match(css,/#overlay\{[^}]*pointer-events:none/);
+ assert.doesNotMatch(html,/style="/); // CSP style-src 'self' forbids inline style attributes
+});
 test('PDF Studio provides mobile layout and no nested iframe',()=>{
  assert.match(css,/@media\(max-width:700px\)/);
  assert.doesNotMatch(html,/<iframe\b/i);
