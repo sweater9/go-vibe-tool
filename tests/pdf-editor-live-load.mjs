@@ -45,7 +45,8 @@ for (const [label, vp] of [['desktop 1440', { width: 1440, height: 900 }], ['pho
     await page.click('#download'); await page.waitForSelector('#downloadLink:not([hidden])');
     await page.reload(); await page.waitForSelector('#welcomeTitle');
     await page.evaluate(() => navigator.serviceWorker.ready);
-    await ctx.setOffline(true); await page.reload(); await page.waitForSelector('#welcomeTitle'); await ctx.setOffline(false);
+    await dist.stop(); // offline = origin stopped (context.setOffline bypasses the worker in Firefox/WebKit and leaks into later cases)
+    try { await page.reload(); await page.waitForSelector('#welcomeTitle'); } finally { await dist.start(); }
   });
   await check(`${label}: the old PDF Studio address forwards to the editor`, async () => {
     await page.goto(base + 'tools/pdf-studio/'); await page.waitForURL(/\/tools\/pdf-editor\/$/);
