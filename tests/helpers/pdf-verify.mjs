@@ -14,6 +14,7 @@ export const pdfinfo = bytes => String(run('pdfinfo', [write(bytes)]));
 /* Poppler prints "Syntax Error"/"Error" lines on stderr for damaged files; return them so a test can demand a clean parse. */
 export function poppler(bytes) { const f = write(bytes), r = spawnSync('pdftotext', [f, '-'], { maxBuffer: 256 * 1024 * 1024 }); return { status: r.status, errors: String(r.stderr).split('\n').filter(l => /error/i.test(l)) }; }
 export const pdffonts = bytes => String(run('pdffonts', [write(bytes)])).split('\n').slice(2).filter(Boolean).map(l => l.trim().split(/\s{2,}|\s+(?=(CID |Type |TrueType|Type1))/)[0]);
+export const imageCount = bytes => String(run('pdfimages', ['-list', write(bytes)])).split('\n').slice(2).filter(l => l.trim()).length;
 export const pageCount = bytes => Number(/Pages:\s+(\d+)/.exec(pdfinfo(bytes))[1]);
 /* word boxes from pdftotext -bbox: [{text,x0,y0,x1,y1}] in PDF points, y downward from the top */
 export function words(bytes, page) {

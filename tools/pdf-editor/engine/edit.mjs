@@ -35,7 +35,7 @@ class PageFonts { // standard fonts added to a page without touching shared reso
 
 /* Decide the font of every entry and encode its character. Throws EditError for characters that cannot be written. */
 async function resolveEntries(lib, block, entries, fmts, notes, pf) {
-  const sub = new Map();
+  const sub = new Map(), styled = new Map(); // sub: typed characters missing from the embedded font; styled: characters the user switched to a standard font
   for (const e of entries) {
     const f = fmts.filter(x => e.pos < x.end && e.pos + e.ch.length > x.start).reduce((a, x) => ({ ...a, ...x.props }), {});
     e.f = f; if (e.virtual) continue;
@@ -50,7 +50,7 @@ async function resolveEntries(lib, block, entries, fmts, notes, pf) {
     if (e.useStd) {
       const code = WIN.get(e.ch); if (code === undefined) throw new EditError(`"${e.ch}" is not available in the standard ${e.useStd.family === 'mono' ? 'Courier' : e.useStd.family === 'serif' ? 'Times' : 'Helvetica'} font. Use letters, digits and common symbols such as € or é.`, 'unsupported-character');
       e.code = code; e.bytes = 1; e.pdfName = stdPdfName(e.useStd.family, e.useStd.bold, e.useStd.italic); e.res = await pf.resource(e.pdfName);
-      e.wtab = await lib.stdWidths(e.pdfName); if (e.fresh || e.origCode !== code) sub.set(e.pdfName, (sub.get(e.pdfName) || 0) + 1);
+      e.wtab = await lib.stdWidths(e.pdfName); if (e.fresh || e.origCode !== code) { const m = e.fresh && !wantsStd && !e.needsStd ? sub : styled; m.set(e.pdfName, (m.get(e.pdfName) || 0) + 1); }
     } else if (e.fresh) {
       const code = info.encode(e.ch);
       if (code !== null) { e.code = code; e.bytes = info.bytes; e.res = e.font; }
@@ -62,7 +62,8 @@ async function resolveEntries(lib, block, entries, fmts, notes, pf) {
       }
     }
   }
-  for (const [name, n] of sub) notes.push(`${n} character${n > 1 ? 's' : ''} set in ${name} (substitute font) because the original embedded font does not contain ${n > 1 ? 'them' : 'it'}.`);
+  for (const [name, n] of sub) notes.push(`${n} character${n > 1 ? 's' : ''} you typed ${n > 1 ? 'are' : 'is'} not in the PDF's embedded font, so ${n > 1 ? 'they use' : 'it uses'} the standard font ${name}.`);
+  for (const [name, n] of styled) notes.push(`${n} character${n > 1 ? 's' : ''} now use${n > 1 ? '' : 's'} the standard font ${name}: an embedded font file cannot be made bold, italic or changed to another family, so the closest standard PDF font is used.`);
 }
 
 function widthOf(e, block) {

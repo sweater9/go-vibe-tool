@@ -12,7 +12,7 @@ import * as O from '../tools/pdf-editor/engine/outline.mjs';
 import { bakeDocument } from '../tools/pdf-editor/bake.mjs';
 import { makeFontMetrics } from '../tools/pdf-editor/model.mjs';
 import { HAVE, pdftotext, pdffonts, words, render, diffPixels, colourIn, pypdfInspect, poppler, pageCount } from './helpers/pdf-verify.mjs';
-import { committed, stdInvoice, hardCases, ocrLayer, scanned, noUnicode, mixedImage } from './helpers/pdf-fixtures.mjs';
+import { committed, stdInvoice, hardCases, ocrLayer, scanned, noUnicode, mixedImage, formXObject, bigDocument } from './helpers/pdf-fixtures.mjs';
 
 const P = createRequire(import.meta.url)(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'vendor', 'pdf-lib.min.js'));
 const popplerTest = (name, fn) => test(name, { skip: HAVE.poppler ? false : 'SKIPPED: poppler-utils not installed' }, fn);
@@ -232,4 +232,15 @@ test('mixed text + image page keeps its image and can be edited', async () => {
   const bytes = await mixedImage(P); const r = await edit(bytes, 0, 'Price', t => t.replace('49.90', '59.90')); const doc = await P.PDFDocument.load(r.bytes);
   assert.ok(Buffer.from(r.bytes).toString('latin1').includes('/Subtype /Image') || Buffer.from(r.bytes).toString('latin1').includes('/Image'), 'image lost'); assert.equal(doc.getPageCount(), 1);
   if (HAVE.poppler) assert.ok(compact(pdftotext(r.bytes, 1)).includes('59.90 EUR'));
+});
+
+test('text inside a Form XObject is not offered for editing (and is detected, so the interface can say so)', async () => {
+  const r = await blocksOf(formXObject(), 0); assert.equal(r.interp.doCount, 1); assert.deepEqual(r.blocks.map(b => b.text), ['Direct text on the page']);
+});
+test('performance: a 150-page text document is scanned, analysed and edited in a few seconds', async () => {
+  const bytes = bigDocument(150), t0 = Date.now(); const { doc, lib } = await session(bytes); const t1 = Date.now(); const a = await analyzePage(P, doc, lib, 120); const t2 = Date.now();
+  const b = a.blocks.find(x => x.text.startsWith('Page 121 line 5:')); assert.ok(b); const r = await applyTextEdits(P, bytes, [{ page: 120, blockId: b.id, text: 'Page 121 line 5: edited in a large file' }]); const t3 = Date.now();
+  console.log(`  timing: load+scan ${t1 - t0} ms, analyse page ${t2 - t1} ms, apply edit + save ${t3 - t2} ms, ${a.blocks.length} blocks/page`);
+  assert.ok(t3 - t0 < 25000, `too slow: ${t3 - t0} ms`); assert.equal((await P.PDFDocument.load(r.bytes)).getPageCount(), 150);
+  if (HAVE.poppler) assert.ok(compact(pdftotext(r.bytes, 121)).includes('edited in a large file'));
 });

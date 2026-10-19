@@ -8,8 +8,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { HAVE, pdftotext, pdffonts, pypdfInspect, poppler, words, render, colourIn } from './helpers/pdf-verify.mjs';
-import { committed, noUnicode, scanned, stdInvoice } from './helpers/pdf-fixtures.mjs';
+import { HAVE, pdftotext, pdffonts, pypdfInspect, poppler, words, render, colourIn, imageCount } from './helpers/pdf-verify.mjs';
+import { committed, noUnicode, scanned, stdInvoice, mixedImage, formXObject, bigDocument, tinyPng } from './helpers/pdf-fixtures.mjs';
 const pw = await import(process.env.PLAYWRIGHT_PACKAGE || 'playwright');
 const engine = process.argv[2] || 'chromium';
 const dir = process.env.PDF_QA_ARTIFACTS || `artifacts/pdf-editor-v2-${engine}`;
@@ -32,7 +32,7 @@ async function check(name, fn) {
 }
 const needTools = (what = 'poppler') => { const ok = what === 'poppler' ? HAVE.poppler : what === 'pypdf' ? HAVE.pypdf : HAVE.poppler && HAVE.pypdf; if (!ok) { if (REQUIRE) throw new Error(`required tool missing: ${what}`); const e = new Error(`${what} is not installed`); e.skip = true; throw e; } };
 const compact = s => s.replace(/\s+/g, ' ').trim(), nospace = s => s.replace(/\s+/g, '');
-const fx = { chrome: Buffer.from(committed('chrome-invoice.pdf')), lo: Buffer.from(committed('lo-report.pdf')), std: Buffer.from(stdInvoice()), enc: Buffer.from(committed('encrypted.pdf')), nounicode: Buffer.from(noUnicode()), scan: Buffer.from(scanned()) };
+const fx = { mixed: Buffer.from(await mixedImage(P)), form: Buffer.from(formXObject()), big: Buffer.from(bigDocument(120)), chrome: Buffer.from(committed('chrome-invoice.pdf')), lo: Buffer.from(committed('lo-report.pdf')), std: Buffer.from(stdInvoice()), enc: Buffer.from(committed('encrypted.pdf')), nounicode: Buffer.from(noUnicode()), scan: Buffer.from(scanned()) };
 
 async function session(w) {
   const mobile = w <= 460, touch = mobile && realTouch;
@@ -198,6 +198,27 @@ for (const w of WIDTHS) {
     await S.open(fx.lo, 'report.pdf'); await S.tool('edittext'); await S.pickBlock('Total revenue'); await S.setText((await page.inputValue('#runText')).replace('1,204,500', '1,300,000')); await S.apply();
     const bytes = await S.exportBytes(); await S.reopen(bytes, 'again.pdf'); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 3);
     const b = await S.blocks(); assert.ok(b.some(x => /1,300,000/.test(x.text) && x.editable)); const st = await page.evaluate(() => window.pdfEditorDebug.state()); assert.equal(st.pages.length, 3); assert.equal(st.links.length, 2); assert.equal(st.outline.length, 3, 'top-level bookmarks'); assert.equal(st.textEdits.length, 0);
+  });
+
+  await check(`${tag}: P1 content together with edits: new text and an inserted, resized image survive export next to an existing-text edit`, async () => {
+    await S.open(fx.mixed, 'mixed.pdf'); await S.tool('edittext'); await S.pickBlock('Price'); await S.setText('Price: 59.90 EUR per unit'); await S.apply();
+    await S.tool('text'); await S.clickAt(300, 400); await page.waitForFunction(() => (window.pdfEditorDebug.state().objects || []).some(o => o.type === 'text')); await page.locator('#propText').waitFor({ state: 'visible' }); await page.fill('#propText', 'New label added'); await page.waitForTimeout(200);
+    await page.setInputFiles('#imageInput', { name: 'pic.png', mimeType: 'image/png', buffer: Buffer.from(tinyPng()) }); await page.waitForFunction(() => (window.pdfEditorDebug.state().objects || []).some(o => o.type === 'image')); await S.settle();
+    await page.fill('#geoW', '150'); await page.waitForTimeout(300);
+    const st = await page.evaluate(() => window.pdfEditorDebug.state()); const img = st.objects.find(o => o.type === 'image'); assert.ok(Math.abs(img.cw - 150) < 1, 'image not resized: ' + img.cw);
+    const bytes = await S.exportBytes(); await fs.writeFile(`${dir}/p1-${w}.pdf`, bytes); const j = await pdfjsInfo(page, bytes); assert.ok(/59\.90 EUR/.test(j.texts[0]) && /New label added/.test(j.texts[0]) && /Stock: 120 units/.test(j.texts[0]), j.texts[0]);
+    needTools('poppler'); assert.equal(imageCount(bytes), 2, 'original and inserted image expected'); assert.ok(compact(pdftotext(bytes, 1)).includes('Price: 59.90 EUR per unit'));
+  });
+
+  await check(`${tag}: text inside embedded form objects is reported as not editable; only the directly drawn line is offered`, async () => {
+    await S.open(fx.form, 'form.pdf'); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length === 1);
+    await page.waitForFunction(() => /embedded form objects/.test(document.getElementById('blockList').textContent)); assert.equal((await S.blocks())[0].text, 'Direct text on the page');
+  });
+
+  await check(`${tag}: a 120-page document is ready for text editing quickly and an edit on a late page exports correctly`, async () => {
+    await S.open(fx.big, 'big.pdf'); const t0 = Date.now(); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 3, null, { timeout: 30000 }); const ready = Date.now() - t0; assert.ok(ready < 15000, `engine took ${ready} ms`);
+    await S.goPage(90); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).some(b => /^Page 90 /.test(b.text))); await S.pickBlock('Page 90 line 3:'); await S.setText('Page 90 line 3: changed on a late page'); await S.apply();
+    const bytes = await S.exportBytes(); const j = await pdfjsInfo(page, bytes); assert.equal(j.pages, 120); assert.ok(/changed on a late page/.test(j.texts[89]) && !/line 3: the quick/.test(j.texts[89]));
   });
 
   await check(`${tag}: no console errors, no external requests, no inline styles`, async () => {

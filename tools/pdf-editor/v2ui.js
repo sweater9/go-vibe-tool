@@ -59,13 +59,22 @@ export function createV2(ctx) {
     const src = srcOf(p); const first = !engines.has(src.id); if (first) say("Reading the fonts in this PDF…");
     let res; try { res = await analysisOf(src, p.idx); } catch (e) { blocksFor = null; renderBlockList(); fail(new Error("This page could not be analysed for text editing: " + friendly(e))); return; }
     if (token !== loadToken) return;
-    blocksFor = { src, page: p.idx, pid: p.id, blocks: res.a.blocks, doCount: res.a.interp.doCount, a: res.a }; renderBlockList(); scheduleOverlay();
+    blocksFor = { src, page: p.idx, pid: p.id, blocks: res.a.blocks, doCount: res.a.interp.doCount, a: res.a, hidden: 0 }; renderBlockList(); scheduleOverlay();
+    if (res.a.interp.doCount > 0) { // text drawn inside Form XObjects is not part of the page content stream the engine edits: count it so the limit is visible
+      try {
+        const page = await src.pdf.getPage(p.idx + 1), tc = await page.getTextContent(), words = t => t.split(/\s+/).map(w => w.replace(/[^\p{L}\p{N}]/gu, "")).filter(w => w.length > 1);
+        const have = new Map(); for (const b of res.a.blocks) for (const w of words(b.text)) have.set(w, (have.get(w) || 0) + 1);
+        let missing = 0; for (const it of tc.items) for (const w of words(it.str)) { const n = have.get(w) || 0; if (n > 0) have.set(w, n - 1); else missing++; }
+        if (token === loadToken && blocksFor && blocksFor.pid === p.id) { blocksFor.hidden = missing; renderBlockList(); }
+      } catch { /* the note is optional */ }
+    }
     if (first) say("Ready. Select a line of text on the page, or choose one from the list.");
   }
   function renderBlockList() {
     const ul = $("blockList"); ul.replaceChildren(); const b = blocksFor && blocksFor.pid === curPage()?.id ? blocksFor : null;
     if (!b) { const li = document.createElement("li"); li.className = "hint"; li.textContent = curPage() && curPage().blank ? "Blank pages have no existing text." : "Loading text…"; ul.append(li); return; }
     if (!b.blocks.length) { const li = document.createElement("li"); li.className = "hint"; li.textContent = "No selectable text on this page. It may be a scanned image; V2 does not include OCR."; ul.append(li); return; }
+    if (b.hidden > 2) { const li = document.createElement("li"); li.className = "hint"; li.textContent = `About ${b.hidden} words on this page are drawn inside embedded form objects (XObjects) and cannot be edited here.`; ul.append(li); }
     b.blocks.slice(0, 300).forEach(bl => {
       const li = document.createElement("li"), btn = document.createElement("button"); btn.type = "button"; btn.dataset.block = bl.id;
       const ed = editFor(b.src.id, b.page, bl.id); btn.setAttribute("aria-pressed", String(!!draft && draft.blockId === bl.id));

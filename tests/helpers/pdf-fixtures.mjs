@@ -73,3 +73,15 @@ export function tinyPng() {
   const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
   return new Uint8Array(Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]));
 }
+
+/* Page content that sits inside a Form XObject (some producers wrap whole pages like this) plus one directly drawn line. */
+export function formXObject() {
+  const form = text => { const body = `BT /F1 12 Tf 72 700 Td (${text}) Tj ET`; return `<< /Type /XObject /Subtype /Form /BBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Length ${body.length} >>\nstream\n${body}\nendstream`; };
+  return new Uint8Array(buildPdf({ pages: [{ content: 'q /Fm0 Do Q\nBT /F1 12 Tf 72 650 Td (Direct text on the page) Tj ET\n', resources: '/XObject << /Fm0 6 0 R >>' }], fonts: { F1: STD_FONTS.F1 }, extraObjects: [form('Inside the embedded form object there are several words')] }));
+}
+
+/* Many pages of ordinary text, for timing. */
+export function bigDocument(pages = 150) {
+  const ps = []; for (let i = 0; i < pages; i++) { let c = ''; for (let l = 0; l < 40; l++) c += `BT /F2 11 Tf 56 ${760 - l * 17} Td (Page ${i + 1} line ${l + 1}: the quick brown fox jumps over the lazy dog 0123456789) Tj ET\n`; ps.push({ content: c }); }
+  return new Uint8Array(buildPdf({ pages: ps, fonts: STD_FONTS }));
+}
