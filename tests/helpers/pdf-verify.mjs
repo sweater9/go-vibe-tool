@@ -5,7 +5,7 @@ import fs from 'node:fs'; import os from 'node:os'; import path from 'node:path'
 
 const which = cmd => spawnSync('sh', ['-c', `command -v ${cmd}`]).status === 0;
 export const HAVE = { poppler: which('pdftotext') && which('pdftoppm') && which('pdffonts') && which('pdfinfo'), pypdf: spawnSync('python3', ['-I', '-c', 'import pypdf']).status === 0 };
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pdfv-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pdfv-')); process.on('exit', () => { try { fs.rmSync(tmp, { recursive: true, force: true }); } catch { /* best effort */ } });
 let n = 0; const write = bytes => { const f = path.join(tmp, `f${++n}.pdf`); fs.writeFileSync(f, bytes); return f; };
 const run = (cmd, args, opts = {}) => { const r = spawnSync(cmd, args, { maxBuffer: 256 * 1024 * 1024, ...opts }); if (r.status !== 0) throw new Error(`${cmd} failed: ${String(r.stderr).slice(0, 300)}`); return r.stdout; };
 

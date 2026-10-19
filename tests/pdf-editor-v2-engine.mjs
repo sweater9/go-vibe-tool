@@ -28,7 +28,7 @@ async function edit(bytes, page, find, change, extra = {}) {
   return applyTextEdits(P, bytes, [{ page, blockId: b.id, text, ...extra }]);
 }
 const compact = s => s.replace(/\s+/g, ' ').trim();
-const docs = { chrome: committed('chrome-invoice.pdf'), lo: committed('lo-report.pdf'), std: stdInvoice(), hard: hardCases() };
+const docs = { multilang: committed('chrome-multilang.pdf'), chrome: committed('chrome-invoice.pdf'), lo: committed('lo-report.pdf'), std: stdInvoice(), hard: hardCases() };
 
 /* ------------------------------------------------------------------ analysis */
 test('analysis: real Chrome (CID subset) and LibreOffice (simple subset) text is decoded into editable blocks', async () => {
@@ -281,4 +281,12 @@ bothTest('reflow in a LibreOffice file (one Td per text object): link text and t
   const bytes = docs.lo, { blocks } = await blocksOf(bytes, 0), b = findBlock(blocks, 'This report'); assert.ok(b.following.length >= 1, 'following chain not detected');
   const r = await edit(bytes, 0, 'This report', t => t.replace('summarises', 'summarises thoroughly'), { reflow: true }); const info = pypdfInspect(r.bytes); assert.ok(info.texts[0].includes('summarises thoroughly'));
   const w = words(r.bytes, 1); const gaps = w.filter(x => Math.abs(x.y0 - w.find(q => q.text === 'This').y0) < 3).sort((p, q) => p.x0 - q.x0); assert.ok(gaps.every((g, i) => !i || g.x0 >= gaps[i - 1].x1 - 0.5), 'words overlap on the edited line');
+});
+
+/* ------------------------------------------------------------------ multilingual, ligatures (Chrome, CID fonts with CJK and Arabic) */
+bothTest('multilingual file: ligature line and CJK text are edited in place; deleted CJK characters are really gone', async () => {
+  const bytes = docs.multilang, { blocks } = await blocksOf(bytes, 0); assert.ok(blocks.every(b => b.editable), 'every block should be editable');
+  let r = await edit(bytes, 0, 'Ligatures:', t => t.replace('office', 'offices').replace('café', 'café au lait')); let t = compact(pdftotext(r.bytes, 1)); assert.ok(/offices affluent/.test(t) && /café au lait/.test(t), t);
+  r = await edit(bytes, 0, '你好世界', '你好'); t = pdftotext(r.bytes, 1); assert.ok(t.includes('你好') && !t.includes('世界'), 'deleted CJK characters still in the file'); assert.ok(!pypdfInspect(r.bytes).texts[0].includes('世界'));
+  assert.deepEqual(poppler(r.bytes).errors, []); assert.equal(diffPixels(render(bytes, 1), render(r.bytes, 1), 100, [{ x0: 200, y0: 0, x1: 612, y1: 60 }]), 0, 'text elsewhere changed');
 });
