@@ -66,7 +66,7 @@ openTool=function(id){
   if(retiredTools[id])id=retiredTools[id];
   if(!v2Ids.has(id)){rememberTool(id);return legacyOpenTool(id)}
   rememberTool(id);const t=v2Tools.find(x=>x[0]===id),w=$("#workspace");
-  stopCamera();w.innerHTML=v2Shell(t,v2Template(id));w.classList.add("active");w.focus({preventScroll:true});w.scrollIntoView({behavior:"smooth",block:"start"});
+  stopCamera();w.innerHTML=v2Shell(t,v2Template(id));w.classList.add("active");w.focus({preventScroll:true});w.scrollIntoView({behavior:"auto",block:"start"});if(id==="pdf-studio"){const keepVisible=()=>{if(!w.classList.contains("active")||!w.querySelector("#pdfFiles"))return;const top=w.getBoundingClientRect().top;const minTop=window.innerWidth<=620?155:110;if(top<minTop-4)window.scrollBy({top:top-minTop,behavior:"instant"})};requestAnimationFrame(()=>requestAnimationFrame(keepVisible));window.setTimeout(keepVisible,250)}
   if(id==="pii-secret-redactor")initRedactor();
   if(id==="curl-code-sanitizer")initCurlSanitizer();
   if(id==="fact-anchor-checker")initFactAnchor();
