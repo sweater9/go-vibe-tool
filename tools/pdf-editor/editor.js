@@ -463,7 +463,14 @@ async function pickRun(u) {
   if (!hit) { runPick = null; syncProps(); say("No text found there. Tap directly on existing text."); return; }
   const loc = await locateRun(PDFLib, srcOf(p).effBytes, p.idx, hit.str, hit.occ);
   runPick = { hit, loc: { editable: loc.editable, reason: loc.reason, font: loc.font, asciiOnly: loc.asciiOnly }, pid: p.id };
-  syncProps(); $("runText").focus(); $("runText").select();
+  syncProps();
+  if (!loc.editable) {
+    const message = `This PDF text cannot be edited while preserving its original font. ${reasonText(loc.reason)} Embedded or subset fonts may not be supported. No changes were made.`;
+    say(message, true);
+    window.alert(message);
+    return;
+  }
+  $("runText").focus(); $("runText").select();
 }
 $("runApply").addEventListener("click", guard(async () => {
   if (!runPick || !runPick.loc.editable) return; const p = curPage(), to = $("runText").value;
