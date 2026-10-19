@@ -168,3 +168,48 @@ body.beautifier #tool{margin:0}
 .beautifier-preview #preview canvas{width:auto;max-width:100%;height:auto;max-height:65vh;object-fit:contain;box-shadow:0 18px 42px #0008}.beautifier-empty{text-align:center;color:#c1d1e2;max-width:340px}.beautifier-tip{font-size:14px;color:#b9c9da}
 body.beautifier #downloads a{margin:10px 0;padding:14px 20px;background:#17765a;color:white;border-color:#5ed4ac;border-radius:10px;font-weight:700}
 @media(max-width:800px){.beautifier-layout{grid-template-columns:1fr}.beautifier-controls,.beautifier-preview{padding:16px}.beautifier-preview #preview{min-height:220px}}
+
+
+/* GoVibeTool visual integration: scoped to Screenshot Beautifier only.
+   All other V9 media utilities keep their original styles and behavior. */
+body.beautifier {
+  color-scheme: light;
+  background: radial-gradient(circle at 8% 8%,rgba(98,82,243,.07),transparent 24%),#f7f7fc;
+  color: #101225;
+  font: 15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+body.beautifier main { max-width: 1180px; padding: 28px 18px 56px; }
+body.beautifier .beautifier-head h2 { color:#101225; font-size:clamp(26px,3vw,38px); letter-spacing:-.035em; }
+body.beautifier .beautifier-head p,body.beautifier .beautifier-tip { color:#656c80; }
+body.beautifier .beautifier-controls,body.beautifier .beautifier-preview {
+  background:#fff; border:1px solid #e2e3ee; border-radius:24px;
+  box-shadow:0 14px 42px rgba(39,31,105,.07); color:#101225;
+}
+body.beautifier .beautifier-controls h3,body.beautifier .beautifier-preview h3 { color:#101225; }
+body.beautifier input,body.beautifier select,body.beautifier textarea,body.beautifier button {
+  background:#f7f7fc; border:1px solid #e2e3ee; border-radius:12px; color:#101225;
+}
+body.beautifier input:focus-visible,body.beautifier select:focus-visible,body.beautifier button:focus-visible {
+  outline:3px solid #6252f3; outline-offset:2px;
+}
+body.beautifier .beautifier-fields input[type=range] { accent-color:#6252f3; }
+body.beautifier .beautifier-render {
+  background:linear-gradient(110deg,#6252f3,#8d5cf6); color:#fff; border-color:#6252f3;
+}
+body.beautifier .beautifier-preview #preview {
+  background:repeating-conic-gradient(#f0f1f8 0% 25%,#fff 0% 50%) 50%/24px 24px;
+  border-color:#e2e3ee;
+}
+body.beautifier .beautifier-empty { color:#656c80; }
+body.beautifier #status { color:#656c80; }
+body.beautifier #downloads a {
+  background:#6252f3; color:#fff; border:1px solid #6252f3;
+  text-decoration:none; border-radius:12px;
+}
+body.beautifier details { background:#fff; border-color:#e2e3ee; border-radius:18px; }
+body.beautifier details p { color:#656c80; }
+body.beautifier a { color:#6252f3; }
+@media(max-width:800px) {
+  body.beautifier main { padding:18px 12px 36px; }
+  body.beautifier .beautifier-controls,body.beautifier .beautifier-preview { border-radius:18px; }
+}
