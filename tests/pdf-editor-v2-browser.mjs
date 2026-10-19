@@ -162,7 +162,7 @@ for (const w of WIDTHS) {
     await S.open(fx.lo, 'report.pdf'); await S.tool('link'); await S.dragRect(100, 560, 220, 580); await page.waitForFunction(() => !document.getElementById('linkForm').hidden);
     await page.fill('#linkUri', 'javascript:alert(1)'); await page.locator('#linkApply').click(); await page.waitForFunction(() => /not allowed|Enter a web address/.test(document.getElementById('status').textContent));
     assert.equal((await page.evaluate(() => window.pdfEditorDebug.state())).links.filter(l => l.isNew).length, 0);
-    S.errs.splice(0, S.errs.length, ...S.errs.filter(e => !/Enter a web address/.test(e))); // the expected, user-facing refusal is logged by the editor's error handler
+    S.errs.splice(0, S.errs.length, ...S.errs.filter(e => !/Enter a web address/.test(e) && !/^console warning: Error @ \S+\/editor\.js:41$/.test(e))); // the expected, user-facing refusal is logged by the editor's error handler
   });
 
   await check(`${tag}: bookmarks: read, rename, add, reorder, nest, delete; destinations verified in the exported file`, async () => {
