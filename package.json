@@ -39,6 +39,7 @@
     "test:v9:dist": "node scripts/build-static.mjs && node tests/v9-agent1-dist.mjs",
     "test:pdf-studio": "node --test tests/pdf-studio.mjs tests/pdf-editor-model.mjs && node tests/homepage-scripts-parse.mjs",
     "test:pdf-editor:browser": "node tests/pdf-editor-app-browser.mjs",
-    "test:pdf-editor:live": "node tests/pdf-editor-live-load.mjs"
+    "test:pdf-editor:live": "node tests/pdf-editor-live-load.mjs",
+    "test:adsense": "node --test tests/adsense-readiness.mjs"
   }
 }
