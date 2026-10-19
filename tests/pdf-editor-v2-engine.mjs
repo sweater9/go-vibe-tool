@@ -128,6 +128,13 @@ bothTest('P0-2 size and colour: rendered height grows and the characters are red
   const after = words(r.bytes, 1).find(w => w.text === 'INVOICE'); assert.ok(after.y1 - after.y0 > (before.y1 - before.y0) * 1.3, `height ${(after.y1 - after.y0).toFixed(1)} vs ${(before.y1 - before.y0).toFixed(1)}`);
   const col = colourIn(render(r.bytes, 1), { x0: after.x0, x1: after.x1, y0: after.y0, y1: after.y1 }); assert.ok(col && col[0] > 150 && col[1] < 60 && col[2] < 60, `colour ${col}`); void b;
 });
+bothTest('P0-2 a colour change does not leak into the text that follows it (state is restored to the initial default)', async () => {
+  const bytes = docs.std, w0 = words(bytes, 1).filter(w => ['Consulting', 'services'].includes(w.text));
+  const r = await edit(bytes, 0, 'Consulting services', 'Consulting services', { fmt: [{ start: 0, end: 19, props: { color: '#cc0000' } }] });
+  const ign = [{ x0: Math.min(...w0.map(w => w.x0)) - 2, x1: Math.max(...w0.map(w => w.x1)) + 2, y0: Math.min(...w0.map(w => w.y0)) - 2, y1: Math.max(...w0.map(w => w.y1)) + 2 }];
+  assert.equal(diffPixels(render(bytes, 1), render(r.bytes, 1), 100, ign), 0, 'text outside the edited line changed colour or position');
+  const c = colourIn(render(r.bytes, 1), ign[0]); assert.ok(c && c[0] > c[1] + 40 && c[0] > c[2] + 40, 'text is not red: ' + c);
+});
 bothTest('P0-2 existing formatting is preserved when no change is requested (Chrome title stays bold sans, other lines keep their fonts)', async () => {
   const r = await edit(docs.chrome, 0, 'Invoice 2026', 'Invoice 2026-0199'); const f = pdffonts(r.bytes).join(' ');
   assert.ok(/LiberationSans-Bold/.test(f), f); assert.ok(/LiberationSerif-Italic/.test(f));
@@ -243,4 +250,35 @@ test('performance: a 150-page text document is scanned, analysed and edited in a
   console.log(`  timing: load+scan ${t1 - t0} ms, analyse page ${t2 - t1} ms, apply edit + save ${t3 - t2} ms, ${a.blocks.length} blocks/page`);
   assert.ok(t3 - t0 < 25000, `too slow: ${t3 - t0} ms`); assert.equal((await P.PDFDocument.load(r.bytes)).getPageCount(), 150);
   if (HAVE.poppler) assert.ok(compact(pdftotext(r.bytes, 121)).includes('edited in a large file'));
+});
+
+/* ------------------------------------------------------------------ moving the rest of the line (opt-in) */
+const lineWords = (bytes, page, y) => words(bytes, page).filter(w => Math.abs((w.y0 + w.y1) / 2 - y) < 4).sort((a, b) => a.x0 - b.x0);
+bothTest('reflow: a longer word pushes the rest of the sentence (separate text objects with absolute positions) along; nothing overlaps and other lines are untouched', async () => {
+  const bytes = docs.chrome, before = words(bytes, 1), pay = before.find(w => w.text === 'Payment'), y = (pay.y0 + pay.y1) / 2;
+  const plain = await edit(bytes, 0, 'Acme Trading', t => t.replace('Payment', 'Settlement obligations'));
+  const moved = await edit(bytes, 0, 'Acme Trading', t => t.replace('Payment', 'Settlement obligations'), { reflow: true });
+  const ov = ws => ws.some((w, i) => i && w.x0 < ws[i - 1].x1 - 0.5);
+  assert.ok(ov(lineWords(plain.bytes, 1, y)), 'control: without reflow the new text overlaps the link text (the known limit)');
+  const after = lineWords(moved.bytes, 1, y); assert.ok(!ov(after), 'overlap remains after reflow: ' + after.map(w => `${w.text}@${w.x0.toFixed(0)}-${w.x1.toFixed(0)}`).join(' '));
+  const t = compact(pdftotext(moved.bytes, 1)); assert.ok(t.includes('Settlement obligations due in 30 days. Pay online or see the terms'), t);
+  const ign = [{ x0: 0, x1: 612, y0: y - 6, y1: y + 6 }]; assert.equal(diffPixels(render(bytes, 1), render(moved.bytes, 1), 100, ign), 0, 'something outside the edited line moved');
+  assert.deepEqual(poppler(moved.bytes).errors, []);
+  const w0 = before.find(w => w.text === 'Pay'), w1 = after.find(w => w.text === 'Pay'), nw = after.find(w => w.text === 'obligations'); assert.ok(w1.x0 > nw.x1, 'Pay must start after the new text'); assert.ok(w1.x0 > w0.x0 + 40, 'link text was not moved right');
+});
+bothTest('reflow: relative Td chains are compensated, so only the intended text moves (shorter and longer edits)', async () => {
+  const { buildPdf, STD_FONTS } = await import('./helpers/pdf-build.mjs');
+  const bytes = new Uint8Array(buildPdf({ pages: [{ content: 'BT /F1 12 Tf 72 300 Td (Alpha) Tj ET\nBT /F1 12 Tf 110 300 Td (Beta) Tj 42 0 Td (Gamma) Tj 0 -20 Td (next line) Tj ET\n' }], fonts: STD_FONTS }));
+  const pos = (b, t) => words(b, 1).find(x => x.text === t); const base = ['Alpha', 'Beta', 'Gamma', 'next'].map(t => pos(bytes, t));
+  const { blocks } = await blocksOf(bytes, 0); assert.deepEqual(blocks.map(b => b.text), ['Alpha', 'Beta', 'Gamma', 'next line']); assert.equal(findBlock(blocks, 'Alpha').following.length, 1, 'only Beta follows closely');
+  for (const [to, sign] of [['Alphabet soup', 1], ['Al', -1]]) {
+    const r = await edit(bytes, 0, 'Alpha', to, { reflow: true }), moved = ['Beta', 'Gamma', 'next'].map(t => pos(r.bytes, t)), dBeta = moved[0].x0 - base[1].x0;
+    assert.ok(sign * dBeta > 10, `Beta moved ${dBeta.toFixed(1)}`); assert.ok(Math.abs(moved[1].x0 - base[2].x0) < 0.6, `Gamma moved ${moved[1].x0 - base[2].x0}`); assert.ok(Math.abs(moved[2].x0 - base[3].x0) < 0.6 && Math.abs(moved[2].y0 - base[3].y0) < 0.6, 'next line moved');
+  }
+  const r = await edit(bytes, 0, 'Alpha', 'Alphabet soup', { reflow: false }); assert.ok(Math.abs(pos(r.bytes, 'Beta').x0 - base[1].x0) < 0.6, 'without reflow nothing else moves');
+});
+bothTest('reflow in a LibreOffice file (one Td per text object): link text and the rest of the line move together', async () => {
+  const bytes = docs.lo, { blocks } = await blocksOf(bytes, 0), b = findBlock(blocks, 'This report'); assert.ok(b.following.length >= 1, 'following chain not detected');
+  const r = await edit(bytes, 0, 'This report', t => t.replace('summarises', 'summarises thoroughly'), { reflow: true }); const info = pypdfInspect(r.bytes); assert.ok(info.texts[0].includes('summarises thoroughly'));
+  const w = words(r.bytes, 1); const gaps = w.filter(x => Math.abs(x.y0 - w.find(q => q.text === 'This').y0) < 3).sort((p, q) => p.x0 - q.x0); assert.ok(gaps.every((g, i) => !i || g.x0 >= gaps[i - 1].x1 - 0.5), 'words overlap on the edited line');
 });

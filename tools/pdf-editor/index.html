@@ -165,6 +165,8 @@
           <button id="runAnchorC" class="btn toggle" type="button" aria-pressed="false">Keep centre</button>
           <button id="runAnchorR" class="btn toggle" type="button" aria-pressed="false">Keep right</button>
         </div>
+        <label class="lbl check" id="runReflowRow" hidden><input id="runReflow" type="checkbox"> Move the rest of the line along</label>
+        <p class="hint" id="runReflowHint" hidden>Moves the text after this on the same line by the same amount. Underlines, boxes and link areas are not moved.</p>
       </fieldset>
       <div class="row wrap"><button id="runApply" class="btn primary" disabled>Apply to PDF</button><button id="runRevert" class="btn" disabled>Restore original</button></div>
       <p id="runWarn" class="warn" role="status" hidden></p>

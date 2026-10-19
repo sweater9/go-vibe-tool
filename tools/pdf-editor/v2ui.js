@@ -49,7 +49,7 @@ export function createV2(ctx) {
     while (i < props.length) { if (!props[i]) { i++; continue; } let j = i + 1; while (j < props.length && same(props[j], props[i])) j++; const p = { ...props[i] }; if (p.size) p.size = p.size / scale; out.push({ start: i, end: j, props: p }); i = j; }
     return out;
   };
-  const toEngine = d => ({ page: d.page, blockId: d.blockId, text: d.text, align: d.align || null, fmt: rangesOf(d.props, d.block.userScale || 1) });
+  const toEngine = d => ({ page: d.page, blockId: d.blockId, text: d.text, align: d.align || null, reflow: !!d.reflow, fmt: rangesOf(d.props, d.block.userScale || 1) });
   const isPlain = d => d.text === d.block.text && !d.props.some(Boolean) && !d.align;
 
   /* ================================================================ page blocks (existing text) */
@@ -85,7 +85,7 @@ export function createV2(ctx) {
   async function selectBlock(bl, at = null) {
     if (draft && draft.dirty && draft.blockId !== bl.id) { try { await applyDraft(true); } catch (e) { fail(e); return; } }
     const b = blocksFor, ed = editFor(b.src.id, b.page, bl.id);
-    draft = { src: b.src.id, page: b.page, blockId: bl.id, block: bl, text: ed ? ed.text : bl.text, props: ed ? ed.props.slice() : Array.from({ length: bl.text.length }, () => null), align: ed ? ed.align : null, dirty: false, hasEdit: !!ed };
+    draft = { src: b.src.id, page: b.page, blockId: bl.id, block: bl, text: ed ? ed.text : bl.text, props: ed ? ed.props.slice() : Array.from({ length: bl.text.length }, () => null), align: ed ? ed.align : null, reflow: ed ? !!ed.reflow : undefined, dirty: false, hasEdit: !!ed };
     renderDraft(); renderBlockList(); scheduleOverlay(); const t = $("runText");
     if (bl.editable && getTool() === "edittext") { t.focus(); const w = at ? wordAt(bl, at) : null; if (w) t.setSelectionRange(w[0], w[1]); else t.select(); syncFormatControls(); }
   }
@@ -108,6 +108,7 @@ export function createV2(ctx) {
     const s = styleAt(d, i); $("runFont").value = d.props[i] && d.props[i].family ? d.props[i].family : ""; if (document.activeElement !== $("runSize")) $("runSize").value = String(s.size);
     $("runBold").setAttribute("aria-pressed", String(s.bold)); $("runItalic").setAttribute("aria-pressed", String(s.italic)); $("runColor").value = s.color;
     for (const a of ["left", "center", "right"]) $("runAnchor" + a[0].toUpperCase()).setAttribute("aria-pressed", String(d.align === a));
+    const can = !!(d.block.following && d.block.following.length); $("runReflowRow").hidden = !can; $("runReflowHint").hidden = !can; $("runReflow").checked = !!d.reflow;
   }
   function showWarn(msg, bad = false) { const w = $("runWarn"); w.hidden = !msg; w.textContent = msg || ""; w.classList.toggle("bad", bad); }
   function selectionRange() { const t = $("runText"); let s = t.selectionStart ?? 0, e = t.selectionEnd ?? 0; if (s === e) { s = 0; e = draft.text.length; } return [s, e]; }
@@ -126,18 +127,25 @@ export function createV2(ctx) {
     const d = draft; if (!d || !d.block.editable) return; const seq = ++measureSeq; const src = engines.get(d.src);
     try {
       const m = await measureEdit(PDFLib, src.doc, src.lib, d.block, toEngine(d)); if (seq !== measureSeq) return; d.measure = m; $("runApply").disabled = !d.dirty;
-      const extra = m.widthUser - m.origUser, room = d.block.room, notes = m.notes.join(" ");
-      $("runNote").textContent = notes;
-      if (Number.isFinite(room) && m.widthUser > room) showWarn(`The new text is ${Math.round(extra)} pt wider than the original and reaches ${Math.round(m.widthUser - room)} pt into the next text on this line. Shorten it, or anchor it to the right or centre.`);
-      else if (extra > 0 && d.align === null && d.block.box && !Number.isFinite(room)) showWarn(extra > 40 ? `The new text is ${Math.round(extra)} pt wider than the original. Text is not re-flowed.` : "");
-      else showWarn("");
+      const extra = m.widthUser - m.origUser, room = d.block.room, notes = m.notes.join(" "), canMove = !!(d.block.following && d.block.following.length);
+      const shift = d.align === "right" ? -extra : d.align === "center" ? -extra / 2 : 0, endDelta = shift + extra; $("runNote").textContent = notes;
+      if (canMove && d.reflow === undefined && Number.isFinite(room) && m.widthUser + shift > room) { d.reflow = true; $("runReflow").checked = true; }
+      const msgs = [];
+      if (!d.reflow && Number.isFinite(room) && m.widthUser + shift > room) msgs.push(`The new text is ${Math.round(extra)} pt wider than the original and reaches ${Math.round(m.widthUser + shift - room)} pt into the next text on this line.${canMove ? " Tick “Move the rest of the line along” to make room, or" : ""} Shorten it, or anchor it to the right or centre.`);
+      else if (d.reflow && canMove && Math.abs(endDelta) > 0.5) msgs.push(`The rest of this line will move ${endDelta > 0 ? "right" : "left"} by ${Math.round(Math.abs(endDelta))} pt. Underlines, boxes and link areas are not moved.`);
+      const box = blocksFor && blocksFor.a.page.getMediaBox(), o = d.block.origin, dir = d.block.dir;
+      if (box && Math.abs(dir[1]) < 0.01) { const x0 = o[0] + dir[0] * shift, x1 = x0 + dir[0] * m.widthUser, last = d.reflow && canMove ? lastFollowerEnd(d, endDelta) : x1; if (Math.min(x0, x1, last) < box.x - 1 || Math.max(x0, x1, last) > box.x + box.width + 1) msgs.push("Part of the new text would run off the edge of the page."); }
+      showWarn(msgs.join(" "));
     } catch (e) { if (seq !== measureSeq) return; d.measure = null; showWarn(friendly(e), true); $("runApply").disabled = true; }
+  }
+  function lastFollowerEnd(d, delta) {
+    const all = blocksFor.blocks; let end = -Infinity; for (const id of d.block.following) { const c = all.find(b => b.id === id); if (c) end = Math.max(end, c.origin[0] + c.dir[0] * (c.width * c.userScale + delta)); } return end;
   }
   async function applyDraft(auto = false) {
     const d = draft; if (!d || !d.dirty) return; const src = engines.get(d.src);
     await measureEdit(PDFLib, src.doc, src.lib, d.block, toEngine(d)).then(m => { d.measure = m; }).catch(e => { throw new Error(friendly(e)); });
     const plain = isPlain(d), st = getState();
-    await commit(() => { st.textEdits = st.textEdits.filter(x => !(x.src === d.src && x.page === d.page && x.blockId === d.blockId)); if (!plain) st.textEdits.push({ id: Date.now() + Math.random(), src: d.src, page: d.page, blockId: d.blockId, text: d.text, props: d.props.slice(), align: d.align, engine: toEngine(d), widthUser: d.measure.widthUser, notes: d.measure.notes }); }, { reload: true });
+    await commit(() => { st.textEdits = st.textEdits.filter(x => !(x.src === d.src && x.page === d.page && x.blockId === d.blockId)); if (!plain) st.textEdits.push({ id: Date.now() + Math.random(), src: d.src, page: d.page, blockId: d.blockId, text: d.text, props: d.props.slice(), align: d.align, engine: toEngine(d), reflow: !!d.reflow, widthUser: d.measure.widthUser, notes: d.measure.notes }); }, { reload: true });
     d.dirty = false; d.hasEdit = !plain; renderDraft(); renderBlockList(); const n = d.measure.notes.length ? " " + d.measure.notes.join(" ") : "";
     say(plain ? "That line is back to its original text." : `The text in the PDF was changed.${n}`, false);
   }
@@ -302,6 +310,7 @@ export function createV2(ctx) {
     $("runBold").addEventListener("click", () => patchFormat({ bold: $("runBold").getAttribute("aria-pressed") !== "true" })); $("runItalic").addEventListener("click", () => patchFormat({ italic: $("runItalic").getAttribute("aria-pressed") !== "true" }));
     $("runColor").addEventListener("input", () => patchFormat({ color: $("runColor").value }));
     for (const a of ["left", "center", "right"]) $("runAnchor" + a[0].toUpperCase()).addEventListener("click", () => { if (!draft) return; draft.align = draft.align === a ? null : a; draft.dirty = true; renderDraft(); });
+    $("runReflow").addEventListener("change", () => { if (!draft) return; draft.reflow = $("runReflow").checked; draft.dirty = !isPlain(draft) || draft.hasEdit; renderDraft(); });
     $("runApply").addEventListener("click", guard(() => applyDraft())); $("runRevert").addEventListener("click", guard(revertDraft));
     for (const el of document.querySelectorAll("input[name=linkKind]")) el.addEventListener("change", () => { if (linkSel) { linkSel.rec.kind = el.value; renderLinks(); } });
     $("linkApply").addEventListener("click", guard(saveLink)); $("linkRemove").addEventListener("click", guard(removeLink)); $("linkUri").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); saveLink().catch(fail); } });

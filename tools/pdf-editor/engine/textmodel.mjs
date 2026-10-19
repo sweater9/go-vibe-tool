@@ -132,16 +132,20 @@ export async function scanUsage(P, doc, lib) {
   return pages;
 }
 
-/* For each block: how far (user-space points) the text may grow before it reaches the next text on the same baseline. */
+/* For each block: how far (user-space points) the text may grow before it reaches the next text on the same baseline (`room`),
+   and the chain of blocks that follow it closely on that baseline (`following`: ids), which an edit can optionally move along. */
 function addRoom(blocks) {
+  for (const b of blocks) { const M = mul(b.tm0, b.ctm), sc = Math.hypot(M[0], M[1]) || 1; b.userScale = sc; b.origin = [M[4], M[5]]; b.dir = [M[0] / sc, M[1] / sc]; b.em = Math.abs(b.startState.size) * sc || 1; }
   for (const b of blocks) {
-    const M = mul(b.tm0, b.ctm), ux = M[0], uy = M[1], sc = Math.hypot(ux, uy) || 1, dir = [ux / sc, uy / sc], o = [M[4], M[5]]; b.userScale = sc; b.origin = o; b.dir = dir;
-    let room = Infinity; const em = Math.hypot(M[2], M[3]) * 1 || 1;
+    const em = b.em; let room = Infinity; const cands = [];
     for (const c of blocks) {
-      if (c === b) continue; const M2 = mul(c.tm0, c.ctm), vx = M2[4] - o[0], vy = M2[5] - o[1];
-      const along = vx * dir[0] + vy * dir[1], across = -vx * dir[1] + vy * dir[0];
-      if (Math.abs(across) < 0.5 * em * 0.75 && along > b.width * sc * 0.5) room = Math.min(room, along);
+      if (c === b) continue; const vx = c.origin[0] - b.origin[0], vy = c.origin[1] - b.origin[1];
+      const along = vx * b.dir[0] + vy * b.dir[1], across = -vx * b.dir[1] + vy * b.dir[0];
+      if (Math.abs(across) < 0.5 * em * 0.75 && along > b.width * b.userScale * 0.5) { room = Math.min(room, along); cands.push({ c, along }); }
     }
-    b.room = room;
+    b.room = room; cands.sort((x, y) => x.along - y.along);
+    let end = b.width * b.userScale; const chain = [];
+    for (const { c, along } of cands) { const gap = along - end; if (gap <= 1.2 * c.em && gap >= -0.35 * em) { chain.push(c.id); end = along + c.width * c.userScale; } else if (gap > 0) break; }
+    b.following = chain;
   }
 }

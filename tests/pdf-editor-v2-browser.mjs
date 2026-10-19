@@ -102,6 +102,15 @@ for (const w of WIDTHS) {
     assert.deepEqual(poppler(bytes).errors, []);
   });
 
+  await check(`${tag}: a longer replacement warns, offers to move the rest of the line, and the exported line has no overlapping words`, async () => {
+    await S.open(fx.chrome, 'invoice.pdf'); await S.tool('edittext'); await S.pickBlock('Acme Trading'); await S.setText('Acme Trading Ltd, 12 High Street. Settlement obligations due in 30 days. ');
+    await page.waitForFunction(() => document.getElementById('runReflow').checked); assert.match(await page.textContent('#runWarn'), /rest of this line will move right/);
+    await page.locator('#runReflow').uncheck(); await page.waitForFunction(() => /reaches \d+ pt into the next text/.test(document.getElementById('runWarn').textContent)); await page.locator('#runReflow').check(); await page.waitForTimeout(200);
+    await S.apply(); const bytes = await S.exportBytes(); needTools('poppler'); const ws = words(bytes, 1), pay = ws.find(x => x.text === 'Settlement'), y = (pay.y0 + pay.y1) / 2;
+    const line = ws.filter(x => Math.abs((x.y0 + x.y1) / 2 - y) < 4).sort((a, b) => a.x0 - b.x0); assert.ok(line.every((x, i) => !i || x.x0 >= line[i - 1].x1 - 0.5), line.map(x => `${x.text}@${x.x0.toFixed(0)}-${x.x1.toFixed(0)}`).join(' '));
+    assert.ok(compact(pdftotext(bytes, 1)).includes('Settlement obligations due in 30 days. Pay online or see the terms'));
+  });
+
   await check(`${tag}: numbers and amounts, delete text, undo and redo`, async () => {
     await S.open(fx.chrome, 'invoice.pdf'); await S.tool('edittext');
     await S.pickBlock('$120.00'); await S.setText('$1,250.75'); await S.apply();
