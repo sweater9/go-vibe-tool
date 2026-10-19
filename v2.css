@@ -115,3 +115,7 @@ header{box-shadow:0 8px 30px rgba(26,22,67,.04)}.eyebrow{background:linear-gradi
 
 /* V8 brand: supplied sparkle mark + bold black wordmark */
 .brand{display:inline-flex;align-items:center}.brand .brand-mark{width:30px;height:30px;flex:none;display:block;margin-right:9px}.brand span,.brand b{background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#0b0b14}
+
+/* Keep the active workspace heading and close control below the sticky navigation. */
+#workspace.workspace{scroll-margin-top:calc(110px + env(safe-area-inset-top, 0px))}
+@media(max-width:620px){#workspace.workspace{scroll-margin-top:calc(155px + env(safe-area-inset-top, 0px))}}
