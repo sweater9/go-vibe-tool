@@ -873,8 +873,26 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
       if (at >= 0) { path.length = at + 1; ctl.status(''); render(); dragging = true; }
       else if (step(c)) dragging = true;
     });
-    board.addEventListener('pointermove', function (e) { if (!dragging || solved) return; var c = cellFromEvent(e); if (c >= 0) step(c); });
-    function endDrag() { dragging = false; }
+    // A fast swipe (or a coalesced touch stream) can skip cells between two pointer samples, and a finger cutting a
+    // corner lands on a diagonal cell. Walk the cells in between so the line follows the finger instead of stalling.
+    function walkTo(target) {
+      for (var guard = 0; guard < n * 2 && !solved && path.length; guard++) {
+        var head = path[path.length - 1];
+        if (head === target) return;
+        var dr = ((target / n) | 0) - ((head / n) | 0), dc = (target % n) - (head % n);
+        var vert = head + (dr > 0 ? n : -n), horiz = head + (dc > 0 ? 1 : -1);
+        var order = !dr ? [horiz] : !dc ? [vert] : Math.abs(dr) > Math.abs(dc) ? [vert, horiz] : [horiz, vert];
+        if (!order.some(step)) return;
+      }
+    }
+    function follow(e) {
+      if (!dragging || solved) return;
+      var evs = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : [];
+      if (!evs.length) evs = [e];
+      evs.forEach(function (ev) { var c = cellFromEvent(ev); if (c >= 0) walkTo(c); });
+    }
+    board.addEventListener('pointermove', follow);
+    function endDrag(e) { if (e && e.type === 'pointerup') follow(e); dragging = false; }
     board.addEventListener('pointerup', endDrag); board.addEventListener('pointercancel', endDrag);
     function onKey(e) {
       var d = { ArrowUp: -n, ArrowDown: n, ArrowLeft: -1, ArrowRight: 1 }[e.key];

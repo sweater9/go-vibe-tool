@@ -197,6 +197,15 @@ await check('Vibeline: drag-back undo, Undo button, Reset, invalid moves rejecte
   assert.deepEqual(c.errs, []); await c.ctx.close();
 });
 
+await check('Vibeline: a fast swipe with sparse pointer samples (corners only) still draws and clears the level', async () => {
+  const c = await open({ w: 390, touch: true }); const { page } = c; const puz = puzzle('vl', 1); await startLevel(page, 'vl');
+  const b = await box(page);
+  const corners = puz.sol.filter((x, i) => i === 0 || i === puz.N - 1 || (x - puz.sol[i - 1]) !== (puz.sol[i + 1] - x));
+  await drag(page, corners.map(x => center(b, puz.n, x)), realTouch ? 'touch' : 'mouse');
+  assert.ok(await won(page), `sparse swipe stalled at ${await page.textContent('#progress')}`);
+  assert.deepEqual(c.errs, []); await c.ctx.close();
+});
+
 await check('Twofold: tap cycles dot/ring/empty, fixed squares locked, error highlight, Undo/Reset/Hint', async () => {
   const c = await open({ w: 375, touch: true }); const { page } = c; const puz = puzzle('tw', 1); await startLevel(page, 'tw');
   const given = [...Array(puz.N).keys()].find(i => puz.given[i]), free = [...Array(puz.N).keys()].filter(i => !puz.given[i]);
