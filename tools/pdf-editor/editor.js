@@ -627,10 +627,10 @@ async function runExport({ only = null, name = null, label = "PDF ready" } = {})
   try {
     const bytes = await buildPdf(only); clearDownload();
     const blob = new Blob([bytes], { type: "application/pdf" }); downloadUrl = URL.createObjectURL(blob);
-    const fname = name || `${stripName(docName)}-edited.pdf`, a = $("downloadLink"); a.href = downloadUrl; a.download = fname; a.textContent = `Download ${fname} (${Math.ceil(blob.size / 1024)} KB)`; a.hidden = false;
+    const fname = name || `${stripName(docName)}-edited.pdf`;
     const tmp = document.createElement("a"); tmp.href = downloadUrl; tmp.download = fname; document.body.append(tmp); tmp.click(); tmp.remove();
     if (!only) exportedVersion = version;
-    say(`${label}: ${fname}. If your browser did not start the download, use the green link.`);
+    say(`${label}: ${fname}. Download started.`);
   } catch (e) { fail(new Error("Export failed: " + friendly(e))); }
   finally { busy = false; document.body.removeAttribute("aria-busy"); }
 }
