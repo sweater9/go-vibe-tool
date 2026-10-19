@@ -4,9 +4,10 @@
  * Run: node scripts/check-seo-integrity.mjs
  */
 import { readFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve, dirname, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sitemap = readFileSync(resolve(root, 'sitemap.xml'), 'utf8');
 const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1].trim());
 const errors = [];
@@ -30,7 +31,7 @@ for (const location of locations) {
     continue;
   }
   const local = resolve(root, pathname.slice(1) + (pathname.endsWith('/') ? 'index.html' : ''));
-  if (!local.startsWith(root + '/') || !existsSync(local)) {
+  if (!local.startsWith(root + sep) || !existsSync(local)) {
     errors.push('Missing source file: ' + location);
     continue;
   }
