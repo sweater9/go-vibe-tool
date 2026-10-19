@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "enabled": false,
+  "approvalRequired": true,
+  "defaultMaxSlotsPerPage": 2,
+  "autoAds": false,
+  "formats": {
+    "anchor": false,
+    "vignette": false,
+    "interstitial": false,
+    "autoplayVideo": false
+  },
+  "eligiblePages": [
+    {
+      "path": "/play/",
+      "placements": [
+        "after-game-directory"
+      ],
+      "maxSlots": 1
+    },
+    {
+      "path": "/",
+      "placements": [
+        "discovery-content"
+      ],
+      "maxSlots": 1,
+      "requiresIsolationReview": true
+    }
+  ],
+  "excludedPaths": [
+    "/tools/pdf-editor/",
+    "/tools/pdf-studio/",
+    "/tools/private-pdf-tools.html",
+    "/play/vibe-arcade/",
+    "/play/vibeline/",
+    "/play/2048/",
+    "/play/daily-word/",
+    "/play/daily/",
+    "/play/word-logic/",
+    "/play/mahjong-solitaire/",
+    "/play/mahjong/"
+  ],
+  "privacy": {
+    "requireConsentManagement": true,
+    "blockAdScriptsUntilAllowed": true,
+    "neverReadToolInputs": true
+  },
+  "mobile": {
+    "noOverlays": true,
+    "noStickyAds": true,
+    "avoidNavigationAndDownloadControls": true
+  }
+}
