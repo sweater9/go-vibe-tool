@@ -72,7 +72,7 @@ export function showOps(bytes, fontName0 = null) {
   return ops;
 }
 
-async function pageContent(PDFLib, doc, page) {
+export async function pageContent(PDFLib, doc, page) {
   const { PDFArray, PDFName, decodePDFRawStream, PDFRawStream } = PDFLib;
   const c = page.node.Contents(); const streams = [];
   const pushStream = s => { if (s instanceof PDFRawStream) streams.push(decodePDFRawStream(s).decode()); else if (s && s.getContents) streams.push(s.getContents()); };
