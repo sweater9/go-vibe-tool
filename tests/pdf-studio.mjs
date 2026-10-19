@@ -56,7 +56,7 @@ test('Existing Private PDF Tools exposes a reliable download state',()=>{
  const legacy=fs.readFileSync(new URL('../v2-tools.js',import.meta.url),'utf8');
  assert.match(legacy,/id="pdfDownloadArea" class="actions"/);
  assert.match(legacy,/id="pdfDownloadLink" class="btn alt" aria-disabled="true"/);
- assert.match(legacy,/pdfClearDownload\(\);document\.getElementById\('pdfStatus'\)/);
+ assert.match(legacy,/pdfClearDownload\(\);document\.getElementById\(\\'pdfStatus\\'\)/); // inside a single-quoted JS string, so the quotes are escaped
  assert.match(legacy,/link\.removeAttribute\("aria-disabled"\)/);
  assert.match(legacy,/link\.href=pdfResultUrl/);
  assert.match(legacy,/link\.download=name/);
