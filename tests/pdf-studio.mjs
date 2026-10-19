@@ -51,3 +51,14 @@ test('Arcade game launch actions use the primary theme colour',()=>{
  assert.match(arcade,/\.gcard > \.btn, \.list \[data-act="level"\]/);
  assert.match(arcade,/background: var\(--thread\); color: var\(--on-thread\)/);
 });
+
+test('Existing Private PDF Tools exposes a reliable download state',()=>{
+ const legacy=fs.readFileSync(new URL('../v2-tools.js',import.meta.url),'utf8');
+ assert.match(legacy,/id="pdfDownloadArea" class="actions"/);
+ assert.match(legacy,/id="pdfDownloadLink" class="btn alt" aria-disabled="true"/);
+ assert.match(legacy,/pdfClearDownload\(\);document\.getElementById\('pdfStatus'\)/);
+ assert.match(legacy,/link\.removeAttribute\("aria-disabled"\)/);
+ assert.match(legacy,/link\.href=pdfResultUrl/);
+ assert.match(legacy,/link\.download=name/);
+ assert.match(legacy,/URL\.revokeObjectURL\(pdfResultUrl\)/);
+});
