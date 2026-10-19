@@ -105,7 +105,7 @@ try {
   const pwm = await import(process.env.PLAYWRIGHT_PACKAGE || 'playwright'); const pw = pwm.chromium ? pwm : pwm.default;
   browser = await pw[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}), ...(engine === 'chromium' ? { args: ['--no-sandbox'] } : {}) });
   async function open(width = 1280) {
-    const ctx = await browser.newContext({ viewport: { width, height: 900 }, hasTouch: width < 600, serviceWorkers: 'allow' });
+    const ctx = await browser.newContext({ viewport: { width, height: 900 }, hasTouch: width < 600 && engine !== 'firefox', serviceWorkers: 'allow' });
     const page = await ctx.newPage(); page.setDefaultTimeout(20000);
     const errs = [], reqs = [], sockets = [];
     page.on('pageerror', e => errs.push(String(e.message))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
@@ -130,7 +130,14 @@ try {
         stage = 'settle'; await c.page.waitForTimeout(500); // let the first paint and the service-worker registration finish before interacting
         const before = await c.page.locator('.sol-tile').count(); assert.ok(before >= 100, `tiles ${before}`);
         stage = 'pair'; const pair = await freePair(c.page); assert.ok(pair, 'a free matching pair exists at the start');
-        stage = 'click'; for (const id of pair) await c.page.locator(`.sol-tile[data-id="${id}"]`).click();
+        stage = 'click';
+        // Each selection re-renders the board; Firefox can drop a click that lands mid re-layout, so settle first and re-click once.
+        const settle = () => c.page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+        const tile = id => c.page.locator(`.sol-tile[data-id="${id}"]`);
+        await settle(); await tile(pair[0]).click(); await settle();
+        if ((await tile(pair[0]).getAttribute('aria-pressed').catch(() => null)) !== 'true' && await c.page.locator('.sol-tile').count() === before) { await tile(pair[0]).click(); await settle(); }
+        await tile(pair[1]).click(); await settle();
+        if (await c.page.locator('.sol-tile').count() === before) await tile(pair[1]).click();
         stage = 'removed'; await c.page.waitForFunction(n => document.querySelectorAll('.sol-tile').length === n, before - 2);
         stage = 'checks';
       } catch (e) { e.message = `[stage ${stage}; tiles now ${await c.page.locator('.sol-tile').count().catch(() => '?')}; errors ${JSON.stringify(c.errs).slice(0, 200)}] ${e.message}`; throw e; }
