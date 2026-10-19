@@ -22,7 +22,7 @@ async function check(name, fn) { try { await fn(); passed++; console.log('PASS',
 async function open({ w = 1280, h = 900, touch = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: touch }); const page = await ctx.newPage(); page.setDefaultTimeout(15000);
   const errs = [], bad = [], external = []; const origin = new URL(base).origin;
-  page.on('pageerror', e => errs.push('pageerror: ' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/pagead|googlesyndication|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
+  page.on('pageerror', e => errs.push('pageerror: ' + (e.stack || e.message))); page.on('console', m => { if (m.type() === 'error' && !/pagead|googlesyndication|Failed to load resource/.test(m.text())) errs.push('console: ' + m.text()); });
   page.on('response', r => { const u = new URL(r.url()); if (u.origin === origin && r.status() >= 400 && r.request().resourceType() !== 'document') bad.push(`${r.status()} ${u.pathname}`); });
   // The site ships its real AdSense tag untouched. Tests never talk to ad networks. Third-party requests are RECORDED from the page's own
   // request events (fired by every engine; WebKit does not reliably expose all cross-origin requests to context routing), and
@@ -55,15 +55,20 @@ try {
   });
   for (const [label, w, h, touch] of [['desktop', 1280, 900, false], ['mobile', 390, 844, true]]) {
     await check(`${label}: homepage, six Labs, Play games, Mahjong Solitaire, Knowledge, Learn, every tool page load cleanly`, async () => {
-      const c = await open({ w, h, touch }); const problems = [];
+      const problems = [];
       for (const p of PAGES) {
-        c.errs.length = 0; c.bad.length = 0; const resp = await c.page.goto(base.slice(0, -1) + p, { waitUntil: 'networkidle' });
-        if (!resp || resp.status() !== 200) problems.push(`${p}: status ${resp && resp.status()}`);
-        const o = await overflow(c.page); if (o > 0) problems.push(`${p}: horizontal overflow ${o}px`);
-        if (c.errs.length) problems.push(`${p}: ${c.errs[0]}`); if (c.bad.length) problems.push(`${p}: failed request ${c.bad[0]}`);
-        if (!(await c.page.locator('h1').count())) problems.push(`${p}: no h1`);
+        const c = await open({ w, h, touch });
+        try {
+          const resp = await c.page.goto(base.slice(0, -1) + p, { waitUntil: 'networkidle' });
+          if (!resp || resp.status() !== 200) problems.push(`${p}: status ${resp && resp.status()}`);
+          const o = await overflow(c.page); if (o > 0) problems.push(`${p}: horizontal overflow ${o}px`);
+          if (c.errs.length) problems.push(`${p}: ${c.errs[0]}`);
+          if (c.bad.length) problems.push(`${p}: failed request ${c.bad[0]}`);
+          if (c.external.length) problems.push(`${p}: external request ${c.external[0]}`);
+          if (!(await c.page.locator('h1').count())) problems.push(`${p}: no h1`);
+        } finally { await c.ctx.close(); }
       }
-      assert.deepEqual(problems, []); assert.deepEqual(c.external, []); await c.ctx.close();
+      assert.deepEqual(problems, []);
     });
   }
   await check('test harness: ad hosts are aborted silently, any other third-party host is reported', async () => {
