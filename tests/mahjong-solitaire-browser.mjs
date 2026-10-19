@@ -26,7 +26,7 @@ async function check(label, fn) {
   catch (e) { checks.push({ label, ok: false, ms: Date.now() - t0, error: String(e.message).slice(0, 1500) }); console.error('FAIL', label, '\n    ', String(e.message).split('\n').slice(0, 6).join('\n     ')); }
 }
 async function open(width, height = 800) {
-  const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: width < 600 });
+  const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: width < 600 && engine !== 'firefox' }); // Playwright's Firefox cannot emulate touch: with hasTouch on, its second synthetic click on a narrow viewport is dropped, so Firefox uses the mouse at phone width (Chromium and WebKit keep touch emulation)
   const page = await ctx.newPage(); page.setDefaultTimeout(20000);
   const errs = [], external = [];
   page.on('pageerror', (e) => errs.push('pageerror: ' + e.message));
