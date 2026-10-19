@@ -27,7 +27,7 @@ export function createV2(ctx) {
   /* ================================================================ engine */
   async function engineFor(src) {
     let e = engines.get(src.id);
-    if (!e) { e = { analyses: new Map() }; e.ready = (async () => { e.doc = await PDFLib.PDFDocument.load(src.bytes, { updateMetadata: false }); e.lib = new FontLibrary(PDFLib, e.doc); await scanUsage(PDFLib, e.doc, e.lib); })(); engines.set(src.id, e); e.ready.catch(() => engines.delete(src.id)); }
+    if (!e) { e = { analyses: new Map() }; e.ready = (async () => { e.doc = await PDFLib.PDFDocument.load(src.bytes, { updateMetadata: false }); e.lib = new FontLibrary(PDFLib, e.doc); await scanUsage(PDFLib, e.doc, e.lib, (i, n) => say(`Reading the fonts in this PDF… page ${i} of ${n}`)); })(); engines.set(src.id, e); e.ready.catch(() => engines.delete(src.id)); }
     await e.ready; return e;
   }
   async function analysisOf(src, idx) { const e = await engineFor(src); let a = e.analyses.get(idx); if (!a) { a = await analyzePage(PDFLib, e.doc, e.lib, idx); e.analyses.set(idx, a); } return { a, e }; }

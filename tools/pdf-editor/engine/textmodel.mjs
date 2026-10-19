@@ -120,9 +120,10 @@ export async function analyzePage(P, doc, lib, pageIndex) {
 }
 
 /* Record every code each font draws anywhere in the document: an embedded subset can only encode characters seen here. */
-export async function scanUsage(P, doc, lib) {
+export async function scanUsage(P, doc, lib, onProgress = null) {
   const n = doc.getPageCount(); const pages = [];
   for (let i = 0; i < n; i++) {
+    if (i % 15 === 14) { if (onProgress) onProgress(i + 1, n); await new Promise(r => setTimeout(r, 0)); } // let the interface breathe on long documents
     const page = doc.getPage(i), fonts = await lib.pageFonts(page);
     let content; try { content = await pageContent(P, doc, page); } catch { continue; }
     const interp = interpret(content, name => fonts.get(name) || null);
