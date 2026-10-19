@@ -36,7 +36,7 @@ const startServer = () => new Promise(r => server.listen(serverPort, '127.0.0.1'
 const browser = await pw[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
 let passed = 0; const failures = [];
 async function check(name, fn) { try { await fn(); passed++; console.log('PASS', name); } catch (e) { failures.push(`${name}: ${e.message.split('\n')[0]} @${((e.stack || '').split('\n').find(l => l.includes('play-games-browser')) || '').trim().replace(/.*play-games-browser\.mjs/, 'line')}`); console.log('FAIL', name, '—', e.message.split('\n').slice(0, 3).join(' | ')); } }
-const PLAY_GAME_HREFS = Object.freeze(['mahjong-solitaire/', 'word-logic/', '2048/', 'daily-word/', 'vibe-arcade/']);
+const PLAY_GAME_HREFS = Object.freeze(['vibe-arcade/', 'word-logic/', '2048/', 'daily-word/', 'mahjong-solitaire/']);
 const PLAY_GAME_COUNT = PLAY_GAME_HREFS.length;
 const PLAY_OFFLINE_ASSETS = Object.freeze(['/play/index.html', '/play/2048/index.html', '/play/daily-word/words.js', '/play/daily-word/app.js', '/play/games.css', '/play/mahjong-solitaire/index.html', '/play/mahjong-solitaire/solitaire.css', '/play/mahjong-solitaire/solitaire.js', '/play/mahjong-solitaire/engine.js', '/play/vibe-arcade/index.html', '/play/vibe-arcade/site-chrome.css']);
 const FIXED_DAY = '2026-10-12', ANSWER = dailyAnswer(FIXED_DAY, ANSWERS);

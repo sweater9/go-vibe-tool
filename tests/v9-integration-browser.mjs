@@ -34,6 +34,7 @@ const MARKER = {
   "sql-formatter": "#v9-sql-in", "file-sha256": "#v9-sha-file", "epoch-matrix": "#v9-ep-in", "og-simulator": "#v9-og-title",
 };
 const BASELINE_LISTED = 59; // accepted V8 baseline db1d375 (reproduced: 59 listed of 74 registered; Freelance Studio retired)
+const STANDALONE_PDF_EDITOR = 1; // the standalone PDF Editor tile (tools/pdf-editor/register.js), listed beside Private PDF Tools
 let server = createDistServer(root);
 const port = await server.start();
 const base = `http://127.0.0.1:${port}/`;
@@ -90,7 +91,7 @@ try {
     const listed = await page.evaluate(() => tools.filter(isListed).length);
     const sum = await page.locator(".cat-tile small").evaluateAll((ns) => ns.reduce((s, n) => s + parseInt(n.textContent), 0));
     assert.equal(sum, listed, "tile counts equal listed tools");
-    assert.equal(listed, BASELINE_LISTED + ALL.length, "V8 baseline tools + the ten V9 tools");
+    assert.equal(listed, BASELINE_LISTED + ALL.length + STANDALONE_PDF_EDITOR, "V8 baseline tools + the ten V9 tools + the standalone PDF Editor");
   });
   await check("categories: each V9 tool appears in exactly its category view", async () => {
     const SLUG = { "Developer": "developer", "Privacy & Safety": "privacy-security", "Privacy & Security": "privacy-security", "Links & Web": "links-web", "Images & Design": "images-design", "PDF & Tables": "files-pdf", "Writing & Text": "writing-text" };

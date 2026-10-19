@@ -87,7 +87,7 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
 .list li.gcard { padding-block: 18px; }
 .list li.gcard > .btn { width: min(100%, 180px); min-height: 44px; margin-top: 12px; }
 .gcard .gmeta { line-height: 1.5; }
-.gcard > .btn { align-self: center; margin-top: 10px; text-align: center; text-decoration: none; }
+.gcard > .btn { display: flex; align-items: center; justify-content: center; box-sizing: border-box; align-self: center; margin: 10px auto 0; text-align: center; text-decoration: none; }
 .gcard > .btn.primary { background: var(--thread); color: var(--on-thread); border-color: var(--thread); }
 /* Game entry actions match the Daily Challenge primary CTA. */
 .gcard > .btn, .list [data-act="level"], .list [data-act="daily"] { background: var(--thread); color: var(--on-thread); border-color: var(--thread); font-weight: 700; }
@@ -163,6 +163,43 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
 .toast { background: var(--fg); color: var(--bg); padding: 10px 14px; border-radius: 10px; font-size: 14px; font-weight: 500; max-width: 420px; }
 @media (max-width: 400px) { h1 { font-size: 36px; } h2 { font-size: 30px; } .stat b { font-size: 19px; } }
 @media (prefers-reduced-motion: reduce) { .cell.nudge .num { animation: none; } .cell, .num { transition: none; } }
+
+/* Vibe Arcade hub polish — presentation only; game logic and storage untouched. */
+#hub { gap: 24px; }
+#hub header.top { gap: 12px; padding: 12px 2px 4px; }
+#hub header.top h1 { letter-spacing: -.045em; }
+#hub .card { padding: 22px; border-radius: 20px; gap: 16px; box-shadow: 0 10px 30px rgba(13,32,50,.06), 0 0 0 1px var(--line); }
+#hub .card > h3 { margin-bottom: 2px; }
+#hub .list { gap: 12px; }
+#hub .list li.gcard { border: 1px solid var(--line); background: color-mix(in srgb,var(--surface) 80%,var(--bg)); border-radius: 16px; padding: 18px; gap: 14px; transition: border-color .16s, box-shadow .16s; }
+#hub .list li.gcard:first-child { padding-top: 18px; }
+#hub .list li.gcard:last-child { padding-bottom: 18px; }
+#hub .list li.gcard:hover { border-color: var(--thread); box-shadow: 0 8px 22px rgba(13,32,50,.07); }
+#hub .gcard > div { grid-template-rows: auto auto auto; gap: 8px; }
+#hub .gcard .gname { font-size: 22px; line-height: 1.2; }
+#hub .gcard p { font-size: 15px; line-height: 1.55; }
+#hub .gcard .gmeta { font-size: 11px; line-height: 1.6; }
+#hub .list li.gcard > .btn { display: flex; justify-content: center; align-items: center; align-self: center; width: 50%; max-width: 100%; min-height: 46px; margin: 2px auto 0; border-radius: 12px; font-size: 14px; }
+@media (max-width: 600px) { #hub .list li.gcard > .btn { width: 85%; } }
+#hub .list li.gcard > .btn:focus-visible { outline-offset: 3px; }
+#hub .stats { gap: 12px; }
+#hub .stat { padding-left: 10px; }
+#hub .stat:first-child { padding-left: 0; }
+#hub .badges { gap: 12px; }
+#hub .badge { border-radius: 12px; padding: 13px; }
+@media (min-width: 760px) {
+  .app:has(#hub:not([hidden])) { max-width: 920px; }
+  #hub .list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); align-items: stretch; }
+  #hub .list li.gcard { height: 100%; justify-content: space-between; }
+  #hub .list li.gcard:first-child, #hub .list li.gcard:last-child { padding: 18px; }
+}
+@media (max-width: 480px) {
+  #hub { gap: 18px; }
+  #hub .card { padding: 16px; border-radius: 16px; }
+  #hub .list li.gcard { padding: 16px; }
+  #hub .list li.gcard:first-child, #hub .list li.gcard:last-child { padding: 16px; }
+}
+
 </style>
 <style>html,body{margin:0}</style>
 </head>

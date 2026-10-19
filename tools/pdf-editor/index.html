@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; worker-src 'self' blob:; connect-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>PDF Editor · GoVibeTool</title>
+<meta name="description" content="Edit PDFs privately in your browser: add text, images, shapes, highlights and drawings, rotate, reorder, delete and extract pages, then download. Files never leave your device.">
+<link rel="canonical" href="https://govibetool.com/tools/pdf-editor/">
+<link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="editor.css">
+</head>
+<body class="no-doc">
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <symbol id="i-select" viewBox="0 0 24 24"><path d="M5 3l14 8-6 2 4 7-3 1-4-7-5 4z" fill="currentColor"/></symbol>
+  <symbol id="i-text" viewBox="0 0 24 24"><path d="M5 5h14v3h-1.5V6.5h-4.75v11H15V19H9v-1.5h2.25v-11H6.5V8H5z" fill="currentColor"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><path d="M4 5h16v14H4zm2 2v7.2l3.5-3.7 3 3 2.5-2.5 3 3V7zm3 1.2a1.4 1.4 0 110 2.8 1.4 1.4 0 010-2.8z" fill="currentColor" fill-rule="evenodd"/></symbol>
+  <symbol id="i-rect" viewBox="0 0 24 24"><rect x="4.5" y="6.5" width="15" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-ellipse" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8" ry="6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+  <symbol id="i-line" viewBox="0 0 24 24"><path d="M5 19L19 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 19L19 5M10 5h9v9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-highlight" viewBox="0 0 24 24"><path d="M4 17l9-9 4 4-9 9H4zm10-10l2-2 4 4-2 2z" fill="currentColor"/><path d="M3 21h18v1.5H3z" fill="currentColor" opacity=".5"/></symbol>
+  <symbol id="i-underline" viewBox="0 0 24 24"><path d="M7 4v7a5 5 0 0010 0V4h-2v7a3 3 0 01-6 0V4zM5 19h14v2H5z" fill="currentColor"/></symbol>
+  <symbol id="i-strike" viewBox="0 0 24 24"><path d="M5 11h14v2H5zM8 6.5C8 5 9.6 4 12 4c2 0 3.7.8 4 2.5h-2c-.2-.5-1-1-2-1-1.3 0-2 .5-2 1.1 0 .4.3.7 1 .9H8.7C8.2 7.1 8 6.8 8 6.5zm8 10.8C16 19 14.2 20 12 20c-2.4 0-4-1-4.3-2.8h2c.2.7 1 1.2 2.2 1.2 1.2 0 2-.4 2-1.1 0-.2 0-.4-.1-.5h2.2c.1.2 0 .4 0 .5z" fill="currentColor"/></symbol>
+  <symbol id="i-draw" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19zM17.500 3.500l1-1 3 3-1 1z" fill="currentColor"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M4 4h16v12h-6l-4 4v-4H4zm3 4v1.500h10V8zm0 3.500V13h7v-1.500z" fill="currentColor" fill-rule="evenodd"/></symbol>
+  <symbol id="i-edittext" viewBox="0 0 24 24"><path d="M3 18h9v2H3zM3 6h14v2H3zm0 6h9v2H3zm12.500 4.500l5-5 2 2-5 5-2.500.5z" fill="currentColor"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7V4L3 9l6 5v-3c4 0 7 1 9 6 0-6-3-10-9-10z" fill="currentColor"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 7V4l6 5-6 5v-3c-4 0-7 1-9 6 0-6 3-10 9-10z" fill="currentColor"/></symbol>
+  <symbol id="i-zoomin" viewBox="0 0 24 24"><path d="M11 4a7 7 0 015.500 11.300l4 4-1.400 1.400-4-4A7 7 0 1111 4zm-1 3v3H7v2h3v3h2v-3h3v-2h-3V7z" fill="currentColor" fill-rule="evenodd"/></symbol>
+  <symbol id="i-zoomout" viewBox="0 0 24 24"><path d="M11 4a7 7 0 015.500 11.300l4 4-1.400 1.400-4-4A7 7 0 1111 4zM7 10v2h8v-2z" fill="currentColor" fill-rule="evenodd"/></symbol>
+  <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 4h6v2H6v4H4zm10 0h6v6h-2V6h-4zM4 14h2v4h4v2H4zm14 0h2v6h-6v-2h4z" fill="currentColor"/></symbol>
+  <symbol id="i-rotl" viewBox="0 0 24 24"><path d="M7 4l-4 4 4 4V9a5 5 0 11-4.800 6.500l-2 .6A7 7 0 107 6.100z" fill="currentColor"/></symbol>
+  <symbol id="i-rotr" viewBox="0 0 24 24"><path d="M17 4l4 4-4 4V9a5 5 0 104.800 6.500l2 .6A7 7 0 1117 6.100z" fill="currentColor"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7zM9 3h6l1 2h4v2H4V5h4z" fill="currentColor"/></symbol>
+  <symbol id="i-extract" viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6zm7 1.500V9h4.500zM12 11l4 4h-3v4h-2v-4H8z" fill="currentColor" fill-rule="evenodd"/></symbol>
+  <symbol id="i-addpage" viewBox="0 0 24 24"><path d="M6 3h8l5 5v13H6zm7 1.500V9h4.500zM11 12h2v3h3v2h-3v3h-2v-3H8v-2h3z" fill="currentColor" fill-rule="evenodd"/></symbol>
+  <symbol id="i-insert" viewBox="0 0 24 24"><path d="M3 4h10v2H5v12h8v2H3zm12 4l5 4-5 4v-3H9v-2h6z" fill="currentColor"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 6l7 8H5z" fill="currentColor"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 18l-7-8h14z" fill="currentColor"/></symbol>
+  <symbol id="i-dup" viewBox="0 0 24 24"><path d="M8 3h11v14H8zm-3 4h2v12h10v2H5z" fill="currentColor"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M11 3h2v9l3-3 1.400 1.400L12 16l-5.400-5.600L8 9l3 3zM5 18h14v3H5z" fill="currentColor"/></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><path d="M3 5h7l2 2h9v12H3z" fill="currentColor"/></symbol>
+  <symbol id="i-pages" viewBox="0 0 24 24"><path d="M5 4h9v14H5zm11 3h3v14H8v-2h8z" fill="currentColor"/></symbol>
+</svg>
+
+<a class="skip" href="#stage">Skip to the document</a>
+<header class="topbar" role="banner">
+  <a class="brand" href="../../" aria-label="GoVibeTool home">GoVibeTool</a>
+  <h1 class="tool-name">PDF Editor</h1>
+  <span id="fileName" class="file-name" title=""></span>
+  <span class="spacer"></span>
+  <div class="group" role="group" aria-label="History">
+    <button id="undo" class="icon" aria-label="Undo" title="Undo (Ctrl+Z)" disabled><svg class="ic"><use href="#i-undo"/></svg></button>
+    <button id="redo" class="icon" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled><svg class="ic"><use href="#i-redo"/></svg></button>
+  </div>
+  <div class="group zoom" role="group" aria-label="Zoom">
+    <button id="zoomOut" class="icon" aria-label="Zoom out" title="Zoom out (-)" disabled><svg class="ic"><use href="#i-zoomout"/></svg></button>
+    <output id="zoomLabel" class="zoom-label" aria-live="off">100%</output>
+    <button id="zoomIn" class="icon" aria-label="Zoom in" title="Zoom in (+)" disabled><svg class="ic"><use href="#i-zoomin"/></svg></button>
+    <button id="zoomFit" class="icon" aria-label="Fit page to width" title="Fit to width (0)" disabled><svg class="ic"><use href="#i-fit"/></svg></button>
+  </div>
+  <button id="pagesToggle" class="icon only-mobile" aria-label="Show pages" aria-expanded="false" aria-controls="pagesPanel" disabled><svg class="ic"><use href="#i-pages"/></svg></button>
+  <button id="openBtn" class="btn">Open PDF</button>
+  <button id="download" class="btn primary" disabled><svg class="ic"><use href="#i-download"/></svg><span>Download PDF</span></button>
+  <input id="fileInput" type="file" accept="application/pdf,.pdf" hidden>
+  <input id="insertInput" type="file" accept="application/pdf,.pdf" hidden>
+  <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+</header>
+
+<section id="welcome" class="welcome" aria-labelledby="welcomeTitle">
+  <div class="drop" id="dropZone">
+    <h2 id="welcomeTitle">Edit a PDF privately</h2>
+    <p>Add text, images, shapes, highlights and drawings. Rotate, reorder, delete and extract pages. Your file is processed on this device and is never uploaded.</p>
+    <button id="welcomeOpen" class="btn primary big">Choose a PDF</button>
+    <p class="hint">or drag and drop a PDF here &middot; up to 50 MB</p>
+    <p id="welcomeError" class="error" role="alert" hidden></p>
+  </div>
+</section>
+
+<div id="workspace" class="workspace">
+  <nav class="rail" aria-label="Tools" id="rail">
+    <button class="tool" data-tool="select" aria-pressed="true" title="Select and move (V)"><svg class="ic"><use href="#i-select"/></svg><span>Select</span></button>
+    <button class="tool" data-tool="text" aria-pressed="false" title="Add text (T)"><svg class="ic"><use href="#i-text"/></svg><span>Text</span></button>
+    <button class="tool" data-tool="image" aria-pressed="false" title="Add image (I)"><svg class="ic"><use href="#i-image"/></svg><span>Image</span></button>
+    <button class="tool" data-tool="rect" aria-pressed="false" title="Rectangle (R)"><svg class="ic"><use href="#i-rect"/></svg><span>Box</span></button>
+    <button class="tool" data-tool="ellipse" aria-pressed="false" title="Ellipse (O)"><svg class="ic"><use href="#i-ellipse"/></svg><span>Oval</span></button>
+    <button class="tool" data-tool="line" aria-pressed="false" title="Line (L)"><svg class="ic"><use href="#i-line"/></svg><span>Line</span></button>
+    <button class="tool" data-tool="arrow" aria-pressed="false" title="Arrow (A)"><svg class="ic"><use href="#i-arrow"/></svg><span>Arrow</span></button>
+    <button class="tool" data-tool="draw" aria-pressed="false" title="Draw (D)"><svg class="ic"><use href="#i-draw"/></svg><span>Draw</span></button>
+    <button class="tool" data-tool="highlight" aria-pressed="false" title="Highlight text (H)"><svg class="ic"><use href="#i-highlight"/></svg><span>Highlight</span></button>
+    <button class="tool" data-tool="underline" aria-pressed="false" title="Underline text (U)"><svg class="ic"><use href="#i-underline"/></svg><span>Underline</span></button>
+    <button class="tool" data-tool="strike" aria-pressed="false" title="Strike through text (K)"><svg class="ic"><use href="#i-strike"/></svg><span>Strike</span></button>
+    <button class="tool" data-tool="note" aria-pressed="false" title="Comment note (N)"><svg class="ic"><use href="#i-note"/></svg><span>Note</span></button>
+    <button class="tool" data-tool="edittext" aria-pressed="false" title="Edit existing text (E)"><svg class="ic"><use href="#i-edittext"/></svg><span>Edit text</span></button>
+  </nav>
+
+  <aside id="pagesPanel" class="pages" aria-label="Pages">
+    <div class="pages-head">
+      <h2>Pages</h2>
+      <button id="openBtn2" class="btn only-mobile open2">Open another PDF</button>
+      <div class="pages-actions" role="toolbar" aria-label="Page actions">
+        <button id="pgRotL" class="icon" aria-label="Rotate selected pages left" title="Rotate left"><svg class="ic"><use href="#i-rotl"/></svg></button>
+        <button id="pgRotR" class="icon" aria-label="Rotate selected pages right" title="Rotate right"><svg class="ic"><use href="#i-rotr"/></svg></button>
+        <button id="pgDel" class="icon" aria-label="Delete selected pages" title="Delete"><svg class="ic"><use href="#i-trash"/></svg></button>
+        <button id="pgExtract" class="icon" aria-label="Extract selected pages to a new PDF" title="Extract to new PDF"><svg class="ic"><use href="#i-extract"/></svg></button>
+        <button id="pgBlank" class="icon" aria-label="Add a blank page after this one" title="Add blank page"><svg class="ic"><use href="#i-addpage"/></svg></button>
+        <button id="pgInsert" class="icon" aria-label="Insert pages from another PDF after this one" title="Insert pages from a PDF"><svg class="ic"><use href="#i-insert"/></svg></button>
+      </div>
+      <p class="hint" id="pagesHint">Applies to ticked pages, or the current page if none are ticked.</p>
+    </div>
+    <ol id="thumbs" class="thumbs"></ol>
+  </aside>
+
+  <main id="stage" class="stage" tabindex="-1" aria-label="Document">
+    <div class="sheet" id="sheet">
+      <canvas id="pageCanvas" aria-hidden="true"></canvas>
+      <canvas id="markLayer" aria-hidden="true"></canvas>
+      <canvas id="overlay" class="tool-select" role="img" aria-label="Page editing surface. Use the tools on the left, or the list of objects in the side panel, to edit with the keyboard."></canvas>
+    </div>
+  </main>
+
+  <aside id="props" class="props" aria-label="Properties">
+    <div class="props-head"><h2 id="propsTitle">Properties</h2><button id="propsClose" class="icon only-mobile" aria-label="Hide properties">&times;</button></div>
+    <p id="toolHelp" class="hint"></p>
+    <div id="secPlace" class="row" hidden><button id="placeBtn" class="btn">Place on page</button><p class="hint">A keyboard and screen-reader way to add this object without clicking the page.</p></div>
+
+    <section id="secEditText" class="sec" hidden>
+      <h3>Existing text</h3>
+      <p id="runInfo" class="hint"></p>
+      <label for="runText" class="lbl">Replacement text</label>
+      <textarea id="runText" rows="3" maxlength="2000" disabled></textarea>
+      <div class="row"><button id="runApply" class="btn primary" disabled>Apply edit to the PDF text</button></div>
+      <div class="row"><button id="runCover" class="btn" disabled>Cover and retype (visual overlay)</button></div>
+      <p class="hint" id="runNote"></p>
+    </section>
+
+    <section id="secText" class="sec" hidden>
+      <h3>Text</h3>
+      <label for="propText" class="lbl">Content</label>
+      <textarea id="propText" rows="4" maxlength="4000"></textarea>
+      <div class="grid2">
+        <label class="lbl">Font<select id="propFont"><option>Helvetica</option><option>Times</option><option>Courier</option></select></label>
+        <label class="lbl">Size<input id="propSize" type="number" min="6" max="400" step="1" value="18" inputmode="numeric"></label>
+      </div>
+      <div class="grid3">
+        <button id="propBold" class="btn toggle" aria-pressed="false" aria-label="Bold"><b>B</b></button>
+        <button id="propItalic" class="btn toggle" aria-pressed="false" aria-label="Italic"><i>I</i></button>
+        <label class="lbl colour">Colour<input id="propColor" type="color" value="#000000"></label>
+      </div>
+      <label class="lbl">Align<select id="propAlign"><option value="left">Left</option><option value="center">Centre</option><option value="right">Right</option></select></label>
+      <p id="textWarn" class="warn" role="status" hidden></p>
+    </section>
+
+    <section id="secStroke" class="sec" hidden>
+      <h3>Style</h3>
+      <div class="grid2">
+        <label class="lbl colour">Line<input id="propStroke" type="color" value="#d92d20"></label>
+        <label class="lbl">Width<input id="propWidth" type="number" min="0.5" max="40" step="0.5" value="2" inputmode="decimal"></label>
+      </div>
+      <div id="fillRow" class="grid2">
+        <label class="lbl colour">Fill<input id="propFill" type="color" value="#fff3b0"></label>
+        <label class="lbl check"><input id="propNoFill" type="checkbox" checked> No fill</label>
+      </div>
+    </section>
+
+    <section id="secMark" class="sec" hidden>
+      <h3>Marker colour</h3>
+      <label class="lbl colour">Colour<input id="propMarkColor" type="color" value="#ffe14d"></label>
+    </section>
+
+    <section id="secNote" class="sec" hidden>
+      <h3>Comment</h3>
+      <label for="propNoteText" class="lbl">Note text</label>
+      <textarea id="propNoteText" rows="4" maxlength="2000"></textarea>
+      <p class="hint">Saved as a standard PDF comment annotation.</p>
+    </section>
+
+    <section id="secGeom" class="sec" hidden>
+      <h3>Position and size</h3>
+      <div class="grid2">
+        <label class="lbl">X (pt)<input id="geoX" type="number" step="1" inputmode="decimal"></label>
+        <label class="lbl">Y (pt)<input id="geoY" type="number" step="1" inputmode="decimal"></label>
+        <label class="lbl">Width<input id="geoW" type="number" step="1" min="4" inputmode="decimal"></label>
+        <label class="lbl">Height<input id="geoH" type="number" step="1" min="4" inputmode="decimal"></label>
+      </div>
+      <label class="lbl">Rotation (degrees)<input id="geoRot" type="number" step="1" inputmode="decimal"></label>
+      <p class="hint">Measured from the top-left of the page as shown. Text height follows its content.</p>
+    </section>
+
+    <section id="secOpacity" class="sec" hidden>
+      <label class="lbl">Opacity <output id="opacityVal">100%</output><input id="propOpacity" type="range" min="10" max="100" step="5" value="100"></label>
+    </section>
+
+    <section id="secActions" class="sec" hidden>
+      <div class="row wrap">
+        <button id="objDup" class="btn" aria-label="Duplicate"><svg class="ic"><use href="#i-dup"/></svg><span>Duplicate</span></button>
+        <button id="objFwd" class="btn" aria-label="Bring forward"><svg class="ic"><use href="#i-up"/></svg><span>Forward</span></button>
+        <button id="objBack" class="btn" aria-label="Send backward"><svg class="ic"><use href="#i-down"/></svg><span>Back</span></button>
+        <button id="objDel" class="btn danger" aria-label="Delete"><svg class="ic"><use href="#i-trash"/></svg><span>Delete</span></button>
+      </div>
+    </section>
+
+    <section class="sec" id="secObjects">
+      <h3>On this page</h3>
+      <ul id="objList" class="objlist"></ul>
+    </section>
+    <section class="sec" id="secDoc">
+      <h3>Document</h3>
+      <p id="docNotes" class="hint"></p>
+    </section>
+  </aside>
+</div>
+
+<footer class="statusbar">
+  <div class="pager" role="group" aria-label="Page navigation">
+    <button id="prevPage" class="icon" aria-label="Previous page" disabled><svg class="ic rot"><use href="#i-up"/></svg></button>
+    <output id="pageInfo" class="page-info">No document</output>
+    <button id="nextPage" class="icon" aria-label="Next page" disabled><svg class="ic rot"><use href="#i-down"/></svg></button>
+  </div>
+  <p id="status" class="status" role="status" aria-live="polite">Open a PDF to begin.</p>
+  <a id="downloadLink" class="dl-link" hidden>Download ready</a>
+</footer>
+<script src="../../vendor/pdf-lib.min.js"></script>
+<script type="module" src="editor.js"></script>
+</body>
+</html>

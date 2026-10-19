@@ -374,10 +374,10 @@ await check('dark mode + reduced motion render without overflow; contrast tokens
 });
 
 /* =============== 8. Play directory, discovery search, Mahjong =============== */
-await check('Play directory lists Vibe Arcade; Mahjong Solitaire card present; no four-player Mahjong', async () => {
+await check('Play directory lists Vibe Arcade first and Mahjong Solitaire last; no four-player Mahjong', async () => {
   const c = await open({ w: 390 }); const { page } = c; await page.goto(origin + '/play/', { waitUntil: 'networkidle' });
   const hrefs = await page.locator('.v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href')));
-  assert.deepEqual(hrefs, ['mahjong-solitaire/', 'word-logic/', '2048/', 'daily-word/', 'vibe-arcade/']);
+  assert.deepEqual(hrefs, ['vibe-arcade/', 'word-logic/', '2048/', 'daily-word/', 'mahjong-solitaire/']);
   assert.ok(!/four-player|multiplayer|friends/i.test(await page.innerText('main'))); assert.equal(await overflow(page), 0);
   await page.click('a[href="vibe-arcade/"]'); await page.waitForURL(/\/play\/vibe-arcade\/$/); await page.waitForSelector('#hub h1'); assert.equal(await page.textContent('#hub h1'), 'Vibe Arcade'); assert.deepEqual(c.errs, []); await c.ctx.close();
 });

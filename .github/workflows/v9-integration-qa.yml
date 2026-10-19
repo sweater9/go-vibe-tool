@@ -80,7 +80,8 @@ jobs:
           run capability-probe node tests/v9-media-probe.mjs ${{ matrix.engine }}
           run integration-dist SITE_ROOT=dist node tests/v9-integration-browser.mjs ${{ matrix.engine }}
           run agent1-dist SITE_ROOT=dist node tests/v9-agent1-browser.mjs ${{ matrix.engine }}
-          run pdf-editor-dist SITE_ROOT=dist PDF_QA_ARTIFACTS=artifacts/pdf-editor/${{ matrix.engine }} node tests/pdf-editor-browser.mjs ${{ matrix.engine }}
+          run pdf-editor-app SITE_ROOT=dist PDF_QA_ARTIFACTS=artifacts/pdf-editor/${{ matrix.engine }} node tests/pdf-editor-app-browser.mjs ${{ matrix.engine }}
+          run pdf-editor-live node tests/pdf-editor-live-load.mjs ${{ matrix.engine }}
           run media-source node tests/v9-media-browser.mjs ${{ matrix.engine }}
           run media-dist SITE_ROOT=dist MEDIA_ARTIFACTS=artifacts/v9-media/${{ matrix.engine }}/dist node tests/v9-media-browser.mjs ${{ matrix.engine }}
           echo "failed suites =${failed:- none}"

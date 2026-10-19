@@ -157,7 +157,7 @@ try {
     }
     assert.deepEqual(bad, []);
     await c.page.goto(base + '/play/', { waitUntil: 'networkidle' });
-    assert.deepEqual(await c.page.locator('.v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href'))), ['mahjong-solitaire/', 'word-logic/', '2048/', 'daily-word/', 'vibe-arcade/']);
+    assert.deepEqual(await c.page.locator('.v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href'))), ['vibe-arcade/', 'word-logic/', '2048/', 'daily-word/', 'mahjong-solitaire/']);
     assert.ok(!/friends|four-player|multiplayer|mahjong seats/i.test(await c.page.locator('main').innerText().catch(() => c.page.innerText('body'))));
     await c.ctx.close();
   });
