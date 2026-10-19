@@ -7,6 +7,7 @@ const policy = JSON.parse(read('config/ads-readiness.json'));
 const play = read('play/index.html');
 const privacy = read('privacy.html');
 const contact = read('contact.html');
+const terms = read('terms.html');
 const home = read('index.html');
 const editor = read('tools/pdf-editor/index.html');
 const arcade = read('play/vibe-arcade/index.html');
@@ -29,7 +30,7 @@ test('Play directory has exactly one dormant, non-rendered ad template', () => {
 });
 
 test('no ad loader in privacy, homepage, editor or active arcade', () => {
-  for (const [name, html] of [['privacy', privacy], ['contact', contact], ['homepage', home], ['PDF editor', editor], ['Vibe Arcade', arcade]]) {
+  for (const [name, html] of [['privacy', privacy], ['contact', contact], ['terms', terms], ['homepage', home], ['PDF editor', editor], ['Vibe Arcade', arcade]]) {
     assert.doesNotMatch(html, adLoader, name);
   }
   assert.match(editor, /Content-Security-Policy/);
