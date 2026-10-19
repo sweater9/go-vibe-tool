@@ -485,7 +485,9 @@ $("runCover").addEventListener("click", guard(async () => {
 }));
 
 /* ---------- properties panel ---------- */
-const SECTIONS = ["secEditText", "secText", "secStroke", "secMark", "secNote", "secOpacity", "secActions"];
+const SECTIONS = ["secEditText", "secText", "secStroke", "secMark", "secNote", "secGeom", "secOpacity", "secActions"];
+/* Never overwrite a field the user is typing in: its value is already current, and rewriting it would move the caret or clamp half-typed numbers. */
+const setVal = (el, v) => { if (document.activeElement === el) return; v = String(v); if (el.value !== v) el.value = v; };
 function show(id, on) { $(id).hidden = !on; }
 function syncProps() {
   const o = selObj(); let sections = new Set(); const ty = o ? o.type : tool === "select" ? "" : tool;
@@ -497,16 +499,19 @@ function syncProps() {
   else if (ty === "note") sections.add("secNote");
   else if (ty === "image") sections.add("secOpacity");
   if (o) sections.add("secActions");
+  if (o && isFrame(o)) sections.add("secGeom");
   for (const id of SECTIONS) show(id, sections.has(id));
+  show("secPlace", !o && ["text", "rect", "ellipse", "line", "arrow", "note"].includes(tool));
   show("fillRow", !o ? (tool === "rect" || tool === "ellipse") : (o.type === "rect" || o.type === "ellipse"));
   $("propsTitle").textContent = o ? TYPE_LABEL[o.type] : tool === "select" ? "Properties" : (tool === "edittext" ? "Edit existing text" : "New " + (TYPE_LABEL[tool] || "object").toLowerCase());
-  if (o && o.type === "text") { $("propText").value = o.text; $("propFont").value = o.font; $("propSize").value = Math.round(o.size * 10) / 10; $("propColor").value = o.color; $("propAlign").value = o.align || "left"; $("propBold").setAttribute("aria-pressed", String(!!o.bold)); $("propItalic").setAttribute("aria-pressed", String(!!o.italic)); }
-  else if (!o && tool === "text") { const d = defaults.text; $("propText").value = ""; $("propFont").value = d.font; $("propSize").value = d.size; $("propColor").value = d.color; $("propAlign").value = d.align; $("propBold").setAttribute("aria-pressed", String(d.bold)); $("propItalic").setAttribute("aria-pressed", String(d.italic)); }
+  if (o && o.type === "text") { setVal($("propText"), o.text); $("propFont").value = o.font; setVal($("propSize"), Math.round(o.size * 10) / 10); $("propColor").value = o.color; $("propAlign").value = o.align || "left"; $("propBold").setAttribute("aria-pressed", String(!!o.bold)); $("propItalic").setAttribute("aria-pressed", String(!!o.italic)); }
+  else if (!o && tool === "text") { const d = defaults.text; setVal($("propText"), ""); $("propFont").value = d.font; setVal($("propSize"), d.size); $("propColor").value = d.color; $("propAlign").value = d.align; $("propBold").setAttribute("aria-pressed", String(d.bold)); $("propItalic").setAttribute("aria-pressed", String(d.italic)); }
   const st = o || { stroke: defaults.stroke, width: defaults.width, fill: defaults.fill, color: defaults.mark, opacity: defaults.opacity };
-  if (st.stroke || !o) $("propStroke").value = st.stroke || defaults.stroke; $("propWidth").value = st.width == null ? defaults.width : st.width;
+  if (st.stroke || !o) $("propStroke").value = st.stroke || defaults.stroke; setVal($("propWidth"), st.width == null ? defaults.width : st.width);
   $("propNoFill").checked = !st.fill; if (st.fill) $("propFill").value = st.fill;
   if (o && o.color && ["highlight", "underline", "strike"].includes(o.type)) $("propMarkColor").value = o.color; else if (!o) $("propMarkColor").value = defaults.mark;
-  if (o && o.type === "note") $("propNoteText").value = o.text;
+  if (o && o.type === "note") setVal($("propNoteText"), o.text);
+  if (o && isFrame(o) && vp) { const [gx, gy] = vp.toDisplay(o.ox, o.oy); setVal($("geoX"), (gx / scale).toFixed(1)); setVal($("geoY"), (gy / scale).toFixed(1)); setVal($("geoW"), o.cw.toFixed(1)); setVal($("geoH"), frameHeight(o, fonts).toFixed(1)); $("geoH").disabled = o.type === "text"; setVal($("geoRot"), (Math.round(norm(o.rot - totalRot(curPage())) * 10) / 10).toString()); }
   const op = Math.round((o ? (o.opacity == null ? 1 : o.opacity) : defaults.opacity) * 100); $("propOpacity").value = op; $("opacityVal").textContent = op + "%";
   // existing-text section
   const run = runPick && runPick.pid === curPage()?.id ? runPick : null;
@@ -515,7 +520,8 @@ function syncProps() {
     $("runInfo").textContent = !run ? "Tap a line of text on the page." : run.loc.editable ? `This text uses the standard font ${run.loc.font}. It can be changed in the PDF itself: it stays real, searchable text.` : reasonText(run.loc.reason) + " You can still cover it and retype it as an overlay, but the original text stays inside the file.";
     $("runNote").textContent = run && run.loc.editable ? "The new text keeps the original position and is not re-flowed around neighbouring text." : run ? "Cover and retype is a visual overlay only. It is not editing and it is not redaction." : "";
   }
-  const phone = matchMedia("(max-width:900px)").matches, wantSheet = !propsClosed && (o || tool === "edittext" || (!phone && tool !== "select" && tool !== "image")); document.body.classList.toggle("props-open", !!wantSheet);
+  const phone = matchMedia("(max-width:900px)").matches, placeable = ["text", "rect", "ellipse", "line", "arrow", "note"].includes(tool), wantSheet = !propsClosed && (o || tool === "edittext" || (!phone && tool !== "select" && tool !== "image") || (phone && placeable));
+  document.body.classList.toggle("props-open", !!wantSheet); document.body.classList.toggle("props-compact", !!(wantSheet && phone && !o && placeable));
   $("textWarn").hidden = true;
 }
 function renderObjList() {
@@ -563,6 +569,19 @@ $("objDup").addEventListener("click", guard(async () => { const o = selObj(); if
 const zOrder = dir => guard(async () => { const o = selObj(); if (!o) return; const i = state.objects.indexOf(o), j = i + dir; if (j < 0 || j >= state.objects.length) return; await commit(() => { state.objects.splice(i, 1); state.objects.splice(j, 0, o); }, {}); say(dir > 0 ? "Brought forward." : "Sent backward."); });
 $("objFwd").addEventListener("click", zOrder(1)); $("objBack").addEventListener("click", zOrder(-1));
 $("propsClose").addEventListener("click", () => { propsClosed = true; document.body.classList.remove("props-open"); });
+
+$("placeBtn").addEventListener("click", guard(async () => {
+  if (!vp || !curPage()) return; const cx = vp.width / 2, cy = vp.height / 2, k = scale;
+  if (tool === "note") { await createNote(userPt([cx, cy])); return; }
+  const dr = tool === "text" ? { type: "text", d0: [cx - 100 * k, cy - 20 * k], d1: [cx - 100 * k, cy - 20 * k] } : (tool === "line" || tool === "arrow") ? { type: tool, d0: [cx - 80 * k, cy + 20 * k], d1: [cx + 80 * k, cy - 20 * k] } : { type: tool, d0: [cx - 70 * k, cy - 40 * k], d1: [cx + 70 * k, cy + 40 * k] };
+  await finishCreate(dr, dr.d1);
+}));
+const applyGeom = guard(async () => {
+  const o = selObj(); if (!o || !isFrame(o)) return; const n = id => Number($(id).value), x = n("geoX"), y = n("geoY"), w = n("geoW"), h = n("geoH"), r = n("geoRot");
+  if (![x, y, w, h, r].every(Number.isFinite)) return;
+  await commitCoalesced("geom:" + o.id, () => { const [ux, uy] = vp.toUser(x * scale, y * scale); o.ox = ux; o.oy = uy; o.cw = Math.max(o.type === "text" ? o.size : 4, w); if (o.type !== "text") o.ch = Math.max(4, h); o.rot = norm(r + totalRot(curPage())); }, {});
+});
+for (const id of ["geoX", "geoY", "geoW", "geoH", "geoRot"]) $(id).addEventListener("input", applyGeom);
 
 /* ---------- page operations ---------- */
 const rotateSel = delta => guard(async () => { const ids = pageTargets(); if (!ids.length) return; await commit(() => { state.pages = rotatePages(state.pages, ids, delta); }, { pages: true }); say(`Rotated ${ids.length} page${ids.length > 1 ? "s" : ""} ${delta > 0 ? "right" : "left"}.`); });

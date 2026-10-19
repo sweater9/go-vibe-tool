@@ -62,7 +62,7 @@ const dist = createDistServer(root, { port: 0 }); await dist.start();
 const origin = dist.base.replace(/\/$/, '');
 const browser = await pw[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
 let passed = 0; const failures = [];
-async function check(name, fn) { try { await fn(); passed++; console.log('PASS', name); } catch (e) { failures.push(`${name}: ${e.message.split('\n')[0]}`); console.log('FAIL', name, '-', e.message.slice(0, 500)); } }
+async function check(name, fn) { if (process.env.PDF_QA_ONLY && !new RegExp(process.env.PDF_QA_ONLY).test(name) && !/welcome screen/.test(name)) return; try { await fn(); passed++; console.log('PASS', name); } catch (e) { failures.push(`${name}: ${e.message.split('\n')[0]}`); console.log('FAIL', name, '-', e.message.slice(0, 500)); } }
 
 async function session(w) {
   const mobile = w <= 460, touch = mobile && realTouch;
@@ -326,6 +326,17 @@ for (const w of WIDTHS) {
     await S.tool('select'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('Shift+ArrowUp'); await page.waitForTimeout(250);
     const b = (await S.objs())[0]; assert.ok(near(b.ox - a.ox, 1, 0.3) && near(b.oy - a.oy, 10, 0.5), `nudged by ${b.ox - a.ox},${b.oy - a.oy}`);
     await page.keyboard.press('Delete'); await page.waitForTimeout(200); assert.equal((await S.objs()).length, 0);
+  });
+
+  await check(`${tag}: keyboard-only creation, numeric position/size fields and caret stays put while typing`, async () => {
+    await S.open(files.A, 'a.pdf'); await page.keyboard.press('r'); await page.locator('#placeBtn').focus(); await page.keyboard.press('Enter'); await page.waitForTimeout(300);
+    let o = (await S.objs())[0]; assert.equal(o.type, 'rect', 'Place on page did not create a rectangle');
+    await page.fill('#geoW', '200'); await page.fill('#geoX', '100'); await page.fill('#geoY', '50'); await page.fill('#geoRot', '90'); await page.waitForTimeout(300);
+    o = (await S.objs())[0]; assert.ok(near(o.cw, 200, 0.2) && near(o.ox, 100, 0.2) && near(792 - o.oy, 50, 0.2) && near(o.rot, 90, 0.2), JSON.stringify(o));
+    await page.keyboard.press('Escape'); await page.keyboard.press('t'); await page.locator('#placeBtn').focus(); await page.keyboard.press('Enter'); await page.waitForTimeout(300);
+    await page.keyboard.type('Typed by keyboard'); await page.waitForTimeout(300);
+    const txt = (await S.objs()).find(x => x.type === 'text'); assert.equal(txt.text, 'Typed by keyboard'); assert.equal(await page.inputValue('#propText'), 'Typed by keyboard');
+    await page.fill('#propSize', ''); await page.keyboard.type('30'); await page.waitForTimeout(300); assert.equal((await S.objs()).find(x => x.type === 'text').size, 30, 'half-typed numbers must not be clamped under the cursor');
   });
 
   await check(`${tag}: unreadable, encrypted-looking and oversize files give clear errors`, async () => {

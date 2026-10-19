@@ -141,6 +141,9 @@ input[type=range]{width:100%;height:32px}
   body.pages-open .pages{transform:none}
   .props{display:none;flex:none;max-height:38vh;border:0;border-top:1px solid var(--line);padding:10px 12px;border-left:0}
   body.props-open .props{display:block}
+  body.props-compact .props{max-height:none}
+  body.props-compact .props>*:not(.props-head):not(#secPlace){display:none}
+  body.props-compact #secPlace .hint{display:none}
   .sheet{margin:12px auto}
   .statusbar{gap:6px;padding:4px 8px}
   .status{font-size:.8125rem}

@@ -123,6 +123,7 @@
   <aside id="props" class="props" aria-label="Properties">
     <div class="props-head"><h2 id="propsTitle">Properties</h2><button id="propsClose" class="icon only-mobile" aria-label="Hide properties">&times;</button></div>
     <p id="toolHelp" class="hint"></p>
+    <div id="secPlace" class="row" hidden><button id="placeBtn" class="btn">Place on page</button><p class="hint">A keyboard and screen-reader way to add this object without clicking the page.</p></div>
 
     <section id="secEditText" class="sec" hidden>
       <h3>Existing text</h3>
@@ -173,6 +174,18 @@
       <label for="propNoteText" class="lbl">Note text</label>
       <textarea id="propNoteText" rows="4" maxlength="2000"></textarea>
       <p class="hint">Saved as a standard PDF comment annotation.</p>
+    </section>
+
+    <section id="secGeom" class="sec" hidden>
+      <h3>Position and size</h3>
+      <div class="grid2">
+        <label class="lbl">X (pt)<input id="geoX" type="number" step="1" inputmode="decimal"></label>
+        <label class="lbl">Y (pt)<input id="geoY" type="number" step="1" inputmode="decimal"></label>
+        <label class="lbl">Width<input id="geoW" type="number" step="1" min="4" inputmode="decimal"></label>
+        <label class="lbl">Height<input id="geoH" type="number" step="1" min="4" inputmode="decimal"></label>
+      </div>
+      <label class="lbl">Rotation (degrees)<input id="geoRot" type="number" step="1" inputmode="decimal"></label>
+      <p class="hint">Measured from the top-left of the page as shown. Text height follows its content.</p>
     </section>
 
     <section id="secOpacity" class="sec" hidden>
