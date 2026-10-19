@@ -88,7 +88,10 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
 .list li.gcard > .btn { width: min(100%, 180px); min-height: 44px; margin-top: 12px; }
 .gcard .gmeta { line-height: 1.5; }
 .gcard > .btn { align-self: center; margin-top: 10px; text-align: center; text-decoration: none; }
-.gcard > .btn.primary { background: var(--surface); color: var(--fg); border-color: var(--line); }
+.gcard > .btn.primary { background: var(--thread); color: var(--on-thread); border-color: var(--thread); }
+/* Game entry actions match the Daily Challenge primary CTA. */
+.gcard > .btn, .list [data-act="level"], .list [data-act="daily"] { background: var(--thread); color: var(--on-thread); border-color: var(--thread); font-weight: 700; }
+.gcard > .btn:hover:not(:disabled), .list [data-act="level"]:hover:not(:disabled), .list [data-act="daily"]:hover:not(:disabled) { filter: brightness(1.08); }
 .gcard .gname, .gcard p, .gcard .gmeta { text-align: left; }
 .list li.gcard { align-items: stretch; }
 @media (max-width: 480px) { .gcard > .btn { min-width: 150px; } }
@@ -870,8 +873,26 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
       if (at >= 0) { path.length = at + 1; ctl.status(''); render(); dragging = true; }
       else if (step(c)) dragging = true;
     });
-    board.addEventListener('pointermove', function (e) { if (!dragging || solved) return; var c = cellFromEvent(e); if (c >= 0) step(c); });
-    function endDrag() { dragging = false; }
+    // A fast swipe (or a coalesced touch stream) can skip cells between two pointer samples, and a finger cutting a
+    // corner lands on a diagonal cell. Walk the cells in between so the line follows the finger instead of stalling.
+    function walkTo(target) {
+      for (var guard = 0; guard < n * 2 && !solved && path.length; guard++) {
+        var head = path[path.length - 1];
+        if (head === target) return;
+        var dr = ((target / n) | 0) - ((head / n) | 0), dc = (target % n) - (head % n);
+        var vert = head + (dr > 0 ? n : -n), horiz = head + (dc > 0 ? 1 : -1);
+        var order = !dr ? [horiz] : !dc ? [vert] : Math.abs(dr) > Math.abs(dc) ? [vert, horiz] : [horiz, vert];
+        if (!order.some(step)) return;
+      }
+    }
+    function follow(e) {
+      if (!dragging || solved) return;
+      var evs = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : [];
+      if (!evs.length) evs = [e];
+      evs.forEach(function (ev) { var c = cellFromEvent(ev); if (c >= 0) walkTo(c); });
+    }
+    board.addEventListener('pointermove', follow);
+    function endDrag(e) { if (e && e.type === 'pointerup') follow(e); dragging = false; }
     board.addEventListener('pointerup', endDrag); board.addEventListener('pointercancel', endDrag);
     function onKey(e) {
       var d = { ArrowUp: -n, ArrowDown: n, ArrowLeft: -1, ArrowRight: 1 }[e.key];
@@ -1031,8 +1052,14 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
       var c = cellFromEvent(e);
       if (c >= 0 && c !== drag.e) { drag.e = c; render(); }
     });
-    function finish() {
+    function finish(e) {
       if (!drag) return;
+      // Some browsers coalesce or drop the last pointermove before pointerup.
+      // Resolve the actual release coordinate so a fast drag still includes its end cell.
+      if (e) {
+        var released = cellFromEvent(e);
+        if (released >= 0) drag.e = released;
+      }
       var d = drag; drag = null;
       var q = bbox(d.s, d.e), changed = true;
       if (d.s === d.e) {

@@ -79,7 +79,7 @@ try {
   await check('four-player Mahjong is not shipped: no files, no config, no backend reference, direct URLs 404', async () => {
     assert.equal(fs.existsSync(path.join(dist, 'play/mahjong')), false);
     const c = await open();
-    for (const u of ['play/mahjong/', 'play/mahjong/index.html', 'play/mahjong/config.js', 'play/mahjong/mahjong.mjs']) { const r = await c.page.goto(base + u, { waitUntil: 'domcontentloaded' }); assert.equal(r.status(), 404, u); }
+    for (const u of ['play/mahjong/', 'play/mahjong/index.html', 'play/mahjong/config.js', 'play/mahjong/mahjong.mjs']) { /* script URLs are fetched directly: WebKit intermittently raises an internal navigation error when asked to navigate to a 404 .js/.mjs */ const r = /\.m?js$/.test(u) ? await c.page.request.get(base + u) : await c.page.goto(base + u, { waitUntil: 'domcontentloaded' }); assert.equal(r.status(), 404, u); }
     assert.deepEqual(c.external, []); await c.ctx.close();
   });
   await check('labs from dist: a lab responds to input (hub links, tabs, slider readout)', async () => {

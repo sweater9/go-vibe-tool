@@ -1,3 +1,4 @@
+if (window.parent !== window) document.body.classList.add("embedded");
 const $ = (s) => document.querySelector(s);
 const titles = {
   "cubic-bezier": "Cubic-Bezier Easing Curve",
@@ -294,22 +295,20 @@ function curve() {
 }
 
 function screenshot() {
+  document.body.classList.add("beautifier");
   root.innerHTML =
-    "<p>PNG/JPEG/WebP input. Export contains the screenshot pixels plus your selected frame, background, shadow and perspective. The 3D mockup is a perspective projection, not a device model.</p>" +
-    field(
-      "file",
-      "Screenshot",
-      "file",
-      "",
-      'accept="image/png,image/jpeg,image/webp"',
-    ) +
-    '<div class="row">' +
-    field("background", "Background", "color", "#2b5179") +
+    '<div class="beautifier-head"><h2>Make your screenshot stand out</h2><p>Upload an image, customize its presentation, then export a crisp PNG. Everything stays on your device.</p></div>' +
+    '<div class="beautifier-layout"><div class="beautifier-controls"><h3>1. Upload screenshot</h3>' +
+    field("file", "Choose PNG, JPG or WebP", "file", "", 'accept="image/png,image/jpeg,image/webp"') +
+    '<h3>2. Customize appearance</h3><div class="beautifier-fields">' +
+    field("background", "Background colour", "color", "#2b5179") +
     field("padding", "Padding (px)", "number", "60", 'min="0" max="200"') +
     field("radius", "Corner radius (px)", "number", "18", 'min="0" max="100"') +
-    field("yaw", "3D turn (degrees)", "range", "0", 'min="-40" max="40"') +
-    field("tilt", "3D tilt (degrees)", "range", "0", 'min="-25" max="25"') +
-    '</div><label for="frame">Frame<select id="frame"><option value="browser">Browser window</option><option value="plain">Plain screenshot</option></select></label><button id="render">Render PNG</button><div id="preview"></div>';
+    field("yaw", "3D turn", "range", "0", 'min="-40" max="40"') +
+    field("tilt", "3D tilt", "range", "0", 'min="-25" max="25"') +
+    '</div><label for="frame">Frame style<select id="frame"><option value="browser">Browser window</option><option value="plain">Plain screenshot</option></select></label>' +
+    '<button id="render" class="beautifier-render">Generate preview &amp; PNG</button></div>' +
+    '<div class="beautifier-preview"><h3>3. Preview &amp; download</h3><div id="preview"><p class="beautifier-empty">Your finished screenshot will appear here after you upload an image and select Generate preview &amp; PNG.</p></div><p class="beautifier-tip">Your PNG download appears below the preview after processing.</p></div></div>';
   $("#render").onclick = () =>
     task(async () => {
       const im = await image(selectFile("#file"));

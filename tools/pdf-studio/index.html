@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; font-src 'self' blob: data:; img-src 'self' blob: data:; worker-src 'self' blob:; connect-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>PDF Studio · GoVibeTool</title><link rel="stylesheet" href="studio.css"></head>
+<body><header><a href="../../" class="brand">GoVibeTool</a><span>PDF Studio <small>Private browser editor</small></span></header>
+<main><section class="toolbar" aria-label="PDF controls">
+<label class="upload">Open PDF <input id="file" type="file" accept="application/pdf,.pdf"></label>
+<button id="prev" disabled>← Previous</button><output id="pageInfo">No PDF opened</output><button id="next" disabled>Next →</button>
+<label class="upload">Merge PDF <input id="mergeFile" type="file" accept="application/pdf,.pdf" disabled></label>
+<button id="split" disabled>Download selected page</button>
+<button id="moveUp" disabled>Move page earlier ↑</button><button id="moveDown" disabled>Move page later ↓</button><button id="rotate" disabled>Rotate page 90°</button><button id="remove" disabled>Delete page</button>
+<button id="undo" disabled>Undo last change</button>
+<button id="save" disabled>Export edited PDF</button>
+</section>
+<section class="textbar" aria-label="Text annotations"><h2>Text on page</h2>
+<label>Text <input id="text" placeholder="Enter text to add" maxlength="300" disabled></label>
+<label>Size <input id="noteSize" type="number" min="8" max="72" value="14" inputmode="numeric" disabled></label>
+<button id="addText" disabled>Add text to page</button><button id="updateNote" disabled>Update selected text</button><button id="moveNote" disabled>Move text to tapped spot</button><button id="deleteNote" disabled>Delete selected text</button>
+<div id="notes" aria-label="Text on this page"></div></section>
+<p class="notice">Files are processed on this device. Tap the page to choose where text goes (top-left if you do not tap); select added text in the list to edit, move or delete it. Text uses a standard PDF font, so emoji and non-Latin scripts are not supported. Existing text cannot be rewritten. Editing may invalidate existing digital signatures.</p>
+<div class="layout"><aside><h2>Pages</h2><div id="pages" aria-label="Page thumbnails"></div></aside>
+<section class="preview"><h1>Document preview</h1><div class="stage"><canvas id="canvas" aria-label="Selected PDF page preview. Tap to choose where new text goes."></canvas><canvas id="overlay" aria-hidden="true"></canvas></div><p id="status" role="status" aria-live="polite">Choose a PDF to begin.</p><div id="download"></div></section></div>
+</main><script src="../../vendor/pdf-lib.min.js"></script><script type="module" src="studio.js"></script></body></html>

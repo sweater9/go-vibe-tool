@@ -266,7 +266,9 @@ try {
     await page.fill("#v9-ep-add", "Australia/Sydney"); await page.press("#v9-ep-add", "Enter");
     await waitFor(page, () => document.querySelector("#v9-ep-out").innerText.includes("Australia/Sydney"));
     assert.match(await row("Australia/Sydney").innerText(), /UTC\+10:00.*standard/);
-    await page.fill("#v9-ep-add", "Mars/Base"); await page.click("#v9-ep-addbtn"); await expectStatus(page, /Unknown time zone/);
+    await page.fill("#v9-ep-add", "Mars/Base"); await page.click("#v9-ep-addbtn");
+    // Firefox can spend the first click closing the zone suggestion list; click again once if nothing happened.
+    try { await expectStatus(page, /Unknown time zone/, 1500); } catch { await page.click("#v9-ep-addbtn"); await expectStatus(page, /Unknown time zone/); }
     await page.click('button[aria-label="Remove Australia/Sydney"]');
     await waitFor(page, () => !document.querySelector("#v9-ep-out").innerText.includes("Australia/Sydney"));
     await page.fill("#v9-ep-in", "not a time"); await waitFor(page, () => document.querySelector("#v9-ep-out .v9a-bad"));

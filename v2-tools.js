@@ -66,7 +66,7 @@ openTool=function(id){
   if(retiredTools[id])id=retiredTools[id];
   if(!v2Ids.has(id)){rememberTool(id);return legacyOpenTool(id)}
   rememberTool(id);const t=v2Tools.find(x=>x[0]===id),w=$("#workspace");
-  stopCamera();w.innerHTML=v2Shell(t,v2Template(id));w.classList.add("active");w.focus({preventScroll:true});w.scrollIntoView({behavior:"smooth",block:"start"});
+  stopCamera();w.innerHTML=v2Shell(t,v2Template(id));w.classList.add("active");w.focus({preventScroll:true});w.scrollIntoView({behavior:"auto",block:"start"});if(id==="pdf-studio"){const keepVisible=()=>{if(!w.classList.contains("active")||!w.querySelector("#pdfFiles"))return;const top=w.getBoundingClientRect().top;const minTop=window.innerWidth<=620?155:110;if(top<minTop-4)window.scrollBy({top:top-minTop,behavior:"instant"})};requestAnimationFrame(()=>requestAnimationFrame(keepVisible));window.setTimeout(keepVisible,250)}
   if(id==="pii-secret-redactor")initRedactor();
   if(id==="curl-code-sanitizer")initCurlSanitizer();
   if(id==="fact-anchor-checker")initFactAnchor();
@@ -165,10 +165,12 @@ function passwordTemplate(){
  '<button class="btn" onclick="generatePasswordV2()">Generate / check</button></div><div><div id="passwordOutput" class="result"></div><div class="strength"><i id="strengthBar"></i></div><p id="strengthText" class="note"></p><button class="btn alt" onclick="copyPassword()">Copy</button></div></div>';
 }
 function pdfTemplate(){
- return '<div class="tabs"><button class="active" onclick="pdfMode(\'merge\',this)">Merge</button><button onclick="pdfMode(\'split\',this)">Split</button><button onclick="pdfMode(\'rotate\',this)">Rotate</button><button onclick="pdfMode(\'optimize\',this)">Optimize</button></div>'+
- '<div class="dropzone"><strong>Select PDF file(s)</strong><p id="pdfHelp">Choose two or more files in the order you want to merge.</p><input aria-label="Choose PDF files" id="pdfFiles" type="file" accept="application/pdf" multiple></div>'+
+ return '<div class="result"><strong>PDF editor</strong><p>Preview, annotate, reorder, rotate and delete pages, then export your edited PDF. Existing merge, split, rotate and optimize tools remain below.</p><a class="btn" href="tools/pdf-studio/" target="_blank" rel="noopener">Open PDF editor ↗</a></div>'+
+ '<div class="tabs"><button class="active" onclick="pdfMode(\'merge\',this)">Merge</button><button onclick="pdfMode(\'split\',this)">Split</button><button onclick="pdfMode(\'rotate\',this)">Rotate</button><button onclick="pdfMode(\'optimize\',this)">Optimize</button></div>'+
+ '<div class="dropzone"><strong>Select PDF file(s)</strong><p id="pdfHelp">Choose two or more files in the order you want to merge.</p><input aria-label="Choose PDF files" id="pdfFiles" type="file" accept="application/pdf,.pdf" multiple onchange="pdfClearDownload();document.getElementById(\'pdfStatus\').textContent=\'Files selected. Select Process PDF locally to create a download.\'"></div>'+
+ '<p id="pdfOptimizeNote" class="note hidden">Optimize rebuilds PDF structure locally; file size may not decrease. Images are not recompressed.</p>'+ 
  '<div id="pdfOptions"><div id="splitOption" class="hidden">'+input("pdfRange","Page ranges","1-2,4")+'<p class="note">Examples: 1-3 or 1,3,5-7.</p></div><div id="rotateOption" class="hidden">'+select("pdfRotation","Rotate all pages by",["90","180","270"])+'</div></div>'+
- '<div class="actions"><button class="btn" onclick="processPDF()">Process PDF locally</button></div><div id="pdfStatus" class="result" role="status" aria-live="polite">No PDF has been read yet.</div><div id="pdfDownloadArea" class="actions hidden"><a id="pdfDownloadLink" class="btn" download="processed.pdf">Download processed PDF ↓</a></div>';
+ '<div class="actions"><button class="btn" onclick="processPDF()">Process PDF locally</button></div><div id="pdfStatus" class="result" role="status" aria-live="polite">No PDF has been read yet.</div><div id="pdfDownloadArea" class="actions"><a id="pdfDownloadLink" class="btn alt" aria-disabled="true" download="processed.pdf">Download processed PDF (process first)</a></div>';
 }
 function signatureTemplate(){
  return '<div class="grid2"><div>'+input("sigName","Name","Naveen Kumar")+input("sigTitle","Role","Vice President")+input("sigCompany","Company","Company name")+input("sigPhone","Phone","+971 ")+input("sigEmail","Email","name@example.com","email")+input("sigWebsite","Website","https://example.com")+input("sigLinkedIn","LinkedIn URL","")+
@@ -326,22 +328,22 @@ function copyPassword(){const v=$("#passwordOutput").textContent;if(v)navigator.
 
 /* Client-side PDF workbench */
 let pdfAction="merge";
-function pdfMode(mode,button){pdfClearDownload();pdfAction=mode;button.parentElement.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===button));$("#splitOption").classList.toggle("hidden",mode!=="split");$("#rotateOption").classList.toggle("hidden",mode!=="rotate");$("#pdfFiles").multiple=mode==="merge";$("#pdfHelp").textContent=mode==="merge"?"Choose two or more files in the order you want to merge.":mode==="split"?"Choose one PDF and select the pages to extract.":mode==="rotate"?"Choose one PDF; every page will be rotated.":"Choose one PDF to rebuild with object-stream compression."}
+function pdfMode(mode,button){pdfClearDownload();pdfAction=mode;button.parentElement.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===button));$("#splitOption").classList.toggle("hidden",mode!=="split");$("#pdfOptimizeNote").classList.toggle("hidden",mode!=="optimize");$("#rotateOption").classList.toggle("hidden",mode!=="rotate");$("#pdfFiles").multiple=mode==="merge";$("#pdfHelp").textContent=mode==="merge"?"Choose two or more files in the order you want to merge.":mode==="split"?"Choose one PDF and select the pages to extract.":mode==="rotate"?"Choose one PDF; every page will be rotated.":"Choose one PDF to rebuild its internal structure; significant size reduction is not guaranteed."}
 function parsePageRanges(value,max){
  const pages=new Set();for(const part of value.split(",")){const p=part.trim();if(!p)continue;if(p.includes("-")){let[a,b]=p.split("-").map(Number);if(!Number.isInteger(a)||!Number.isInteger(b)||a<1||b<a||b>max)throw Error("Invalid page range: "+p);for(let i=a;i<=b;i++)pages.add(i-1)}else{const n=Number(p);if(!Number.isInteger(n)||n<1||n>max)throw Error("Invalid page: "+p);pages.add(n-1)}}if(!pages.size)throw Error("Choose at least one page.");return[...pages]
 }
 let pdfResultUrl=null;
 function pdfClearDownload(){
  if(pdfResultUrl){URL.revokeObjectURL(pdfResultUrl);pdfResultUrl=null}
- const area=$("#pdfDownloadArea");if(area)area.classList.add("hidden");
- const link=$("#pdfDownloadLink");if(link)link.removeAttribute("href");
+ const area=$("#pdfDownloadArea");if(area)area.classList.remove("hidden");
+ const link=$("#pdfDownloadLink");if(link){link.removeAttribute("href");link.setAttribute("aria-disabled","true");link.classList.add("alt");link.textContent="Download processed PDF (process first)"}
 }
 async function processPDF(){
  pdfClearDownload();const files=[...$("#pdfFiles").files],status=$("#pdfStatus");if(!files.length)return status.textContent="Choose at least one PDF.";if(!window.PDFLib)return status.textContent="The local PDF component did not load. Refresh and try again.";
  status.textContent="Processing locally…";try{const{PDFDocument,degrees}=PDFLib;let out,name;
   if(pdfAction==="merge"){if(files.length<2)throw Error("Choose at least two PDFs to merge.");out=await PDFDocument.create();for(const file of files){const source=await PDFDocument.load(await file.arrayBuffer());const pages=await out.copyPages(source,source.getPageIndices());pages.forEach(p=>out.addPage(p))}name="merged.pdf"}
   else{const source=await PDFDocument.load(await files[0].arrayBuffer());if(pdfAction==="split"){out=await PDFDocument.create();const indices=parsePageRanges($("#pdfRange").value,source.getPageCount()),pages=await out.copyPages(source,indices);pages.forEach(p=>out.addPage(p));name="extracted-pages.pdf"}else if(pdfAction==="rotate"){source.getPages().forEach(p=>p.setRotation(degrees((p.getRotation().angle+(+$("#pdfRotation").value||90))%360)));out=source;name="rotated.pdf"}else{out=source;name="optimized.pdf"}}
-  const bytes=await out.save({useObjectStreams:true,addDefaultPage:false});pdfResultUrl=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));const link=$("#pdfDownloadLink");link.href=pdfResultUrl;link.download=name;link.textContent="Download "+name+" ↓";$("#pdfDownloadArea").classList.remove("hidden");const original=files.reduce((n,f)=>n+f.size,0);status.textContent="Ready to download · "+out.getPageCount()+" page(s) · "+formatBytes(bytes.length)+(pdfAction==="optimize"?" · "+Math.round((1-bytes.length/original)*100)+"% size change. Optimization rebuilds PDF objects; image-heavy files may not become smaller.":"");
+  const bytes=await out.save({useObjectStreams:true,addDefaultPage:false});pdfResultUrl=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));const link=$("#pdfDownloadLink");link.href=pdfResultUrl;link.download=name;link.removeAttribute("aria-disabled");link.classList.remove("alt");link.textContent="Download "+name+" ↓";$("#pdfDownloadArea").classList.remove("hidden");const original=files.reduce((n,f)=>n+f.size,0);status.textContent="Ready to download · "+out.getPageCount()+" page(s) · "+formatBytes(bytes.length)+(pdfAction==="optimize"?" · "+Math.round((1-bytes.length/original)*100)+"% size change. Optimization rebuilds PDF objects; image-heavy files may not become smaller.":"");
  }catch(e){status.textContent="Could not process this PDF: "+(e.message||"The file may be encrypted or damaged.")}
 }
 

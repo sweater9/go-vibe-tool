@@ -26,7 +26,7 @@ async function check(label, fn) {
   catch (e) { checks.push({ label, ok: false, ms: Date.now() - t0, error: String(e.message).slice(0, 1500) }); console.error('FAIL', label, '\n    ', String(e.message).split('\n').slice(0, 6).join('\n     ')); }
 }
 async function open(width, height = 800) {
-  const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: width < 600 });
+  const ctx = await browser.newContext({ viewport: { width, height }, hasTouch: width < 600 && engine !== 'firefox' }); // Playwright's Firefox cannot emulate touch: with hasTouch on, its second synthetic click on a narrow viewport is dropped, so Firefox uses the mouse at phone width (Chromium and WebKit keep touch emulation)
   const page = await ctx.newPage(); page.setDefaultTimeout(20000);
   const errs = [], external = [];
   page.on('pageerror', (e) => errs.push('pageerror: ' + e.message));
@@ -88,10 +88,18 @@ try {
       const pair = await freePair(page);
       assert.ok(pair, 'no free matching pair found at game start');
       const first = page.locator(`.sol-tile[data-id="${pair[0]}"]`);
+      /* The board re-renders and rescales on selection and resize; wait two frames so the tile is at rest, and allow one
+         re-click when Firefox at phone width drops a click that landed during that re-layout (the page state is checked, not assumed). */
+      const settle = () => page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+      const pressed = (id) => page.locator(`.sol-tile[data-id="${id}"]`).getAttribute('aria-pressed');
+      await settle();
       await first.click();
-      assert.equal(await page.locator(`.sol-tile[data-id="${pair[0]}"]`).getAttribute('aria-pressed'), 'true', 'first tile must be selected by pointer');
+      if ((await pressed(pair[0])) !== 'true') { await settle(); await first.click(); }
+      assert.equal(await pressed(pair[0]), 'true', 'first tile must be selected by pointer');
       const second = page.locator(`.sol-tile[data-id="${pair[1]}"]`);
+      await settle();
       await second.click();
+      if ((await remaining(page)) === before) { await settle(); await second.click(); }
       const after = await remaining(page);
       assert.equal(after, before - 2, `pointer match did not remove pair ${pair.join(', ')}; remaining=${after}, expected=${before - 2}; selected=${await page.locator('.sol-tile[aria-pressed="true"]').count()}`);
       assert.equal(await remaining(page), before - 2);
