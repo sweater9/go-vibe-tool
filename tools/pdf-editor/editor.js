@@ -23,7 +23,7 @@ const HELP = {
   line: "Drag on the page to draw a line.", arrow: "Drag on the page to draw an arrow.", draw: "Draw freehand with your finger, pen or mouse.",
   highlight: "Drag across text to highlight it.", underline: "Drag across text to underline it.", strike: "Drag across text to strike it through.",
   note: "Tap the page to place a comment note.",
-  edittext: "Tap existing text. Text in simple standard fonts can be changed in the PDF itself; other text can only be covered and retyped as an overlay.",
+  edittext: "Tap existing text to edit its original PDF text operation. Unsupported embedded or subset fonts cannot be edited without changing the font.",
 };
 const TYPE_LABEL = { text: "Text", image: "Image", rect: "Rectangle", ellipse: "Oval", line: "Line", arrow: "Arrow", draw: "Drawing", highlight: "Highlight", underline: "Underline", strike: "Strike-through", note: "Note" };
 
@@ -472,17 +472,6 @@ $("runApply").addEventListener("click", guard(async () => {
   try { await applyEdits(PDFLib, srcOf(p).effBytes, [{ page: edit.page, from: edit.from, to: edit.to, occurrence: edit.occurrence }]); } catch (e) { throw new Error(friendly(e)); }
   await commit(() => { state.edits.push(edit); }, { reload: true }); runPick = null; syncProps(); say("The text in the PDF was changed. Positions are kept; text is not re-flowed.");
 }));
-$("runCover").addEventListener("click", guard(async () => {
-  if (!runPick) return; const p = curPage(), t = runPick.hit, to = $("runText").value || t.str, rot = totalRot(p), size = clamp(t.size, 6, 200);
-  const [d0x, d0y] = vp.toDisplay(t.x0 - 1, t.y1 + 1), [d1x, d1y] = vp.toDisplay(t.x1 + 1, t.y0 - 1), cover = frameRect([d0x, d0y], [d1x, d1y]);
-  const box = newObj("rect", { ...cover, stroke: null, fill: "#ffffff", width: 0, opacity: 1, meta: "cover" });
-  const txt = newObj("text", { ox: 0, oy: 0, rot, cw: Math.max(40, cover.cw + 40), text: to, font: /times|serif/i.test(t.font) ? "Times" : /courier|mono/i.test(t.font) ? "Courier" : "Helvetica", size, color: "#000000", bold: false, italic: false, align: "left", opacity: 1, meta: "retype" });
-  try { fonts.check(fontKey(txt), to); } catch (e) { throw new Error(friendly(e)); }
-  // put the retyped text's first baseline on the original baseline
-  const { D } = axes(rot), asc = layoutText(txt, fonts).ascent; txt.ox = t.base[0] - D[0] * asc; txt.oy = t.base[1] - D[1] * asc;
-  await commit(() => { state.objects.push(box, txt); selId = txt.id; runPick = null; setTool("select"); }, {});
-  say("Covered and retyped as an overlay. The original text is still inside the PDF file; this is not secure redaction.");
-}));
 
 /* ---------- properties panel ---------- */
 const SECTIONS = ["secEditText", "secText", "secStroke", "secMark", "secNote", "secGeom", "secOpacity", "secActions"];
@@ -516,9 +505,9 @@ function syncProps() {
   // existing-text section
   const run = runPick && runPick.pid === curPage()?.id ? runPick : null;
   if (tool === "edittext") {
-    $("runText").disabled = !run; $("runApply").disabled = !run || !run.loc.editable; $("runCover").disabled = !run; if (run) $("runText").value = run.hit.str; else $("runText").value = "";
-    $("runInfo").textContent = !run ? "Tap a line of text on the page." : run.loc.editable ? `This text uses the standard font ${run.loc.font}. It can be changed in the PDF itself: it stays real, searchable text.` : reasonText(run.loc.reason) + " You can still cover it and retype it as an overlay, but the original text stays inside the file.";
-    $("runNote").textContent = run && run.loc.editable ? "The new text keeps the original position and is not re-flowed around neighbouring text." : run ? "Cover and retype is a visual overlay only. It is not editing and it is not redaction." : "";
+    $("runText").disabled = !run; $("runApply").disabled = !run || !run.loc.editable; if (run) $("runText").value = run.hit.str; else $("runText").value = "";
+    $("runInfo").textContent = !run ? "Tap a line of text on the page." : run.loc.editable ? `This text uses the standard font ${run.loc.font}. It can be changed in the PDF itself: it stays real, searchable text.` : reasonText(run.loc.reason) + " The original font cannot be safely preserved for this text, so editing is unavailable.";
+    $("runNote").textContent = run && run.loc.editable ? "The new text keeps the original position and is not re-flowed around neighbouring text." : run ? "This PDF text cannot be safely edited while preserving its original font." : "";
   }
   const phone = matchMedia("(max-width:900px)").matches, placeable = ["text", "rect", "ellipse", "line", "arrow", "note"].includes(tool), wantSheet = !propsClosed && (o || tool === "edittext" || (!phone && tool !== "select" && tool !== "image") || (phone && placeable));
   document.body.classList.toggle("props-open", !!wantSheet); document.body.classList.toggle("props-compact", !!(wantSheet && phone && !o && placeable));
