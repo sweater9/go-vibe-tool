@@ -233,7 +233,7 @@ for (const w of WIDTHS) {
     await S.showPages(); await page.locator('#tabPages').click(); await page.locator('#pgRotR').click(); await S.settle(); await S.hidePages(); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 3);
     const b = (await S.blocks()).find(x => /Quarterly/.test(x.text)); assert.ok(b, 'blocks missing after rotation'); await S.clickAt(b.box.x + b.box.w / 2, b.box.y + b.box.h / 2); await page.waitForFunction(() => /Quarterly/.test((window.pdfEditorDebug.v2.draft() || {}).text || ''));
     const bytes = await S.exportBytes(); const j = await pdfjsInfo(page, bytes); assert.equal(j.pages, 5); assert.ok(j.texts.some(t => /This inserted page was edited/.test(t))); assert.ok(/INVOICE/.test(j.texts[0]));
-    needTools('pypdf'); assert.equal(pypdfInspect(bytes).outline.length, 0, 'bookmarks of an inserted document are documented as not imported'); assert.ok(pypdfInspect(bytes).links.length >= 0);
+    needTools('pypdf'); assert.equal(pypdfInspect(bytes).outline.length, 0, 'bookmarks of an inserted document are documented as not imported');
   });
 
   await check(`${tag}: P1 content together with edits: new text and an inserted, resized image survive export next to an existing-text edit`, async () => {

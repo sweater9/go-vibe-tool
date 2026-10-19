@@ -101,3 +101,49 @@ Every P0 feature is checked on the **exported bytes**, using parsers that do not
   characters, justification (`Tw`) inside edited blocks is kept but not recomputed, edited text does not reflow
   neighbouring blocks (the UI warns when the new text is wider than the original and may overlap), Link/underline
   decorations drawn as separate paths are not moved with edited text.
+
+---
+
+# Implementation status (what shipped on this branch, and how it was verified)
+
+Everything below is implemented in `tools/pdf-editor/engine/*` and `tools/pdf-editor/v2ui.js`. "Verified" means checked on the
+**exported bytes** by tools that share no code with the editor (Poppler, pypdf, PDF.js) — see `tests/pdf-editor-v2-engine.mjs`
+(Node, 39 tests) and `tests/pdf-editor-v2-browser.mjs` (Chromium, Firefox, WebKit; 1440 px and 390 px).
+
+| Requirement | Status | Evidence |
+|---|---|---|
+| P0-1 Edit existing text (replace words, sentences, numbers, amounts; delete; multipage; no cover boxes) | done | Replacing/deleting verified with `pdftotext` and pypdf on Chrome (CID subset), LibreOffice (simple subset), reportlab (std + TTF), pdf-lib (standard) and hand-written streams. Deleted characters are absent from the file. Pixels outside the edited line are identical. |
+| P0-2 Formatting (family, size, colour, bold/italic, anchor) | done, with the documented font limits | Fonts listed by `pdffonts`; size from word boxes; colour from rendered pixels; right/centre anchors from word boxes. A colour change does not leak into later text (regression test). |
+| P0-3 Hyperlinks (create, retarget, remove, internal page links, preserved after export) | done | pypdf + PDF.js read the saved annotations; `javascript:`, `data:`, `file:` and `vbscript:` addresses are refused. |
+| P0-4 Bookmarks (view, add, rename, delete, reorder, nest, destinations kept) | done | Outline and destination pages read back with pypdf and PDF.js; reorder/delete/extract of pages remap or drop destinations with a warning. |
+| P0-5 Reliable saving | done | Before offering a download the editor reopens the result, and compares link count, bookmark count and every edited text with what the page now contains; a mismatch blocks the download. Poppler reports no syntax errors on any exported test file. |
+| P1 New text, images, move/resize, kept after export | done (V1 features, re-verified together with V2 edits) | Image count with `pdfimages`, text with PDF.js. |
+
+## Safety net that found real bugs
+
+Re-encoding **every** block of a document unchanged must render **pixel-identically**. This runs on every fixture (Chrome, Chrome
+multilingual with CJK/Arabic/ligatures, LibreOffice, reportlab, pdf-lib standard fonts, hand-written kerning/`Tc`/`Tw`/`Tz`/`'`/rotated/
+font-switching streams). Looking at an exported page also caught one defect the numeric checks missed: a colour override on text
+whose fill was never set explicitly left all later text in that colour. It is fixed and covered by a pixel regression test.
+
+## Known limits (shown to the user where they apply)
+
+* Text inside Form XObjects is not part of the page stream the engine edits. The editor counts such words and says so.
+* A typed character can reuse the original embedded font only if that font already draws it somewhere in the document. Otherwise
+  it is drawn with the matching standard font (Helvetica, Times or Courier), and the panel says which characters. Characters
+  outside WinAnsi that the embedded font lacks are refused.
+* Bold, italic and a different family on text in an embedded font switch those characters to a standard font (the subset cannot be made bold).
+* Editing is per line, without reflow across lines. A longer replacement warns; "Move the rest of the line along" shifts closely
+  following text, but underlines, boxes and link rectangles that were drawn separately are not moved.
+* Not editable, with a reason shown: Type 3 fonts, composite fonts without ToUnicode or with other CMaps, vertical writing,
+  invisible OCR text, text drawn with stroke/clip render modes. Scanned pages show "no selectable text" (no OCR). Encrypted files are refused.
+* Links: URI and internal page destinations are editable (internal destinations created here point to the top of the page).
+  Other actions (launch, remote file) are kept in place when pages stay in the same document, and dropped with a warning when pages are copied into a new file.
+* Bookmarks of a PDF inserted into the document are not imported; the first document's bookmarks are kept and remapped.
+* Signed PDFs: any edit invalidates the signature (the editor says so on open).
+* Real-device Safari/Chrome/Firefox were not tested; Safari is covered by Playwright WebKit.
+
+## Dependencies
+
+No new runtime dependency (pdf-lib 1.17.1 and PDF.js 4.10.38 were already vendored). Test/CI only: Poppler (`poppler-utils`) and `pypdf`;
+the QA workflow installs both and fails if a tool is missing instead of skipping.
