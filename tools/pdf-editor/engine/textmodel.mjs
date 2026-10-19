@@ -115,7 +115,8 @@ export async function analyzePage(P, doc, lib, pageIndex) {
   const page = doc.getPage(pageIndex), fonts = await lib.pageFonts(page);
   const content = await pageContent(P, doc, page);
   const interp = interpret(content, name => fonts.get(name) || null);
-  return { page, content, interp, blocks: buildBlocks(interp, pageIndex), fonts };
+  const blocks = buildBlocks(interp, pageIndex); addRoom(blocks);
+  return { page, content, interp, blocks, fonts };
 }
 
 /* Record every code each font draws anywhere in the document: an embedded subset can only encode characters seen here. */
@@ -129,4 +130,18 @@ export async function scanUsage(P, doc, lib) {
     pages.push(interp.shows.length);
   }
   return pages;
+}
+
+/* For each block: how far (user-space points) the text may grow before it reaches the next text on the same baseline. */
+function addRoom(blocks) {
+  for (const b of blocks) {
+    const M = mul(b.tm0, b.ctm), ux = M[0], uy = M[1], sc = Math.hypot(ux, uy) || 1, dir = [ux / sc, uy / sc], o = [M[4], M[5]]; b.userScale = sc; b.origin = o; b.dir = dir;
+    let room = Infinity; const em = Math.hypot(M[2], M[3]) * 1 || 1;
+    for (const c of blocks) {
+      if (c === b) continue; const M2 = mul(c.tm0, c.ctm), vx = M2[4] - o[0], vy = M2[5] - o[1];
+      const along = vx * dir[0] + vy * dir[1], across = -vx * dir[1] + vy * dir[0];
+      if (Math.abs(across) < 0.5 * em * 0.75 && along > b.width * sc * 0.5) room = Math.min(room, along);
+    }
+    b.room = room;
+  }
 }

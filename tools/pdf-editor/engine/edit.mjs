@@ -119,7 +119,7 @@ export async function renderBlock(P, doc, lib, block, edit, pf, notes) {
   if (f.mode === 'relative') out.push(`${fmtNum(f.dx)} ${fmtNum(f.dy)} Td`);
   else if (f.mode === 'absolute') out.push(`${f.tlmEnd.map(fmtNum).join(' ')} Tm`);
   if (f.mode !== 'none' && Math.abs(f.tl - f.tlStart) > 1e-9) out.push(`${fmtNum(f.tl)} TL`);
-  return '\n' + out.join('\n') + '\n';
+  return { text: '\n' + out.join('\n') + '\n', width: newW + 0 };
 }
 
 /* edits: [{page, blockId, text, fmt:[{start,end,props:{family,bold,italic,size,fill}}], align}] applied to the ORIGINAL bytes. */
@@ -135,13 +135,20 @@ export async function applyTextEdits(P, bytes, edits) {
     }
     jobs.sort((x, y) => y.block.range[0] - x.block.range[0]); let content = a.content;
     for (const { block, e } of jobs) {
-      const text = await renderBlock(P, doc, lib, block, e, pf, notes), enc = new TextEncoder().encode(text);
+      const { text } = await renderBlock(P, doc, lib, block, e, pf, notes), enc = new TextEncoder().encode(text);
       const next = new Uint8Array(block.range[0] + enc.length + (content.length - block.range[1]));
       next.set(content.subarray(0, block.range[0]), 0); next.set(enc, block.range[0]); next.set(content.subarray(block.range[1]), block.range[0] + enc.length); content = next;
     }
     a.page.node.set(P.PDFName.of('Contents'), doc.context.register(doc.context.flateStream(content)));
   }
   return { bytes: await doc.save(), notes };
+}
+
+/* Dry run: the width the edited block would have (text-space units) and any substitution notes, without touching the document. */
+export async function measureEdit(P, doc, lib, block, edit) {
+  const notes = [], stub = { resource: async () => 'GVFx' }; const r = await renderBlock(P, doc, lib, block, edit, stub, notes);
+  const s = Math.hypot(block.tm0[0], block.tm0[1]) * Math.hypot(block.ctm[0], block.ctm[1]);
+  return { width: r.width, widthUser: r.width * s, origUser: block.width * s, notes };
 }
 
 export { FontLibrary, analyzePage, scanUsage };
