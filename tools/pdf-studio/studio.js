@@ -1,5 +1,6 @@
 import * as pdfjs from "../v9-media/vendor/pdf/pdf.min.mjs";
 pdfjs.GlobalWorkerOptions.workerSrc=new URL("../v9-media/vendor/pdf/pdf.worker.min.mjs",import.meta.url).href;
+const ASSET=p=>new URL("../v9-media/vendor/pdf/"+p,import.meta.url).href;
 const {PDFDocument,StandardFonts,degrees,rgb}=window.PDFLib;
 const $=id=>document.getElementById(id);
 const MAX_BYTES=25*1024*1024,UNDO_LIMIT=12,UNDO_BYTES=160*1024*1024,DEFAULT_SIZE=14,MARGIN=36;
@@ -34,11 +35,12 @@ async function bake(){
   page.drawText(n.text,{x:n.x,y:n.y,size:n.size,font,color:rgb(0,0,0),rotate:degrees(n.rot),maxWidth:n.cap,lineHeight:n.size*1.3})});
  return {out,bytes:await out.save()}}
 function boxWidth(page){const{width,height}=page.getSize();return rotationOf(page)%180?height:width}
+// disableFontFace: draw glyph outlines instead of registering FontFace objects; WebKit reports those as CSP stylesheet violations under this page's strict style-src.
 async function refresh(){
  if(!doc)return;
  const {bytes}=await bake();
  if(preview)await preview.destroy();
- preview=await pdfjs.getDocument({data:new Uint8Array(bytes),isEvalSupported:false}).promise;
+ preview=await pdfjs.getDocument({data:new Uint8Array(bytes),isEvalSupported:false,disableFontFace:true,standardFontDataUrl:ASSET("standard_fonts/"),cMapUrl:ASSET("cmaps/"),cMapPacked:true}).promise;
  index=Math.min(index,doc.getPageCount()-1);
  await render();drawPages();buttons()}
 function drawPages(){$("pages").replaceChildren();
