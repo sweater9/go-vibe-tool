@@ -76,7 +76,7 @@ async function session(w) {
   // Fail before browser launch if the editor itself gains inline CSS: the WebKit inspector exemption must never mask it.
   for (const asset of ['tools/pdf-editor/index.html', 'tools/pdf-editor/editor.js']) {
     const source = await fs.readFile(path.join(repo, asset), 'utf8');
-    assert.doesNotMatch(source, /<style\\b|\\sstyle\\s*=/i, `Inline CSS is forbidden in ${asset}`);
+    assert.doesNotMatch(source, /<style\b|\sstyle\s*=/i, `Inline CSS is forbidden in ${asset}`);
   }
   const wkInspector = m => engine === 'webkit' && (/^web-inspector:/.test(m.location().url) || /^Refused to apply a stylesheet/.test(m.text()));
   page.on('console', m => { if (!wkInspector(m) && ['error', 'warning'].includes(m.type()) && !/favicon|willReadFrequently/.test(m.text())) errs.push(`console ${m.type()}: ${m.text()} @ ${m.location().url}:${m.location().lineNumber}`); });
