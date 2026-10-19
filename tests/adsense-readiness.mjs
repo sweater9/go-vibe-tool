@@ -11,7 +11,7 @@ const home = read('index.html');
 const editor = read('tools/pdf-editor/index.html');
 const arcade = read('play/vibe-arcade/index.html');
 
-const adLoader = /pagead2\\.googlesyndication\\.com\\/pagead\\/js\\/adsbygoogle\\.js|\\badsbygoogle\\.push\\s*\\(/i;
+const adLoader = /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js|\badsbygoogle\.push\s*\(/i;
 
 test('ad activation remains disabled until approval and consent integration', () => {
   assert.equal(policy.enabled, false);
