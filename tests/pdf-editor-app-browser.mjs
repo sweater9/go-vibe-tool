@@ -72,7 +72,9 @@ async function session(w) {
   page.on('dialog', d => d.accept());
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   await page.addInitScript(() => document.addEventListener('securitypolicyviolation', e => console.error(`CSPV ${e.violatedDirective} blocked=${e.blockedURI} sample=${(e.sample || '').slice(0, 80)} src=${e.sourceFile}:${e.lineNumber}`)));
-  page.on('console', m => { if (['error', 'warning'].includes(m.type()) && !/favicon|willReadFrequently/.test(m.text())) errs.push(`console ${m.type()}: ${m.text()} @ ${m.location().url}:${m.location().lineNumber}`); });
+  // WebKit's Playwright build injects an inline stylesheet from web-inspector://, which the page's strict style-src refuses; the editor page itself has no <style> or inline style (checked below).
+  const wkInspector = m => engine === 'webkit' && (/^web-inspector:/.test(m.location().url) || /^Refused to apply a stylesheet/.test(m.text()));
+  page.on('console', m => { if (!wkInspector(m) && ['error', 'warning'].includes(m.type()) && !/favicon|willReadFrequently/.test(m.text())) errs.push(`console ${m.type()}: ${m.text()} @ ${m.location().url}:${m.location().lineNumber}`); });
   page.on('request', r => { const u = r.url(); if (!u.startsWith(origin) && !u.startsWith('blob:') && !u.startsWith('data:')) external.push(u); });
   const S = { ctx, page, errs, external, mobile, touch, w };
   S.status = () => page.textContent('#status');

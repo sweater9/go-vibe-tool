@@ -18,12 +18,12 @@ let passed = 0; const failures = [];
 async function check(name, fn) { try { await fn(); passed++; console.log('PASS', name); } catch (e) { failures.push(`${name}: ${e.message.split('\n')[0]}`); console.log('FAIL', name, '-', e.message.slice(0, 500)); } }
 
 for (const [label, vp] of [['desktop 1440', { width: 1440, height: 900 }], ['phone 390', { width: 390, height: 844 }]]) {
-  const ctx = await browser.newContext({ viewport: vp }), page = await ctx.newPage(), log = [];
+  const ctx = await browser.newContext({ viewport: vp }), page = await ctx.newPage(), log = []; let originStopped = false;
   await page.route(/googlesyndication|doubleclick/, r => r.abort());
   page.on('pageerror', e => log.push('pageerror: ' + e.message));
   page.on('console', m => { if (m.type() === 'error' && !/favicon/.test(m.text())) log.push('console: ' + m.text()); });
   page.on('response', r => { if (r.status() >= 400 && !/favicon/.test(r.url())) log.push(`http ${r.status()}: ${r.url().replace(base, '/')}`); });
-  page.on('requestfailed', r => { if (!/googlesyndication|doubleclick|favicon/.test(r.url())) log.push('requestfailed: ' + r.url().replace(base, '/')); });
+  page.on('requestfailed', r => { if (!originStopped && !/googlesyndication|doubleclick|favicon/.test(r.url())) log.push('requestfailed: ' + r.url().replace(base, '/')); });
   await check(`${label}: homepage renders all nine categories with no script errors, service worker installs`, async () => {
     await page.goto(base); await page.waitForSelector('a.cat-tile'); assert.equal(await page.locator('a.cat-tile').count(), 9);
     await page.evaluate(() => navigator.serviceWorker.ready); assert.deepEqual(log, []);
@@ -45,8 +45,8 @@ for (const [label, vp] of [['desktop 1440', { width: 1440, height: 900 }], ['pho
     await page.click('#download'); await page.waitForSelector('#downloadLink:not([hidden])');
     await page.reload(); await page.waitForSelector('#welcomeTitle');
     await page.evaluate(() => navigator.serviceWorker.ready);
-    await dist.stop(); // offline = origin stopped (context.setOffline bypasses the worker in Firefox/WebKit and leaks into later cases)
-    try { await page.reload(); await page.waitForSelector('#welcomeTitle'); } finally { await dist.start(); }
+    originStopped = true; await dist.stop(); // offline = origin stopped (context.setOffline bypasses the worker in Firefox/WebKit and leaks into later cases)
+    try { await page.reload(); await page.waitForSelector('#welcomeTitle'); } finally { await dist.start(); await page.waitForTimeout(1000); originStopped = false; }
   });
   await check(`${label}: the old PDF Studio address forwards to the editor`, async () => {
     await page.goto(base + 'tools/pdf-studio/'); await page.waitForURL(/\/tools\/pdf-editor\/$/);
