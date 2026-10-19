@@ -119,3 +119,22 @@ header{box-shadow:0 8px 30px rgba(26,22,67,.04)}.eyebrow{background:linear-gradi
 /* Keep the active workspace heading and close control below the sticky navigation. */
 #workspace.workspace{scroll-margin-top:calc(110px + env(safe-area-inset-top, 0px))}
 @media(max-width:620px){#workspace.workspace{scroll-margin-top:calc(155px + env(safe-area-inset-top, 0px))}}
+
+
+/* PDF workspace: compact, aligned controls without changing other tools. */
+#workspace:has(#pdfFiles) .workspace-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:12px;padding-bottom:16px;margin-bottom:16px}
+#workspace:has(#pdfFiles) .workspace-head>.btn{margin:0;white-space:nowrap}
+#workspace:has(#pdfFiles)>.result:first-of-type{margin:0 0 18px;padding:16px}
+#workspace:has(#pdfFiles)>.result:first-of-type p{margin:8px 0 14px;line-height:1.5}
+#workspace:has(#pdfFiles)>.result:first-of-type .btn{display:inline-flex;align-items:center;min-height:42px}
+#workspace:has(#pdfFiles) .tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 18px}
+#workspace:has(#pdfFiles) .tabs button{min-width:0;padding:11px 5px;text-align:center}
+@media(max-width:620px){
+ #workspace:has(#pdfFiles){padding:18px 16px}
+ #workspace:has(#pdfFiles) .workspace-head{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+ #workspace:has(#pdfFiles) .workspace-head h2{font-size:26px;line-height:1.15}
+ #workspace:has(#pdfFiles) .workspace-head>.btn{padding:9px 11px;font-size:13px}
+ #workspace:has(#pdfFiles)>.result:first-of-type{padding:14px}
+ #workspace:has(#pdfFiles) .tabs{gap:5px}
+ #workspace:has(#pdfFiles) .tabs button{font-size:13px;padding:10px 2px}
+}
