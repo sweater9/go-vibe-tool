@@ -312,7 +312,7 @@ const undo = guard(async () => { if (busy) return; const s = hist.undo(state); i
 const redo = guard(async () => { if (busy) return; const s = hist.redo(state); if (s) { await restore(s); say("Redone."); } });
 function updateButtons() {
   const has = state.pages.length > 0;
-  $("undo").disabled = !hist.canUndo; $("redo").disabled = !hist.canRedo; $("download").disabled = !has; $("closeBtn").disabled = !has; $("openBtn").textContent = has ? "Open another PDF" : "Open PDF";
+  $("undo").disabled = !hist.canUndo; $("redo").disabled = !hist.canRedo; $("download").disabled = !has; $("closeBtn").disabled = !has; $("closeBtn2").disabled = !has; $("openBtn").textContent = has ? "Open another PDF" : "Open PDF";
   for (const id of ["zoomIn", "zoomOut", "zoomFit", "pagesToggle"]) $(id).disabled = !has;
   updatePageButtons(); updatePageInfo();
 }
@@ -635,7 +635,7 @@ $("downloadLink").addEventListener("click", () => { exportedVersion = version; }
 $("openBtn").addEventListener("click", () => openPicker($("fileInput"))); $("welcomeOpen").addEventListener("click", () => openPicker($("fileInput"))); $("openBtn2").addEventListener("click", () => openPicker($("fileInput")));
 const welcomeError = msg => { const w = $("welcomeError"); w.hidden = !msg; w.textContent = msg || ""; };
 const handleOpen = async file => { welcomeError(""); try { await openDocument(file); } catch (e) { const m = friendly(e); if (state.pages.length) fail(new Error(m)); else { welcomeError(m); say(m, true); } } };
-$("closeBtn").addEventListener("click", closeDocument);
+$("closeBtn").addEventListener("click", closeDocument); $("closeBtn2").addEventListener("click", closeDocument);
 $("fileInput").addEventListener("change", e => { const f = e.target.files[0]; if (f) handleOpen(f); });
 $("insertInput").addEventListener("change", guard(async e => { const f = e.target.files[0]; if (f) { try { await insertDocument(f); } catch (err) { throw new Error(friendly(err)); } } }));
 $("imageInput").addEventListener("change", guard(async e => { const f = e.target.files[0]; if (f) await addImage(f); }));
