@@ -22,7 +22,9 @@ const REQUIRE = process.env.PDF_V2_REQUIRE_TOOLS === '1';
 const WIDTHS = (process.env.PDF_QA_WIDTHS || '1440,390').split(',').map(Number);
 const realTouch = engine !== 'firefox';
 
-const dist = createDistServer(root, { port: 0 }); await dist.start(); const origin = dist.base.replace(/\/$/, '');
+// PREVIEW_ORIGIN (e.g. the Cloudflare preview URL) runs the same suite against a deployed site instead of the local dist server.
+const REMOTE = (process.env.PREVIEW_ORIGIN || '').replace(/\/$/, '');
+const dist = REMOTE ? { start: async () => {}, stop: async () => {}, base: REMOTE } : createDistServer(root, { port: 0 }); await dist.start(); const origin = dist.base.replace(/\/$/, '');
 const browser = await pw[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
 let passed = 0, skipped = 0; const failures = [];
 async function check(name, fn) {

@@ -88,3 +88,58 @@ jobs:
         with:
           name: pdf-editor-v2-${{ matrix.engine }}-${{ github.sha }}
           path: artifacts/
+
+  # Runs the same V2 browser suite against the real Cloudflare branch preview, after proving that the preview serves
+  # exactly the files built from this commit (SHA-256 of every dist file). Read-only: it only fetches the public preview URL.
+  preview:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      PREVIEW_ORIGIN: https://feature-advanced-pdf-editor-v2-go-vibe-tool.sweater-9arc.workers.dev
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false playwright@1.56.0
+      - run: npx playwright install --with-deps ${{ matrix.engine }}
+      - name: Independent PDF tools (Poppler and pypdf)
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y poppler-utils
+          python3 -m venv .venv && .venv/bin/pip install pypdf
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+      - run: npm run build
+      - name: Wait until the preview serves this commit's build
+        run: |
+          node -e "
+          const fs=require('fs'),c=require('crypto');const sha=b=>c.createHash('sha256').update(b).digest('hex');
+          const files=['tools/pdf-editor/v2ui.js','tools/pdf-editor/engine/reflow.mjs','tools/pdf-editor/editor.js'];
+          (async()=>{const end=Date.now()+15*60e3;
+            while(Date.now()<end){let ok=true;
+              for(const f of files){try{const r=await fetch(process.env.PREVIEW_ORIGIN+'/'+f,{headers:{'Cache-Control':'no-cache'}});
+                const b=Buffer.from(await r.arrayBuffer());if(r.status!==200||sha(b)!==sha(fs.readFileSync('dist/'+f)))ok=false;}catch{ok=false;}}
+              if(ok){console.log('preview serves this build');return;}
+              await new Promise(r=>setTimeout(r,20000));}
+            console.error('the preview never served this commit\'s build within 15 minutes');process.exit(1);})();"
+      - name: Every built file is served byte-identical
+        run: node scripts/verify-live-assets.mjs "$PREVIEW_ORIGIN" dist
+      - name: V2 browser suite against the preview
+        env:
+          PDF_V2_REQUIRE_TOOLS: '1'
+        run: |
+          mkdir -p artifacts/pdf-editor-v2-preview
+          PDF_QA_ARTIFACTS=artifacts/pdf-editor-v2-preview/${{ matrix.engine }} node tests/pdf-editor-v2-browser.mjs ${{ matrix.engine }} 2>&1 | tee artifacts/pdf-editor-v2-preview/${{ matrix.engine }}.log
+          test ${PIPESTATUS[0]} -eq 0
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pdf-editor-v2-preview-${{ matrix.engine }}-${{ github.sha }}
+          path: artifacts/
