@@ -95,8 +95,6 @@ jobs:
     if: github.event_name != 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 50
-    env:
-      PREVIEW_ORIGIN: https://feature-advanced-pdf-editor-v2-go-vibe-tool.sweater-9arc.workers.dev
     strategy:
       fail-fast: false
       matrix:
@@ -116,6 +114,12 @@ jobs:
           python3 -m venv .venv && .venv/bin/pip install pypdf
           echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - run: npm run build
+      - name: Derive the branch preview URL
+        env:
+          BRANCH: ${{ github.event.pull_request.head.ref || github.ref_name }}
+        run: |
+          slug=$(printf '%s' "$BRANCH" | tr 'A-Z' 'a-z' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//')
+          echo "PREVIEW_ORIGIN=https://${slug}-go-vibe-tool.sweater-9arc.workers.dev" >> "$GITHUB_ENV"
       - name: Wait until the preview serves this commit's build
         run: |
           node -e "

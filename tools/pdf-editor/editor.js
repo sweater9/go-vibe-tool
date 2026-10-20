@@ -74,9 +74,13 @@ async function readPdf(file) {
   return { src: { id, name: file.name, bytes, effBytes: bytes, pdf, sig: "" }, entries, lib };
 }
 const openPicker = input => { input.value = ""; input.click(); };
+/* Timing marks (visible in the browser's Performance panel and via performance.getEntriesByType('measure')). */
+const mark = n => { try { performance.mark(n); } catch { /* optional */ } };
+const measure = (n, a, b) => { try { performance.measure(n, a, b); } catch { /* optional */ } };
 async function openDocument(file) {
+  mark('open:start');
   if (version !== exportedVersion && state.pages.length && !confirm("Open a different PDF? Your unsaved edits will be lost.")) return;
-  const { src, entries, lib } = await readPdf(file);
+  const { src, entries, lib } = await readPdf(file); mark('open:read'); measure('open: parse (pdf.js + pdf-lib)', 'open:start', 'open:read');
   for (const s of sources.values()) s.pdf.destroy();
   sources.clear(); assets.clear(); thumbCache.clear(); textCache.clear(); selPages.clear(); hist.clear(); clearDownload();
   state = createState(); sources.set(src.id, src); docName = file.name;
@@ -85,10 +89,25 @@ async function openDocument(file) {
   fonts = fonts || await makeFontMetrics(PDFLib);
   document.body.classList.remove("no-doc");
   $("fileName").textContent = file.name; $("fileName").title = file.name; document.title = file.name + " · PDF Editor · GoVibeTool";
-  const extras = await v2.onOpen(lib, src); await describeDocument(src, extras);
-  setTool("select"); await afterChange({ reload: true });
+  const extras = await v2.onOpen(lib, src); await describeDocument(src, extras); mark('open:meta'); measure('open: bookmarks, links, notes', 'open:read', 'open:meta');
+  setTool("select"); await afterChange({ reload: true }); mark('open:ready'); measure('open: first render + thumbnails', 'open:meta', 'open:ready'); measure('open: total', 'open:start', 'open:ready');
   say(`Opened ${file.name} (${state.pages.length} page${state.pages.length === 1 ? "" : "s"}${extras.links ? `, ${extras.links} link${extras.links === 1 ? "" : "s"}` : ""}${extras.bookmarks ? `, ${extras.bookmarks} bookmark${extras.bookmarks === 1 ? "" : "s"}` : ""}). Nothing was uploaded.`);
 }
+/* Forget everything that belongs to the open document (pages, edits, caches, tool state) and return to the start screen. */
+function resetDocument() {
+  pageToken++; thumbToken++; if (renderTask) { try { renderTask.cancel(); } catch { /* already finished */ } renderTask = null; }
+  for (const s of sources.values()) s.pdf.destroy();
+  sources.clear(); assets.clear(); thumbCache.clear(); textCache.clear(); selPages.clear(); hist.clear(); clearDownload();
+  state = createState(); cur = 0; selId = null; version = 0; exportedVersion = 0; fitMode = true; docName = "document.pdf"; itemsNow = []; itemsFor = "";
+  v2.reset(); document.body.classList.add("no-doc"); document.body.classList.remove("props-open", "props-compact", "pages-open");
+  $("fileName").textContent = ""; $("fileName").title = ""; document.title = "PDF Editor · GoVibeTool"; $("docNotes").textContent = ""; $("welcomeError").hidden = true; $("fileInput").value = "";
+  $("thumbs").replaceChildren(); setTool("select"); updateButtons(); syncProps(); renderObjList();
+}
+const closeDocument = guard(async () => {
+  if (busy || !state.pages.length) return;
+  if (version !== exportedVersion && !confirm("Close this PDF? Your unsaved edits will be lost.")) return;
+  resetDocument(); say("The PDF was closed. Nothing was uploaded and nothing is kept in the editor.");
+});
 async function describeDocument(src, extras = {}) {
   const notes = [];
   if (extras.unsupported) notes.push(`${extras.unsupported} bookmark${extras.unsupported === 1 ? " uses" : "s use"} an action type the editor cannot keep (it will be dropped when bookmarks are saved).`);
@@ -276,10 +295,13 @@ function updatePageButtons() {
 const pageTargets = () => selPages.size ? state.pages.filter(p => selPages.has(p.id)).map(p => p.id) : (curPage() ? [curPage().id] : []);
 
 /* ---------- history / commit ---------- */
-async function afterChange({ reload = false, pages = false } = {}) {
+/* The latest change being applied (source rebuild, page render). Export waits for it, so clicking Download right after an edit never bakes stale bytes. */
+let inflight = Promise.resolve();
+function afterChange(opts) { const p = afterChangeImpl(opts); inflight = p.catch(() => {}); return p; }
+async function afterChangeImpl({ reload = false, pages = false } = {}) {
   if (reload) await syncSources();
   if (cur >= state.pages.length) cur = state.pages.length - 1; if (cur < 0) cur = 0;
-  if (reload || pages) { await renderThumbs(); await renderPage(); } else { drawOverlay(); refreshThumbBadges(); }
+  if (reload || pages) { await Promise.all([renderThumbs(), renderPage()]); } else { drawOverlay(); refreshThumbBadges(); }
   updateButtons(); syncProps(); renderObjList(); markCurrentThumb(); if (pages) await v2.pageChanged(); v2.refresh();
 }
 function refreshThumbBadges() { [...$("thumbs").children].forEach((li, i) => { const p = state.pages[i]; if (!p) return; const n = state.objects.filter(o => o.page === p.id).length; let b = li.querySelector(".badge"); if (n) { if (!b) { b = document.createElement("span"); b.className = "badge"; li.prepend(b); } b.textContent = String(n); b.title = `${n} edit${n > 1 ? "s" : ""} on this page`; } else if (b) b.remove(); }); }
@@ -297,7 +319,7 @@ const undo = guard(async () => { if (busy) return; const s = hist.undo(state); i
 const redo = guard(async () => { if (busy) return; const s = hist.redo(state); if (s) { await restore(s); say("Redone."); } });
 function updateButtons() {
   const has = state.pages.length > 0;
-  $("undo").disabled = !hist.canUndo; $("redo").disabled = !hist.canRedo; $("download").disabled = !has;
+  $("undo").disabled = !hist.canUndo; $("redo").disabled = !hist.canRedo; $("download").disabled = !has; $("closeBtn").disabled = !has; $("closeBtn2").disabled = !has; $("openBtn").textContent = has ? "Open another PDF" : "Open PDF";
   for (const id of ["zoomIn", "zoomOut", "zoomFit", "pagesToggle"]) $(id).disabled = !has;
   updatePageButtons(); updatePageInfo();
 }
@@ -600,7 +622,7 @@ async function buildPdf(only) {
   lastReport = report; return bytes;
 }
 async function runExport({ only = null, name = null, label = "PDF ready" } = {}) {
-  if (busy) return; busy = true; document.body.setAttribute("aria-busy", "true"); say("Building your PDF…");
+  await v2.settled(); await inflight; if (busy) return; busy = true; document.body.setAttribute("aria-busy", "true"); say("Building your PDF…");
   try {
     const bytes = await buildPdf(only); clearDownload();
     const blob = new Blob([bytes], { type: "application/pdf" }); downloadUrl = URL.createObjectURL(blob);
@@ -620,6 +642,7 @@ $("downloadLink").addEventListener("click", () => { exportedVersion = version; }
 $("openBtn").addEventListener("click", () => openPicker($("fileInput"))); $("welcomeOpen").addEventListener("click", () => openPicker($("fileInput"))); $("openBtn2").addEventListener("click", () => openPicker($("fileInput")));
 const welcomeError = msg => { const w = $("welcomeError"); w.hidden = !msg; w.textContent = msg || ""; };
 const handleOpen = async file => { welcomeError(""); try { await openDocument(file); } catch (e) { const m = friendly(e); if (state.pages.length) fail(new Error(m)); else { welcomeError(m); say(m, true); } } };
+$("closeBtn").addEventListener("click", closeDocument); $("closeBtn2").addEventListener("click", closeDocument);
 $("fileInput").addEventListener("change", e => { const f = e.target.files[0]; if (f) handleOpen(f); });
 $("insertInput").addEventListener("change", guard(async e => { const f = e.target.files[0]; if (f) { try { await insertDocument(f); } catch (err) { throw new Error(friendly(err)); } } }));
 $("imageInput").addEventListener("change", guard(async e => { const f = e.target.files[0]; if (f) await addImage(f); }));

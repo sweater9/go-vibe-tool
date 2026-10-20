@@ -29,7 +29,7 @@ async function edit(bytes, page, find, change, extra = {}) {
   return applyTextEdits(P, bytes, [{ page, blockId: b.id, text, ...extra }]);
 }
 const compact = s => s.replace(/\s+/g, ' ').trim();
-const docs = { multilang: committed('chrome-multilang.pdf'), chrome: committed('chrome-invoice.pdf'), lo: committed('lo-report.pdf'), std: stdInvoice(), hard: hardCases() };
+const docs = { multilang: committed('chrome-multilang.pdf'), chrome: committed('chrome-invoice.pdf'), lo: committed('lo-report.pdf'), std: stdInvoice(), hard: hardCases(), merged: committed('merged-text.pdf') };
 
 /* ------------------------------------------------------------------ analysis */
 test('analysis: real Chrome (CID subset) and LibreOffice (simple subset) text is decoded into editable blocks', async () => {
@@ -379,4 +379,22 @@ test('outline: a document whose old outline has a /Next cycle can still be rewri
   ctx.assign(root, dict({ Type: P.PDFName.of('Outlines'), First: a, Last: b, Count: P.PDFNumber.of(2) }));
   ctx.assign(a, dict({ Title: P.PDFString.of('A'), Parent: root, Next: b })); ctx.assign(b, dict({ Title: P.PDFString.of('B'), Parent: root, Next: a })); doc.catalog.set(P.PDFName.of('Outlines'), root);
   const tree = O.readOutline(P, doc, 's').tree; assert.equal(O.countItems(tree), 2); O.writeOutline(P, doc, tree, () => doc.getPage(0)); const out = await doc.save(); assert.ok(out.length > 100);
+});
+
+
+/* ------------------------------------------------------------------ MacRoman subset fonts (user-supplied merged.pdf, images stripped) */
+test('merged.pdf: MacRoman subset TrueType/Type1C text with no ToUnicode table is decoded and editable (it was refused as "encoding")', async () => {
+  for (const pg of [0, 1]) {
+    const { blocks } = await blocksOf(docs.merged, pg); assert.ok(blocks.length > 30, `page ${pg + 1}: ${blocks.length} blocks`);
+    assert.equal(blocks.filter(b => !b.editable).length, 0, `page ${pg + 1} refused: ${blocks.filter(b => !b.editable).map(b => b.reason)}`);
+    assert.ok(blocks.every(b => !b.text.includes('\uFFFD')), 'every character must decode to a real character');
+  }
+  const { blocks } = await blocksOf(docs.merged, 0); assert.ok(blocks.some(b => b.text === 'Studio | ElevenLabs'));
+});
+bothTest('merged.pdf: replacing a word keeps the original embedded fonts, other content and exports a valid PDF', async () => {
+  const src = docs.merged, out = await edit(src, 0, 'Studio | ElevenLabs', 'Studio | Eleven Labs');
+  const txt = compact(pdftotext(out.bytes, 1)); assert.ok(txt.includes('Studio | Eleven Labs') && !txt.includes('Studio | ElevenLabs'), txt.slice(0, 120));
+  const before = new Set(pdffonts(src)), after = pdffonts(out.bytes); assert.ok(after.every(f => before.has(f)), `a font was added or swapped: ${after.filter(f => !before.has(f))}`);
+  assert.deepEqual(poppler(out.bytes).errors, []); assert.equal(pageCount(out.bytes), 2);
+  assert.ok(compact(pdftotext(out.bytes, 2)).includes('Image & Video'), 'page 2 content must be unchanged');
 });

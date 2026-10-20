@@ -33,6 +33,9 @@ LATIN1_NAMES.forEach((n, i) => { if (!GLYPH.has(n)) GLYPH.set(n, String.fromChar
 Object.entries({ quoteright: '’', quoteleft: '‘', quotedblleft: '“', quotedblright: '”', quotesinglbase: '‚', quotedblbase: '„', endash: '–', emdash: '—', bullet: '•', ellipsis: '…', Euro: '€', trademark: '™', dagger: '†', daggerdbl: '‡', fi: 'fi', fl: 'fl', minus: '−', fraction: '⁄', perthousand: '‰', OE: 'Œ', oe: 'œ', Scaron: 'Š', scaron: 'š', Zcaron: 'Ž', zcaron: 'ž', Ydieresis: 'Ÿ', florin: 'ƒ', circumflex: 'ˆ', tilde: '˜', guilsinglleft: '‹', guilsinglright: '›', nbspace: ' ', sfthyphen: '­' }).forEach(([k, v]) => GLYPH.set(k, v));
 export const glyphNameToChar = n => { if (GLYPH.has(n)) return GLYPH.get(n); const m = /^uni([0-9A-Fa-f]{4})$/.exec(n) || /^u([0-9A-Fa-f]{4,6})$/.exec(n); return m ? String.fromCodePoint(parseInt(m[1], 16)) : null; };
 const standardEncDecode = c => c === 0x27 ? '’' : c === 0x60 ? '‘' : (c >= 0x20 && c <= 0x7E) ? String.fromCharCode(c) : null;
+/* Mac OS Roman (PDF MacRomanEncoding), codes 0x80-0xFF; 0x20-0x7E are ASCII. Many Safari/macOS-made PDFs use it for subset TrueType fonts without a ToUnicode table. */
+const MAC_ROMAN_HIGH = 'ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄¤‹›ﬁﬂ‡·‚„‰ÂÊÁËÈÍÎÏÌÓÔÒÚÛÙıˆ˜¯˘˙˚¸˝˛ˇ';
+const macRomanDecode = c => c >= 0x20 && c <= 0x7E ? String.fromCharCode(c) : (c >= 0x80 && c <= 0xFF ? MAC_ROMAN_HIGH[c - 0x80] : null);
 const winAnsiDecode = c => { if (c < 0x20) return null; const u = decodeWinAnsi(c); return u === 0xFFFD ? null : String.fromCodePoint(u); };
 
 /* ---------- standard-14 knowledge ---------- */
@@ -124,8 +127,7 @@ export class FontLibrary {
         const df = enc.lookup(P.PDFName.of('Differences'));
         if (df instanceof P.PDFArray) { let code = 0; for (const it of df.asArray().map(x => this.doc.context.lookup(x))) { if (it instanceof P.PDFNumber) code = it.asNumber(); else if (it instanceof P.PDFName) diffs.set(code++, glyphNameToChar(it.decodeText())); } }
       }
-      if (base === 'MacRomanEncoding' && !uni) return { ...info, usable: false, reason: 'encoding', width: () => 0, decode: () => null, encode: () => null };
-      const baseDecode = base === 'WinAnsiEncoding' ? winAnsiDecode : (base === 'StandardEncoding' || info.std) ? standardEncDecode : winAnsiDecode;
+      const baseDecode = base === 'WinAnsiEncoding' ? winAnsiDecode : base === 'MacRomanEncoding' ? macRomanDecode : (base === 'StandardEncoding' || info.std) ? standardEncDecode : winAnsiDecode;
       info.decode = c => { if (uni && uni.has(c)) return uni.get(c); if (diffs.has(c)) return diffs.get(c); return baseDecode(c); };
       const symbolicStd = /^(Symbol|ZapfDingbats)$/i.test(String(baseFont || '').replace(/^[A-Z]{6}\+/, ''));
       if (!uni && !diffs.size && !base && ((flags & 4) || symbolicStd)) return { ...info, usable: false, reason: 'no-unicode-map', width: () => 0, decode: () => null, encode: () => null };

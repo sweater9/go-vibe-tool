@@ -34,17 +34,17 @@ async function check(name, fn) {
 }
 const needTools = (what = 'poppler') => { const ok = what === 'poppler' ? HAVE.poppler : what === 'pypdf' ? HAVE.pypdf : HAVE.poppler && HAVE.pypdf; if (!ok) { if (REQUIRE) throw new Error(`required tool missing: ${what}`); const e = new Error(`${what} is not installed`); e.skip = true; throw e; } };
 const compact = s => s.replace(/\s+/g, ' ').trim(), nospace = s => s.replace(/\s+/g, '');
-const fx = { para: Buffer.from(paragraphDoc()), mixed: Buffer.from(await mixedImage(P)), form: Buffer.from(formXObject()), big: Buffer.from(bigDocument(120)), chrome: Buffer.from(committed('chrome-invoice.pdf')), lo: Buffer.from(committed('lo-report.pdf')), std: Buffer.from(stdInvoice()), enc: Buffer.from(committed('encrypted.pdf')), nounicode: Buffer.from(noUnicode()), scan: Buffer.from(scanned()) };
+const fx = { merged: Buffer.from(committed('merged-text.pdf')), para: Buffer.from(paragraphDoc()), mixed: Buffer.from(await mixedImage(P)), form: Buffer.from(formXObject()), big: Buffer.from(bigDocument(120)), chrome: Buffer.from(committed('chrome-invoice.pdf')), lo: Buffer.from(committed('lo-report.pdf')), std: Buffer.from(stdInvoice()), enc: Buffer.from(committed('encrypted.pdf')), nounicode: Buffer.from(noUnicode()), scan: Buffer.from(scanned()) };
 
 async function session(w) {
   const mobile = w <= 460, touch = mobile && realTouch;
   const ctx = await browser.newContext({ viewport: { width: w, height: mobile ? 844 : 900 }, hasTouch: touch, isMobile: touch, acceptDownloads: true });
   const page = await ctx.newPage(); page.setDefaultTimeout(20000);
   const errs = [], external = [];
-  page.on('dialog', d => d.accept());
+  page.on('dialog', d => { const h = S.onDialog; S.onDialog = null; if (h) h(d); else d.accept(); });
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   const wk = m => engine === 'webkit' && (/^web-inspector:/.test(m.location().url) || /^Refused to apply a stylesheet/.test(m.text()));
-  page.on('console', m => { if (!wk(m) && ['error', 'warning'].includes(m.type()) && !/favicon|willReadFrequently/.test(m.text())) errs.push(`console ${m.type()}: ${m.text()} @ ${m.location().url}:${m.location().lineNumber}`); });
+  page.on('console', m => { if (!wk(m) && ['error', 'warning'].includes(m.type()) && !/favicon|willReadFrequently|Not applied: the replacement font was declined/.test(m.text())) errs.push(`console ${m.type()}: ${m.text()} @ ${m.location().url}:${m.location().lineNumber}`); });
   page.on('request', r => { const u = r.url(); if (!u.startsWith(origin) && !u.startsWith('blob:') && !u.startsWith('data:')) external.push(u); });
   const S = { ctx, page, errs, external, mobile, touch, w };
   S.status = () => page.textContent('#status');
@@ -169,6 +169,61 @@ for (const w of WIDTHS) {
     assert.equal(bytes.subarray(0, 5).toString('latin1'), '%PDF-', 'a real PDF was saved'); assert.ok(bytes.length > 500);
     needTools('poppler'); assert.ok(compact(pdftotext(bytes, 1)).includes('Travel and lodging') && !/Travel expenses/.test(pdftotext(bytes, 1)), pdftotext(bytes, 1));
     await fs.writeFile(`${dir}/download-event-${w}.pdf`, bytes); await S.settle();
+  });
+
+  await check(`${tag}: Close PDF asks before discarding edits, resets every document-specific state, and another PDF opens clean`, async () => {
+    await S.open(fx.std, 'std.pdf'); await S.tool('edittext'); await S.pickBlock('Travel expenses'); await S.setText('Travel and lodging'); await S.apply();
+    assert.equal(await page.evaluate(() => window.pdfEditorDebug.v2.edits()), 1);
+    const closeIt = async () => { if (S.mobile) { await S.showPages(); await page.locator('#closeBtn2').click(); } else await page.locator('#closeBtn').click(); await page.waitForTimeout(400); };
+    let asked = ''; S.onDialog = d => { asked = d.message(); d.dismiss(); }; await closeIt();
+    assert.match(asked, /unsaved edits will be lost/i); assert.equal(await page.evaluate(() => document.body.classList.contains('no-doc')), false, 'dismissing must keep the document open');
+    assert.equal(await page.evaluate(() => window.pdfEditorDebug.v2.edits()), 1, 'edits must survive a cancelled close');
+    S.onDialog = d => d.accept(); await closeIt();
+    assert.equal(await page.evaluate(() => document.body.classList.contains('no-doc')), true, 'the start screen must return'); await page.locator('#welcomeTitle').waitFor();
+    assert.equal(await page.evaluate(() => window.pdfEditorDebug.v2.edits()), 0, 'text edits reset'); assert.equal(await page.evaluate(() => (window.pdfEditorDebug.v2.links() || []).length), 0, 'links reset');
+    assert.equal(await page.evaluate(() => window.pdfEditorDebug.v2.blocks()), null, 'text blocks reset'); assert.equal(await page.locator('#download').isDisabled(), true); assert.equal(await page.locator('#thumbs li').count(), 0, 'thumbnails reset');
+    await S.reopen(fx.para, 'para.pdf'); await S.tool('edittext'); await S.pickBlock('committee');
+    assert.equal(await page.evaluate(() => window.pdfEditorDebug.v2.edits()), 0, 'the new document starts without the old edits'); assert.match(await page.textContent('#fileName'), /para\.pdf/);
+  });
+
+  if (S.mobile) await check(`${tag}: phone layout: Download, Pages and Bookmarks stay reachable in portrait, and the page keeps room to scroll in landscape`, async () => {
+    await S.open(fx.lo, 'lo.pdf'); const vw = () => page.evaluate(() => innerWidth);
+    const inView = async id => { const b = await page.locator('#' + id).boundingBox(); const W = await vw(); assert.ok(b && b.x >= 0 && b.x + b.width <= W + 0.5, `#${id} is outside the ${W}px viewport: ${JSON.stringify(b)}`); };
+    await inView('download'); await inView('pagesToggle');
+    await page.locator('#pagesToggle').click(); await page.waitForTimeout(300); await page.locator('#tabBookmarks').click(); await page.waitForTimeout(200); assert.equal(await page.locator('#paneBookmarks').isVisible(), true, 'Bookmarks pane in portrait');
+    await page.locator('#tabPages').click(); assert.equal(await page.locator('#paneThumbs').isVisible(), true, 'Pages pane in portrait'); await S.hidePages();
+    await page.setViewportSize({ width: 844, height: 390 }); await page.waitForTimeout(400);
+    await inView('download'); const st = await page.locator('#stage').boundingBox(); assert.ok(st.height >= 250, `the page area is only ${st.height}px tall in landscape`);
+    const scrolled = await page.evaluate(async () => { const s = document.getElementById('stage'); s.scrollTop = 0; s.scrollTop = 120; await new Promise(r => setTimeout(r, 50)); return { top: s.scrollTop, can: s.scrollHeight > s.clientHeight }; });
+    assert.ok(scrolled.can && scrolled.top > 0, `the page area must scroll in landscape: ${JSON.stringify(scrolled)}`);
+    await page.locator('#pagesToggle').click(); await page.waitForTimeout(300); await page.locator('#tabBookmarks').click(); assert.equal(await page.locator('#paneBookmarks').isVisible(), true, 'Bookmarks pane in landscape'); await S.hidePages();
+    await page.setViewportSize({ width: 390, height: 844 });
+  });
+
+  await check(`${tag}: a font replacement is explained and needs confirmation; declining leaves the text unchanged, accepting applies it`, async () => {
+    await S.open(fx.chrome, 'invoice.pdf'); await S.tool('edittext'); await S.pickBlock('$120.00'); await S.setText('$1,250.75');
+    await page.waitForFunction(() => /standard font/.test(document.getElementById('runNote').textContent)); const count = () => page.evaluate(() => window.pdfEditorDebug.v2.edits());
+    let asked = ''; S.onDialog = d => { asked = d.message(); d.dismiss(); }; await page.waitForFunction(() => !document.getElementById('runApply').disabled); await page.locator('#runApply').click(); await page.waitForTimeout(600);
+    assert.match(asked, /embedded font cannot draw this/i); assert.match(asked, /standard font/i); assert.equal(await count(), 0, 'declining must not change the PDF');
+    S.errs.splice(0, S.errs.length, ...S.errs.filter(e => !/Not applied: the replacement font was declined/.test(e) && !/^console warning: Error @ \S+\/editor\.js:41$/.test(e))); // the declined choice is reported through the editor's normal message path (Firefox logs only the terse form)
+    S.onDialog = d => d.accept(); await page.locator('#runApply').click(); await page.waitForFunction(() => window.pdfEditorDebug.v2.edits() === 1 && document.getElementById('runApply').disabled); await S.settle(); assert.equal(await count(), 1);
+    const bytes = await S.exportBytes(); const info = await pdfjsInfo(page, bytes); assert.ok(nospace(info.texts[0]).includes('$1,250.75'), info.texts[0]);
+  });
+
+  await check(`${tag}: clicking Download immediately after Apply still exports the edit (no stale export)`, async () => {
+    await S.open(fx.chrome, 'invoice.pdf'); await S.tool('edittext'); await S.pickBlock('$120.00'); await S.setText('$1,250.75'); await page.waitForFunction(() => !document.getElementById('runApply').disabled);
+    const [dl] = await Promise.all([page.waitForEvent('download'), (async () => { await page.locator('#runApply').click(); await page.locator('#download').click(); })()]);
+    const file = await dl.path(); const bytes = await fs.readFile(file); needTools('poppler'); assert.ok(compact(pdftotext(bytes, 1)).includes('$1,250.75') && !/\$120\.00/.test(pdftotext(bytes, 1)), pdftotext(bytes, 1).slice(0, 200));
+  });
+
+  await check(`${tag}: merged.pdf (MacRoman subset fonts): select by clicking the page, edit, export; fonts and the other page are kept`, async () => {
+    await S.open(fx.merged, 'merged.pdf'); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 30);
+    const blocks = await S.blocks(); assert.equal(blocks.filter(b => !b.editable).length, 0, 'every text line must be editable');
+    const b = blocks.find(x => x.text === 'Studio | ElevenLabs'); assert.ok(b, 'the heading line exists'); await S.clickAt(b.box.x + Math.min(b.box.w / 2, 40), b.box.y + b.box.h / 2);
+    await page.waitForFunction(() => document.getElementById('runText').value === 'Studio | ElevenLabs'); assert.equal(await page.locator('#runText').isDisabled(), false, 'a clicked line must be editable');
+    await S.setText('Studio | Eleven Labs'); await page.locator('#runApply').click(); await page.waitForFunction(() => document.getElementById('runApply').disabled && window.pdfEditorDebug.v2.edits() === 1);
+    const bytes = await S.exportBytes(); needTools('poppler'); const t1 = compact(pdftotext(bytes, 1)); assert.ok(t1.includes('Studio | Eleven Labs') && !t1.includes('Studio | ElevenLabs'), t1.slice(0, 120));
+    const before = new Set(pdffonts(fx.merged)); assert.ok(pdffonts(bytes).every(f => before.has(f)), 'no font may be added or swapped'); assert.ok(compact(pdftotext(bytes, 2)).includes('Image & Video'), 'page 2 unchanged');
   });
 
   await check(`${tag}: clicking the page selects the text under the pointer`, async () => {
