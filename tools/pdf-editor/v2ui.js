@@ -374,6 +374,7 @@ export function createV2(ctx) {
 
   return {
     async onOpen(doc, src) { const st = getState(); const unsupported = loadDocumentExtras(doc, src, st, true); engines.clear(); draft = null; pdraft = null; linkSel = null; bmSel = null; blocksFor = null; renderBookmarks(); renderLinks(); renderDraft(); return { links: st.links.length, bookmarks: O.countItems(st.outline), unsupported }; },
+    reset() { engines.clear(); draft = null; pdraft = null; linkSel = null; bmSel = null; blocksFor = null; getState().links = []; getState().outline = []; renderBookmarks(); renderLinks(); renderDraft(); renderBlockList(); },
     onInsert(doc, src) { loadDocumentExtras(doc, src, getState(), false); },
     syncSource, exportExtras, verifyExport, drawOverlay, pick, finishLink,
     async pageChanged() { draft = null; pdraft = null; linkSel = null; renderDraft(); renderLinks(); if (getTool() === "edittext") await loadBlocks(); else { blocksFor = null; } },
