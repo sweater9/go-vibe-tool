@@ -9,5 +9,8 @@
     "directory": "./dist",
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
-  }
+  },
+  // Required by `npx wrangler preview` (Workers Builds preview builds). An empty block adds no bindings, routes,
+  // variables or secrets: previews serve the same static assets under the same Worker.
+  "previews": {}
 }

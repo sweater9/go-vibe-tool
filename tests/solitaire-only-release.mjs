@@ -67,7 +67,8 @@ await check('discovery catalog has no four-player entry', () => {
 });
 await check('the production Worker is static assets only: no script, Durable Object, binding, route or Mahjong variable', () => {
   const cfg = JSON.parse(fs.readFileSync(path.join(repo, 'wrangler.jsonc'), 'utf8').replace(/^\s*\/\/.*$/gm, ''));
-  assert.deepEqual(Object.keys(cfg).sort(), ['$schema', 'assets', 'compatibility_date', 'name']);
+  assert.deepEqual(Object.keys(cfg).sort(), ['$schema', 'assets', 'compatibility_date', 'name', 'previews']);
+  assert.deepEqual(cfg.previews, {}, 'the previews block must stay empty: no bindings, routes, variables or secrets');
   assert.equal(cfg.assets.directory, './dist'); assert.equal(cfg.name, 'go-vibe-tool');
 });
 await check('the multiplayer SOURCE is preserved in the repository for a future release', () => {
