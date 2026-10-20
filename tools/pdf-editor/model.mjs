@@ -81,7 +81,7 @@ export async function makeFontMetrics(PDFLib) {
 }
 
 /* ---------- state, history ---------- */
-export function createState() { return { pages: [], objects: [], edits: [], seq: 1 }; }
+export function createState() { return { pages: [], objects: [], edits: [], textEdits: [], links: [], outline: [], outlineDirty: false, seq: 1 }; }
 export const clone = x => JSON.parse(JSON.stringify(x));
 export const uid = state => state.seq++;
 

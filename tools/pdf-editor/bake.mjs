@@ -2,6 +2,8 @@
    Page content is never rasterised: original pages are kept (loaded in place when possible, otherwise copied) and overlay objects
    are drawn as vector text, images and shapes on top. */
 import { norm, frameToUser, layoutText, fontKey, NOTE_SIZE } from './model.mjs';
+import { writeLinks, stripLinks } from './engine/links.mjs';
+import { writeOutline } from './engine/outline.mjs';
 
 const hex = c => { const m = /^#?([0-9a-f]{6})$/i.exec(c || ''); const n = m ? parseInt(m[1], 16) : 0; return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; };
 
@@ -22,12 +24,13 @@ export async function bakeDocument(PDFLib, opts) {
   const pages = opts.pages.filter(p => !keep || keep.has(p.id));
   if (!pages.length) throw new Error('Choose at least one page.');
   const loaded = {}, load = async id => loaded[id] || (loaded[id] = await PDFDocument.load(sources[id], { ignoreEncryption: false, updateMetadata: false }));
-  let out; const outPages = [];
+  let out; const outPages = []; let inPlace = false, identity = false;
   if (canEditInPlace(pages)) {
+    inPlace = true;
     const srcId = pages[0].src; out = await load(srcId); loaded[srcId] = null; // the loaded document is mutated, never reuse it
     // pdf-lib's page cache is not refreshed by removePage, so take the page objects first, remove everything,
     // then re-insert only the wanted pages in the wanted order (the page objects themselves are untouched).
-    const all = out.getPages();
+    const all = out.getPages(); identity = all.length === pages.length && pages.every((p, i) => p.idx === i);
     for (let i = all.length - 1; i >= 0; i--) out.removePage(i);
     pages.forEach((p, i) => { const pg = all[p.idx]; out.insertPage(i, pg); outPages.push({ entry: p, page: pg }); });
   } else {
@@ -36,7 +39,8 @@ export async function bakeDocument(PDFLib, opts) {
     if (first) { const src = await load(first.src); for (const [set, get] of [['setTitle', 'getTitle'], ['setAuthor', 'getAuthor'], ['setSubject', 'getSubject'], ['setKeywords', 'getKeywords']]) { try { const v = src[get](); if (v) out[set](...(set === 'setKeywords' ? [v.split(/\s+/)] : [v])); } catch { /* optional metadata */ } } }
     for (const p of pages) {
       if (p.blank) { const [x0, y0, x1, y1] = p.view; outPages.push({ entry: p, page: out.addPage([x1 - x0, y1 - y0]) }); continue; }
-      const [copied] = await out.copyPages(await load(p.src), [p.idx]); outPages.push({ entry: p, page: out.addPage(copied) });
+      const srcDoc = await load(p.src); if (!srcDoc.__linksStripped) { stripLinks(PDFLib, srcDoc); srcDoc.__linksStripped = true; } // copyPages would drag the pages that internal links point to into the output
+      const [copied] = await out.copyPages(srcDoc, [p.idx]); outPages.push({ entry: p, page: out.addPage(copied) });
     }
   }
   out.setProducer('GoVibeTool PDF Editor'); out.setModificationDate(new Date());
@@ -91,6 +95,16 @@ export async function bakeDocument(PDFLib, opts) {
       page.node.addAnnot(ctx.register(annot));
     }
   }
+  /* ---- links and bookmarks (V2) ---- */
+  const bySrc = new Map(); for (const { entry, page } of outPages) { if (entry.blank) continue; const k = `${entry.src}:${entry.idx}`; if (!bySrc.has(k)) bySrc.set(k, []); bySrc.get(k).push(page); }
+  const pagesOf = (src, idx) => bySrc.get(`${src}:${idx}`) || [], pageFor = (src, idx) => pagesOf(src, idx)[0] || null;
+  const report = { warnings: [], links: 0, bookmarks: 0 };
+  if (opts.links) {
+    const recs = opts.links.map(r => ({ ...r })); if (!identity) for (const r of recs) if (r.kind === 'page') r.changed = true;
+    const r = writeLinks(PDFLib, out, recs, pagesOf, pageFor, inPlace ? 'in-place' : 'copy'); report.links = r.kept; report.warnings.push(...r.warnings);
+  }
+  if (opts.outline && (opts.outlineDirty || !identity || !inPlace)) { const r = writeOutline(PDFLib, out, opts.outline, pageFor); report.bookmarks = r.written; report.outlineRebuilt = true; report.warnings.push(...r.warnings); }
   const bytes = await out.save();
+  if (opts.report) Object.assign(opts.report, report);
   return bytes;
 }

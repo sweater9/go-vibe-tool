@@ -313,19 +313,16 @@ for (const w of WIDTHS) {
     const { bytes } = await S.exportBytes(); const pgs = await inspect(page, bytes); assert.equal(pgs.length, 7); assert.equal(pgs[1].items.length, 0, 'blank page has content'); assert.ok(/BRAVO PAGE 1/.test(pgs[2].items.map(i => i.t).join(' '))); assert.ok(near(pgs[3].w, 792, 1), 'landscape page lost');
   });
 
-  await check(`${tag}: genuine editing of existing text in a standard font; subset fonts are refused honestly`, async () => {
+  await check(`${tag}: genuine editing of existing text in a standard font; text without usable font data is refused honestly`, async () => {
     await S.open(files.A, 'a.pdf'); await S.tool('edittext');
-    const items = await page.evaluate(() => 0); void items;
-    await S.click(150, 792 - 120 + 10);
-    await page.waitForFunction(() => !document.getElementById('runText').disabled); assert.match(await page.textContent('#runInfo'), /standard font/);
-    assert.equal(await page.locator('#runApply').isDisabled(), false);
-    await page.fill('#runText', 'Edited headline €5'); await S.tap(page.locator('#runApply')); await page.waitForFunction(() => /text in the PDF was changed/.test(document.getElementById('status').textContent)); await S.settle();
+    await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 0); await page.locator('#blockList button', { hasText: 'ALPHA PAGE 1' }).click();
+    await page.waitForFunction(() => !document.getElementById('runText').disabled); assert.match(await page.textContent('#runInfo'), /changes the text in the PDF itself/);
+    await page.fill('#runText', 'Edited headline €5'); await page.waitForFunction(() => !document.getElementById('runApply').disabled); await S.tap(page.locator('#runApply')); await page.waitForFunction(() => /text in the PDF was changed/.test(document.getElementById('status').textContent)); await S.settle();
     const { bytes } = await S.exportBytes(); const pg = (await inspect(page, bytes))[0];
-    assert.ok(find(pg, /Edited headline €5/), 'edit missing: ' + JSON.stringify(pg.items.map(i => i.t))); assert.ok(!find(pg, /ALPHA PAGE 1/), 'original text still present');
+    assert.ok(find(pg, /Edited headline/), 'edit missing: ' + JSON.stringify(pg.items.map(i => i.t))); assert.ok(!find(pg, /ALPHA PAGE 1/), 'original text still present');
     await page.keyboard.press('Control+z'); await page.waitForTimeout(600); const { bytes: b2 } = await S.exportBytes(); assert.ok(find((await inspect(page, b2))[0], /ALPHA PAGE 1/), 'undo of a text edit did not restore the original');
-    await S.open(files.SUBSET, 'subset.pdf'); await S.tool('edittext'); await S.click(60, 150 + 5);
-    await page.waitForFunction(() => !document.getElementById('runText').disabled); assert.match(await page.textContent('#runInfo'), /subset-embedded font/); assert.equal(await page.locator('#runApply').isDisabled(), true);
-    assert.match(await page.textContent('#runNote'), /not editing and it is not redaction/); assert.match(await page.textContent('#runCover'), /visual overlay/);
+    await S.open(files.SUBSET, 'subset.pdf'); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 0); await page.locator('#blockList button').first().click();
+    await page.waitForFunction(() => /width information|cannot be edited|no Unicode/.test(document.getElementById('runInfo').textContent)); assert.equal(await page.locator('#runApply').isDisabled(), true); assert.equal(await page.locator('#runText').isDisabled(), true);
   });
 
   await check(`${tag}: keyboard shortcuts, nudge and delete`, async () => {

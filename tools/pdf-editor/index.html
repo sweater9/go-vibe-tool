@@ -25,6 +25,7 @@
   <symbol id="i-draw" viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19zM17.500 3.500l1-1 3 3-1 1z" fill="currentColor"/></symbol>
   <symbol id="i-note" viewBox="0 0 24 24"><path d="M4 4h16v12h-6l-4 4v-4H4zm3 4v1.500h10V8zm0 3.500V13h7v-1.500z" fill="currentColor" fill-rule="evenodd"/></symbol>
   <symbol id="i-edittext" viewBox="0 0 24 24"><path d="M3 18h9v2H3zM3 6h14v2H3zm0 6h9v2H3zm12.500 4.500l5-5 2 2-5 5-2.500.5z" fill="currentColor"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10.6 13.4a3.5 3.5 0 004.950 0l3-3a3.500 3.500 0 00-4.950-4.950l-1 1 1.400 1.400 1-1a1.500 1.500 0 012.150 2.150l-3 3a1.500 1.500 0 01-2.150 0zM13.400 10.600a3.500 3.500 0 00-4.950 0l-3 3a3.500 3.500 0 004.950 4.950l1-1-1.400-1.400-1 1a1.500 1.500 0 01-2.150-2.150l3-3a1.500 1.500 0 012.150 0z" fill="currentColor"/></symbol>
   <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7V4L3 9l6 5v-3c4 0 7 1 9 6 0-6-3-10-9-10z" fill="currentColor"/></symbol>
   <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 7V4l6 5-6 5v-3c-4 0-7 1-9 6 0-6 3-10 9-10z" fill="currentColor"/></symbol>
   <symbol id="i-zoomin" viewBox="0 0 24 24"><path d="M11 4a7 7 0 015.500 11.300l4 4-1.400 1.400-4-4A7 7 0 1111 4zm-1 3v3H7v2h3v3h2v-3h3v-2h-3V7z" fill="currentColor" fill-rule="evenodd"/></symbol>
@@ -93,9 +94,15 @@
     <button class="tool" data-tool="strike" aria-pressed="false" title="Strike through text (K)"><svg class="ic"><use href="#i-strike"/></svg><span>Strike</span></button>
     <button class="tool" data-tool="note" aria-pressed="false" title="Comment note (N)"><svg class="ic"><use href="#i-note"/></svg><span>Note</span></button>
     <button class="tool" data-tool="edittext" aria-pressed="false" title="Edit existing text (E)"><svg class="ic"><use href="#i-edittext"/></svg><span>Edit text</span></button>
+    <button class="tool" data-tool="link" aria-pressed="false" title="Hyperlinks (G)"><svg class="ic"><use href="#i-link"/></svg><span>Links</span></button>
   </nav>
 
-  <aside id="pagesPanel" class="pages" aria-label="Pages">
+  <aside id="pagesPanel" class="pages" aria-label="Pages and bookmarks">
+    <div class="tabs" role="tablist" aria-label="Side panel">
+      <button id="tabPages" class="tab" role="tab" aria-selected="true" aria-controls="paneThumbs">Pages</button>
+      <button id="tabBookmarks" class="tab" role="tab" aria-selected="false" aria-controls="paneBookmarks">Bookmarks</button>
+    </div>
+    <div id="paneThumbs" class="pane" role="tabpanel" aria-labelledby="tabPages">
     <div class="pages-head">
       <h2>Pages</h2>
       <button id="openBtn2" class="btn only-mobile open2">Open another PDF</button>
@@ -110,6 +117,18 @@
       <p class="hint" id="pagesHint">Applies to ticked pages, or the current page if none are ticked.</p>
     </div>
     <ol id="thumbs" class="thumbs"></ol>
+    </div>
+    <div id="paneBookmarks" class="pane" role="tabpanel" aria-labelledby="tabBookmarks" hidden>
+      <div class="pages-head">
+        <h2>Bookmarks</h2>
+        <label class="lbl" for="bmNewTitle">New bookmark title</label>
+        <input id="bmNewTitle" type="text" maxlength="200" placeholder="Page title">
+        <div class="row"><button id="bmAdd" class="btn primary">Add for this page</button></div>
+        <p class="hint">Bookmarks appear in the PDF reader's outline. Select one to rename, move, nest or delete it.</p>
+      </div>
+      <p id="bmEmpty" class="hint pad" hidden>This PDF has no bookmarks yet.</p>
+      <ul id="bmList" class="bm-list" aria-label="Bookmarks"></ul>
+    </div>
   </aside>
 
   <main id="stage" class="stage" tabindex="-1" aria-label="Document">
@@ -128,10 +147,51 @@
     <section id="secEditText" class="sec" hidden>
       <h3>Existing text</h3>
       <p id="runInfo" class="hint"></p>
-      <label for="runText" class="lbl">Replacement text</label>
+      <label for="runText" class="lbl">Text</label>
       <textarea id="runText" rows="3" maxlength="2000" disabled></textarea>
-      <div class="row"><button id="runApply" class="btn primary" disabled>Apply edit to the PDF text</button></div>
+      <label class="lbl check" id="runParaRow" hidden><input id="runPara" type="checkbox"> Edit the whole paragraph (re-wrap its lines)</label>
+      <p class="hint" id="runParaHint" hidden>Words are re-wrapped onto this paragraph's existing lines with the original font, size and colour. It never adds lines, so a longer text that does not fit is refused.</p>
+      <fieldset id="runFmt" class="fmt" disabled>
+        <legend>Format the selected characters (or the whole line)</legend>
+        <div class="grid2">
+          <label class="lbl">Font<select id="runFont"><option value="">Keep original</option><option value="sans">Helvetica (sans-serif)</option><option value="serif">Times (serif)</option><option value="mono">Courier (monospace)</option></select></label>
+          <label class="lbl">Size (pt)<input id="runSize" type="number" min="2" max="400" step="0.5" inputmode="decimal"></label>
+        </div>
+        <div class="grid3">
+          <button id="runBold" class="btn toggle" type="button" aria-pressed="false" aria-label="Bold"><b>B</b></button>
+          <button id="runItalic" class="btn toggle" type="button" aria-pressed="false" aria-label="Italic"><i>I</i></button>
+          <label class="lbl colour">Colour<input id="runColor" type="color" value="#000000"></label>
+        </div>
+        <div class="anchor" role="group" aria-label="Keep this edge of the line in place when its width changes">
+          <button id="runAnchorL" class="btn toggle" type="button" aria-pressed="false">Keep left</button>
+          <button id="runAnchorC" class="btn toggle" type="button" aria-pressed="false">Keep centre</button>
+          <button id="runAnchorR" class="btn toggle" type="button" aria-pressed="false">Keep right</button>
+        </div>
+        <label class="lbl check" id="runReflowRow" hidden><input id="runReflow" type="checkbox"> Move the rest of the line along</label>
+        <p class="hint" id="runReflowHint" hidden>Moves the text after this on the same line by the same amount. Underlines, boxes and link areas are not moved.</p>
+      </fieldset>
+      <div class="row wrap"><button id="runApply" class="btn primary" disabled>Apply to PDF</button><button id="runRevert" class="btn" disabled>Restore original</button></div>
+      <p id="runWarn" class="warn" role="status" hidden></p>
       <p class="hint" id="runNote"></p>
+      <h4 class="sub">Text on this page</h4>
+      <ul id="blockList" class="objlist"></ul>
+    </section>
+
+    <section id="secLink" class="sec" hidden>
+      <h3>Hyperlink</h3>
+      <p id="linkInfo" class="hint"></p>
+      <div id="linkForm" hidden>
+        <fieldset class="kinds"><legend>Link to</legend>
+          <label class="check"><input type="radio" name="linkKind" value="uri" checked> Web address, email or phone</label>
+          <label class="check"><input type="radio" name="linkKind" value="page"> A page in this document</label>
+        </fieldset>
+        <label class="lbl" id="linkUriRow">Address<input id="linkUri" type="text" inputmode="url" autocomplete="off" placeholder="https://example.com"></label>
+        <label class="lbl" id="linkPageRow" hidden>Go to page<input id="linkPage" type="number" min="1" step="1" inputmode="numeric"></label>
+        <label class="lbl check"><input id="linkBorder" type="checkbox"> Show a thin border around the link</label>
+        <div class="row wrap"><button id="linkApply" class="btn primary">Save link</button><button id="linkRemove" class="btn danger">Remove link</button></div>
+      </div>
+      <h4 class="sub">Links on this page</h4>
+      <ul id="linkList" class="objlist"></ul>
     </section>
 
     <section id="secText" class="sec" hidden>
@@ -218,7 +278,7 @@
     <button id="nextPage" class="icon" aria-label="Next page" disabled><svg class="ic rot"><use href="#i-down"/></svg></button>
   </div>
   <p id="status" class="status" role="status" aria-live="polite">Open a PDF to begin.</p>
-  <a id="downloadLink" class="dl-link" hidden>Download ready</a>
+  <a id="downloadLink" class="dl-link" tabindex="-1" aria-hidden="true" hidden>Download ready</a>
 </footer>
 <script src="../../vendor/pdf-lib.min.js"></script>
 <script type="module" src="editor.js"></script>
