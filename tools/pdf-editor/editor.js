@@ -74,9 +74,13 @@ async function readPdf(file) {
   return { src: { id, name: file.name, bytes, effBytes: bytes, pdf, sig: "" }, entries, lib };
 }
 const openPicker = input => { input.value = ""; input.click(); };
+/* Timing marks (visible in the browser's Performance panel and via performance.getEntriesByType('measure')). */
+const mark = n => { try { performance.mark(n); } catch { /* optional */ } };
+const measure = (n, a, b) => { try { performance.measure(n, a, b); } catch { /* optional */ } };
 async function openDocument(file) {
+  mark('open:start');
   if (version !== exportedVersion && state.pages.length && !confirm("Open a different PDF? Your unsaved edits will be lost.")) return;
-  const { src, entries, lib } = await readPdf(file);
+  const { src, entries, lib } = await readPdf(file); mark('open:read'); measure('open: parse (pdf.js + pdf-lib)', 'open:start', 'open:read');
   for (const s of sources.values()) s.pdf.destroy();
   sources.clear(); assets.clear(); thumbCache.clear(); textCache.clear(); selPages.clear(); hist.clear(); clearDownload();
   state = createState(); sources.set(src.id, src); docName = file.name;
@@ -85,8 +89,8 @@ async function openDocument(file) {
   fonts = fonts || await makeFontMetrics(PDFLib);
   document.body.classList.remove("no-doc");
   $("fileName").textContent = file.name; $("fileName").title = file.name; document.title = file.name + " · PDF Editor · GoVibeTool";
-  const extras = await v2.onOpen(lib, src); await describeDocument(src, extras);
-  setTool("select"); await afterChange({ reload: true });
+  const extras = await v2.onOpen(lib, src); await describeDocument(src, extras); mark('open:meta'); measure('open: bookmarks, links, notes', 'open:read', 'open:meta');
+  setTool("select"); await afterChange({ reload: true }); mark('open:ready'); measure('open: first render + thumbnails', 'open:meta', 'open:ready'); measure('open: total', 'open:start', 'open:ready');
   say(`Opened ${file.name} (${state.pages.length} page${state.pages.length === 1 ? "" : "s"}${extras.links ? `, ${extras.links} link${extras.links === 1 ? "" : "s"}` : ""}${extras.bookmarks ? `, ${extras.bookmarks} bookmark${extras.bookmarks === 1 ? "" : "s"}` : ""}). Nothing was uploaded.`);
 }
 /* Forget everything that belongs to the open document (pages, edits, caches, tool state) and return to the start screen. */
@@ -291,10 +295,13 @@ function updatePageButtons() {
 const pageTargets = () => selPages.size ? state.pages.filter(p => selPages.has(p.id)).map(p => p.id) : (curPage() ? [curPage().id] : []);
 
 /* ---------- history / commit ---------- */
-async function afterChange({ reload = false, pages = false } = {}) {
+/* The latest change being applied (source rebuild, page render). Export waits for it, so clicking Download right after an edit never bakes stale bytes. */
+let inflight = Promise.resolve();
+function afterChange(opts) { const p = afterChangeImpl(opts); inflight = p.catch(() => {}); return p; }
+async function afterChangeImpl({ reload = false, pages = false } = {}) {
   if (reload) await syncSources();
   if (cur >= state.pages.length) cur = state.pages.length - 1; if (cur < 0) cur = 0;
-  if (reload || pages) { await renderThumbs(); await renderPage(); } else { drawOverlay(); refreshThumbBadges(); }
+  if (reload || pages) { await Promise.all([renderThumbs(), renderPage()]); } else { drawOverlay(); refreshThumbBadges(); }
   updateButtons(); syncProps(); renderObjList(); markCurrentThumb(); if (pages) await v2.pageChanged(); v2.refresh();
 }
 function refreshThumbBadges() { [...$("thumbs").children].forEach((li, i) => { const p = state.pages[i]; if (!p) return; const n = state.objects.filter(o => o.page === p.id).length; let b = li.querySelector(".badge"); if (n) { if (!b) { b = document.createElement("span"); b.className = "badge"; li.prepend(b); } b.textContent = String(n); b.title = `${n} edit${n > 1 ? "s" : ""} on this page`; } else if (b) b.remove(); }); }
@@ -615,7 +622,7 @@ async function buildPdf(only) {
   lastReport = report; return bytes;
 }
 async function runExport({ only = null, name = null, label = "PDF ready" } = {}) {
-  if (busy) return; busy = true; document.body.setAttribute("aria-busy", "true"); say("Building your PDF…");
+  await v2.settled(); await inflight; if (busy) return; busy = true; document.body.setAttribute("aria-busy", "true"); say("Building your PDF…");
   try {
     const bytes = await buildPdf(only); clearDownload();
     const blob = new Blob([bytes], { type: "application/pdf" }); downloadUrl = URL.createObjectURL(blob);

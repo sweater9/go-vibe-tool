@@ -34,7 +34,7 @@ async function check(name, fn) {
 }
 const needTools = (what = 'poppler') => { const ok = what === 'poppler' ? HAVE.poppler : what === 'pypdf' ? HAVE.pypdf : HAVE.poppler && HAVE.pypdf; if (!ok) { if (REQUIRE) throw new Error(`required tool missing: ${what}`); const e = new Error(`${what} is not installed`); e.skip = true; throw e; } };
 const compact = s => s.replace(/\s+/g, ' ').trim(), nospace = s => s.replace(/\s+/g, '');
-const fx = { para: Buffer.from(paragraphDoc()), mixed: Buffer.from(await mixedImage(P)), form: Buffer.from(formXObject()), big: Buffer.from(bigDocument(120)), chrome: Buffer.from(committed('chrome-invoice.pdf')), lo: Buffer.from(committed('lo-report.pdf')), std: Buffer.from(stdInvoice()), enc: Buffer.from(committed('encrypted.pdf')), nounicode: Buffer.from(noUnicode()), scan: Buffer.from(scanned()) };
+const fx = { merged: Buffer.from(committed('merged-text.pdf')), para: Buffer.from(paragraphDoc()), mixed: Buffer.from(await mixedImage(P)), form: Buffer.from(formXObject()), big: Buffer.from(bigDocument(120)), chrome: Buffer.from(committed('chrome-invoice.pdf')), lo: Buffer.from(committed('lo-report.pdf')), std: Buffer.from(stdInvoice()), enc: Buffer.from(committed('encrypted.pdf')), nounicode: Buffer.from(noUnicode()), scan: Buffer.from(scanned()) };
 
 async function session(w) {
   const mobile = w <= 460, touch = mobile && realTouch;
@@ -207,6 +207,22 @@ for (const w of WIDTHS) {
     assert.match(asked, /embedded font cannot draw this/i); assert.match(asked, /standard font/i); assert.equal(await count(), 0, 'declining must not change the PDF');
     S.onDialog = d => d.accept(); await page.locator('#runApply').click(); await page.waitForFunction(() => window.pdfEditorDebug.v2.edits() === 1 && document.getElementById('runApply').disabled); await S.settle(); assert.equal(await count(), 1);
     const bytes = await S.exportBytes(); const info = await pdfjsInfo(page, bytes); assert.ok(nospace(info.texts[0]).includes('$1,250.75'), info.texts[0]);
+  });
+
+  await check(`${tag}: clicking Download immediately after Apply still exports the edit (no stale export)`, async () => {
+    await S.open(fx.chrome, 'invoice.pdf'); await S.tool('edittext'); await S.pickBlock('$120.00'); await S.setText('$1,250.75'); await page.waitForFunction(() => !document.getElementById('runApply').disabled);
+    const [dl] = await Promise.all([page.waitForEvent('download'), (async () => { await page.locator('#runApply').click(); await page.locator('#download').click(); })()]);
+    const file = await dl.path(); const bytes = await fs.readFile(file); needTools('poppler'); assert.ok(compact(pdftotext(bytes, 1)).includes('$1,250.75') && !/\$120\.00/.test(pdftotext(bytes, 1)), pdftotext(bytes, 1).slice(0, 200));
+  });
+
+  await check(`${tag}: merged.pdf (MacRoman subset fonts): select by clicking the page, edit, export; fonts and the other page are kept`, async () => {
+    await S.open(fx.merged, 'merged.pdf'); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 30);
+    const blocks = await S.blocks(); assert.equal(blocks.filter(b => !b.editable).length, 0, 'every text line must be editable');
+    const b = blocks.find(x => x.text === 'Studio | ElevenLabs'); assert.ok(b, 'the heading line exists'); await S.clickAt(b.box.x + Math.min(b.box.w / 2, 40), b.box.y + b.box.h / 2);
+    await page.waitForFunction(() => document.getElementById('runText').value === 'Studio | ElevenLabs'); assert.equal(await page.locator('#runText').isDisabled(), false, 'a clicked line must be editable');
+    await S.setText('Studio | Eleven Labs'); await page.locator('#runApply').click(); await page.waitForFunction(() => document.getElementById('runApply').disabled && window.pdfEditorDebug.v2.edits() === 1);
+    const bytes = await S.exportBytes(); needTools('poppler'); const t1 = compact(pdftotext(bytes, 1)); assert.ok(t1.includes('Studio | Eleven Labs') && !t1.includes('Studio | ElevenLabs'), t1.slice(0, 120));
+    const before = new Set(pdffonts(fx.merged)); assert.ok(pdffonts(bytes).every(f => before.has(f)), 'no font may be added or swapped'); assert.ok(compact(pdftotext(bytes, 2)).includes('Image & Video'), 'page 2 unchanged');
   });
 
   await check(`${tag}: clicking the page selects the text under the pointer`, async () => {

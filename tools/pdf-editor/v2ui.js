@@ -23,7 +23,7 @@ const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 export function createV2(ctx) {
   const { PDFLib, $, say, fail, guard, friendly, commit, getState, getCur, getVp, getScale, getDpr, curPage, srcOf, setTool, getTool, goTo, scheduleOverlay } = ctx;
   const engines = new Map(); let blocksFor = null, draft = null, loadToken = 0, measureTimer = 0, measureSeq = 0;
-  let linkSel = null, bmSel = null, bmEditing = false, pdraft = null, paraTimer = 0, paraSeq = 0;
+  let linkSel = null, bmSel = null, bmEditing = false, pdraft = null, paraTimer = 0, paraSeq = 0, pendingApply = Promise.resolve();
 
   /* ================================================================ engine */
   async function engineFor(src) {
@@ -365,7 +365,7 @@ export function createV2(ctx) {
     $("runColor").addEventListener("input", () => patchFormat({ color: $("runColor").value }));
     for (const a of ["left", "center", "right"]) $("runAnchor" + a[0].toUpperCase()).addEventListener("click", () => { if (!draft) return; draft.align = draft.align === a ? null : a; draft.dirty = true; renderDraft(); });
     $("runReflow").addEventListener("change", () => { if (!draft) return; draft.reflow = $("runReflow").checked; draft.dirty = !isPlain(draft) || draft.hasEdit; renderDraft(); });
-    $("runApply").addEventListener("click", guard(() => pdraft ? applyPara() : applyDraft())); $("runRevert").addEventListener("click", guard(() => pdraft ? revertPara() : revertDraft()));
+    $("runApply").addEventListener("click", () => { pendingApply = guard(() => pdraft ? applyPara() : applyDraft())(); return pendingApply; }); $("runRevert").addEventListener("click", guard(() => pdraft ? revertPara() : revertDraft()));
     $("runPara").addEventListener("change", guard(async () => { if ($("runPara").checked) await enterPara(); else exitPara(); }));
     for (const el of document.querySelectorAll("input[name=linkKind]")) el.addEventListener("change", () => { if (linkSel) { linkSel.rec.kind = el.value; renderLinks(); } });
     $("linkApply").addEventListener("click", guard(saveLink)); $("linkRemove").addEventListener("click", guard(removeLink)); $("linkUri").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); saveLink().catch(fail); } });
@@ -379,6 +379,7 @@ export function createV2(ctx) {
   return {
     async onOpen(doc, src) { const st = getState(); const unsupported = loadDocumentExtras(doc, src, st, true); engines.clear(); draft = null; pdraft = null; linkSel = null; bmSel = null; blocksFor = null; renderBookmarks(); renderLinks(); renderDraft(); return { links: st.links.length, bookmarks: O.countItems(st.outline), unsupported }; },
     reset() { engines.clear(); draft = null; pdraft = null; linkSel = null; bmSel = null; blocksFor = null; getState().links = []; getState().outline = []; renderBookmarks(); renderLinks(); renderDraft(); renderBlockList(); },
+    settled: () => pendingApply,
     onInsert(doc, src) { loadDocumentExtras(doc, src, getState(), false); },
     syncSource, exportExtras, verifyExport, drawOverlay, pick, finishLink,
     async pageChanged() { draft = null; pdraft = null; linkSel = null; renderDraft(); renderLinks(); if (getTool() === "edittext") await loadBlocks(); else { blocksFor = null; } },
