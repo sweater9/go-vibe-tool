@@ -44,7 +44,7 @@ async function session(w) {
   page.on('dialog', d => { const h = S.onDialog; S.onDialog = null; if (h) h(d); else d.accept(); });
   page.on('pageerror', e => errs.push('pageerror: ' + e.message));
   const wk = m => engine === 'webkit' && (/^web-inspector:/.test(m.location().url) || /^Refused to apply a stylesheet/.test(m.text()));
-  page.on('console', m => { if (!wk(m) && ['error', 'warning'].includes(m.type()) && !/favicon|willReadFrequently/.test(m.text())) errs.push(`console ${m.type()}: ${m.text()} @ ${m.location().url}:${m.location().lineNumber}`); });
+  page.on('console', m => { if (!wk(m) && ['error', 'warning'].includes(m.type()) && !/favicon|willReadFrequently|Not applied: the replacement font was declined/.test(m.text())) errs.push(`console ${m.type()}: ${m.text()} @ ${m.location().url}:${m.location().lineNumber}`); });
   page.on('request', r => { const u = r.url(); if (!u.startsWith(origin) && !u.startsWith('blob:') && !u.startsWith('data:')) external.push(u); });
   const S = { ctx, page, errs, external, mobile, touch, w };
   S.status = () => page.textContent('#status');
@@ -205,6 +205,7 @@ for (const w of WIDTHS) {
     await page.waitForFunction(() => /standard font/.test(document.getElementById('runNote').textContent)); const count = () => page.evaluate(() => window.pdfEditorDebug.v2.edits());
     let asked = ''; S.onDialog = d => { asked = d.message(); d.dismiss(); }; await page.waitForFunction(() => !document.getElementById('runApply').disabled); await page.locator('#runApply').click(); await page.waitForTimeout(600);
     assert.match(asked, /embedded font cannot draw this/i); assert.match(asked, /standard font/i); assert.equal(await count(), 0, 'declining must not change the PDF');
+    S.errs.splice(0, S.errs.length, ...S.errs.filter(e => !/Not applied: the replacement font was declined/.test(e) && !/^console warning: Error @ \S+\/editor\.js:41$/.test(e))); // the declined choice is reported through the editor's normal message path (Firefox logs only the terse form)
     S.onDialog = d => d.accept(); await page.locator('#runApply').click(); await page.waitForFunction(() => window.pdfEditorDebug.v2.edits() === 1 && document.getElementById('runApply').disabled); await S.settle(); assert.equal(await count(), 1);
     const bytes = await S.exportBytes(); const info = await pdfjsInfo(page, bytes); assert.ok(nospace(info.texts[0]).includes('$1,250.75'), info.texts[0]);
   });
