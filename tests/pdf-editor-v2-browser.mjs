@@ -200,6 +200,15 @@ for (const w of WIDTHS) {
     await page.setViewportSize({ width: 390, height: 844 });
   });
 
+  await check(`${tag}: a font replacement is explained and needs confirmation; declining leaves the text unchanged, accepting applies it`, async () => {
+    await S.open(fx.chrome, 'invoice.pdf'); await S.tool('edittext'); await S.pickBlock('$120.00'); await S.setText('$1,250.75');
+    await page.waitForFunction(() => /standard font/.test(document.getElementById('runNote').textContent)); const count = () => page.evaluate(() => window.pdfEditorDebug.v2.edits());
+    let asked = ''; S.onDialog = d => { asked = d.message(); d.dismiss(); }; await page.waitForFunction(() => !document.getElementById('runApply').disabled); await page.locator('#runApply').click(); await page.waitForTimeout(600);
+    assert.match(asked, /embedded font cannot draw this/i); assert.match(asked, /standard font/i); assert.equal(await count(), 0, 'declining must not change the PDF');
+    S.onDialog = d => d.accept(); await page.locator('#runApply').click(); await page.waitForFunction(() => window.pdfEditorDebug.v2.edits() === 1 && document.getElementById('runApply').disabled); await S.settle(); assert.equal(await count(), 1);
+    const bytes = await S.exportBytes(); const info = await pdfjsInfo(page, bytes); assert.ok(nospace(info.texts[0]).includes('$1,250.75'), info.texts[0]);
+  });
+
   await check(`${tag}: clicking the page selects the text under the pointer`, async () => {
     await S.open(fx.std, 'std.pdf'); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 3);
     const b = (await S.blocks()).find(x => /Bill to/.test(x.text)); await S.clickAt(b.box.x + b.box.w / 2, b.box.y + b.box.h / 2);

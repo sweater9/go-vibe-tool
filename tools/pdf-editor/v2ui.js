@@ -146,9 +146,12 @@ export function createV2(ctx) {
   function lastFollowerEnd(d, delta) {
     const all = blocksFor.blocks; let end = -Infinity; for (const id of d.block.following) { const c = all.find(b => b.id === id); if (c) end = Math.max(end, c.origin[0] + c.dir[0] * (c.width * c.userScale + delta)); } return end;
   }
+  /* A substitution note means some characters cannot be drawn with the PDF's own embedded font. Ask before using a replacement. */
+  const confirmSubstitution = notes => !notes.length || confirm(notes.join(" ") + "\n\nThe original embedded font cannot draw this. Use the closest standard font for those characters? Choose Cancel to leave the text unchanged.");
   async function applyDraft(auto = false) {
     const d = draft; if (!d || !d.dirty) return; const src = engines.get(d.src);
     await measureEdit(PDFLib, src.doc, src.lib, d.block, toEngine(d)).then(m => { d.measure = m; }).catch(e => { throw new Error(friendly(e)); });
+    if (!confirmSubstitution(d.measure.notes)) throw new Error("Not applied: the replacement font was declined, so the text is unchanged. Type only characters the original font already draws, or accept the replacement.");
     const plain = isPlain(d), st = getState();
     await commit(() => { st.textEdits = st.textEdits.filter(x => !(x.src === d.src && x.page === d.page && x.blockId === d.blockId)); if (!plain) st.textEdits.push({ id: Date.now() + Math.random(), src: d.src, page: d.page, blockId: d.blockId, text: d.text, props: d.props.slice(), align: d.align, engine: toEngine(d), reflow: !!d.reflow, widthUser: d.measure.widthUser, notes: d.measure.notes }); }, { reload: true });
     d.dirty = false; d.hasEdit = !plain; renderDraft(); renderBlockList(); const n = d.measure.notes.length ? " " + d.measure.notes.join(" ") : "";
@@ -192,6 +195,7 @@ export function createV2(ctx) {
   async function applyPara() {
     const p = pdraft; if (!p || !p.dirty) return; const src = engines.get(p.src);
     const r = await reflowParagraph(PDFLib, src.doc, src.lib, p.para, p.text).catch(e => { throw new Error(friendly(e)); }); const st = getState();
+    if (!confirmSubstitution(r.notes)) throw new Error("Not applied: the replacement font was declined, so the paragraph is unchanged.");
     await commit(() => {
       st.textEdits = st.textEdits.filter(x => !(x.src === p.src && x.page === p.page && p.para.ids.includes(x.blockId)));
       for (const e of r.edits) st.textEdits.push({ id: Date.now() + Math.random(), src: p.src, page: p.page, blockId: e.blockId, text: e.text, props: Array.from({ length: e.text.length }, () => null), align: null, engine: { page: p.page, blockId: e.blockId, text: e.text, align: null, reflow: false, fmt: [] }, reflow: false, widthUser: 0, notes: r.notes, group: p.para.id, paraText: p.text });
