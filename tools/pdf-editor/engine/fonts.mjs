@@ -127,7 +127,8 @@ export class FontLibrary {
       if (base === 'MacRomanEncoding' && !uni) return { ...info, usable: false, reason: 'encoding', width: () => 0, decode: () => null, encode: () => null };
       const baseDecode = base === 'WinAnsiEncoding' ? winAnsiDecode : (base === 'StandardEncoding' || info.std) ? standardEncDecode : winAnsiDecode;
       info.decode = c => { if (uni && uni.has(c)) return uni.get(c); if (diffs.has(c)) return diffs.get(c); return baseDecode(c); };
-      if (!uni && !diffs.size && embedded && !base && (flags & 4)) return { ...info, usable: false, reason: 'no-unicode-map', width: () => 0, decode: () => null, encode: () => null };
+      const symbolicStd = /^(Symbol|ZapfDingbats)$/i.test(String(baseFont || '').replace(/^[A-Z]{6}\+/, ''));
+      if (!uni && !diffs.size && !base && ((flags & 4) || symbolicStd)) return { ...info, usable: false, reason: 'no-unicode-map', width: () => 0, decode: () => null, encode: () => null };
       const first = numOf(P, fd.lookup(P.PDFName.of('FirstChar'))) ?? 0, wArr = fd.lookup(P.PDFName.of('Widths')), mw = descriptor ? (numOf(P, descriptor.lookup(P.PDFName.of('MissingWidth'))) || 0) : 0;
       const widths = wArr instanceof P.PDFArray ? wArr.asArray().map(x => numOf(P, this.doc.context.lookup(x))) : null;
       let stdTbl = null; if (!widths && info.std) stdTbl = await this.stdWidths(info.std[3]);

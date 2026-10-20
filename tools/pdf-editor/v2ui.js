@@ -344,7 +344,7 @@ export function createV2(ctx) {
     if (rebuiltOutline) { const t = O.readOutline(PDFLib, out, "x").tree; if (O.countItems(t) !== report.bookmarks) problems.push(`bookmark count ${O.countItems(t)} does not match the expected ${report.bookmarks}`); }
     const lib = new FontLibrary(PDFLib, out); let scanned = false;
     for (const e of st.textEdits) {
-      const i = pagesList.findIndex(p => p.src === e.src && p.idx === e.page); if (i < 0) continue; if (!scanned) { await scanUsage(PDFLib, out, lib); scanned = true; }
+      const i = pagesList.findIndex(p => !p.blank && p.src === e.src && p.idx === e.page); if (i < 0) continue; if (!scanned) { await scanUsage(PDFLib, out, lib); scanned = true; }
       const a = await analyzePage(PDFLib, out, lib, i); const all = a.blocks.map(b => b.text).join("\n"); if (e.text.trim() && !all.includes(e.text.trim())) problems.push(`the edited text "${snippet(e.text, 30)}" was not found in the exported page ${i + 1}`);
     }
     return problems;

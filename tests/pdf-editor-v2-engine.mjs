@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { applyTextEdits, measureEdit, FontLibrary, analyzePage, scanUsage, EditError } from '../tools/pdf-editor/engine/edit.mjs';
 import { detectParagraphs, paragraphOf, paragraphText, reflowParagraph } from '../tools/pdf-editor/engine/reflow.mjs';
-import { readLinks } from '../tools/pdf-editor/engine/links.mjs';
+import { readLinks, writeLinks } from '../tools/pdf-editor/engine/links.mjs';
 import * as O from '../tools/pdf-editor/engine/outline.mjs';
 import { bakeDocument } from '../tools/pdf-editor/bake.mjs';
 import { makeFontMetrics } from '../tools/pdf-editor/model.mjs';
@@ -315,7 +315,7 @@ bothTest('reflow: a shorter sentence re-wraps within the same lines, keeps the f
   assert.ok(txt.includes('decided to postpone equipment spending'), txt);
   assert.ok(!txt.includes('agreed that spending'), 'old words must be gone from the file');
   assert.ok(txt.includes('Budget Review') && txt.includes('Finance Office') && txt.includes('Left column text') && txt.includes('Right column text'));
-  assert.deepEqual(pdffonts(out.bytes).map(f => f.name), pdffonts(src).map(f => f.name), 'no font was added or swapped');
+  assert.deepEqual(pdffonts(out.bytes), pdffonts(src), 'no font was added or swapped');
   const before = render(src, 1), after = render(out.bytes, 1); assert.ok(diffPixels(before, after, 100, [{ x0: 60, y0: 84, x1: 560, y1: 170 }]) === 0, 'pixels outside the paragraph must not change');
 });
 bothTest('reflow: a longer sentence that still fits reflows onto later lines; words in order, none lost', async () => {
@@ -336,4 +336,47 @@ test('reflow: unchanged text produces no edits', async () => {
 test('reflow: a typed character that is not in WinAnsi is refused, a word wider than the paragraph is refused', async () => {
   const a = await blocksOf(paragraphDoc(), 0), para = detectParagraphs(a.blocks)[0];
   await assert.rejects(() => reflowParagraph(P, a.doc, a.lib, para, 'W'.repeat(120)), e => e.code === 'longword');
+});
+
+
+/* ------------------------------------------------------------------ review findings (each reproduced before it was fixed) */
+import { buildPdf, STD_FONTS } from './helpers/pdf-build.mjs';
+const mk = (content, fonts = STD_FONTS, extra = {}) => new Uint8Array(buildPdf({ pages: [{ content }], fonts, ...extra }));
+popplerTest('geometry: a wide TJ gap (virtual space) is counted once, so the model width matches Poppler', async () => {
+  const src = mk('BT /F1 12 Tf 72 700 Td [(Hello) -2000 (World)] TJ ET\nBT /F1 12 Tf 72 650 Td (Hello World) Tj ET\n');
+  const { blocks } = await blocksOf(src, 0); const ws = words(src, 1);
+  const h = ws.filter(w => w.text === 'Hello'), w = ws.filter(x => x.text === 'World'); const real = [w[0].x1 - h[0].x0, w[1].x1 - h[1].x0];
+  const [gap, plain] = blocks; assert.ok(gap.entries.some(e => e.virtual), 'the wide gap must become a virtual space');
+  assert.ok(Math.abs(gap.width * gap.userScale - real[0]) < 1.5, `model ${gap.width * gap.userScale} vs poppler ${real[0]}`); assert.ok(Math.abs(plain.width * plain.userScale - real[1]) < 1.5);
+});
+bothTest('geometry: right-anchoring an edit on a line with a wide TJ gap keeps the right edge (no gap-sized drift)', async () => {
+  const src = mk('BT /F1 12 Tf 72 700 Td [(Hello) -2000 (World)] TJ ET\n'); const before = words(src, 1).find(w => w.text === 'World');
+  const out = await edit(src, 0, 'World', t => t.replace('Hello', 'Hi'), { align: 'right' }); const after = words(out.bytes, 1).find(w => w.text === 'World');
+  assert.ok(Math.abs(after.x1 - before.x1) < 1.5, `right edge moved from ${before.x1} to ${after.x1}`);
+});
+bothTest('links: addresses with unbalanced parentheses or a trailing backslash are written as valid PDF strings and read back unchanged', async () => {
+  for (const uri of ['https://e.com/a)b', 'https://e.com/a(b', 'https://e.com/x\\', 'https://e.com/p\\q', 'https://e.com/w_(b)c']) {
+    const doc = await P.PDFDocument.load(mk('BT /F1 12 Tf 72 700 Td (x) Tj ET')); const rec = [{ id: 'a', src: 's', page: 0, kind: 'uri', uri, rect: [72, 690, 120, 712], changed: true, isNew: true }];
+    writeLinks(P, doc, rec, () => [doc.getPage(0)], () => doc.getPage(0), 'in-place'); const out = await doc.save();
+    assert.deepEqual(pypdfInspect(out).links.map(l => l.uri), [uri], uri); assert.ok(poppler(out).ok !== false);
+  }
+});
+test('colour: a block coloured through a colour space (cs + sc) keeps /Cs1 selected for the text after an edit', async () => {
+  const src = mk('/Cs1 cs 0.2 0.3 0.4 sc BT /F1 12 Tf 72 700 Td (AAA) Tj ET 0.5 0.5 0.5 sc BT /F1 12 Tf 72 650 Td (BBB) Tj ET BT /F1 12 Tf 72 600 Td (CCC) Tj ET', STD_FONTS);
+  const a = await blocksOf(src, 0); assert.equal(a.blocks[1].startState.fill, '/Cs1 cs\n0.5 0.5 0.5 sc'); assert.equal(a.blocks[2].startState.fill, '/Cs1 cs\n0.5 0.5 0.5 sc');
+  const out = await edit(src, 0, 'BBB', 'BBBB', { fmt: [{ start: 0, end: 4, props: { color: '#cc0000' } }] }); const b = await blocksOf(out.bytes, 0);
+  assert.equal(b.blocks.find(x => x.text.includes('CCC')).startState.fill, '/Cs1 cs\n0.5 0.5 0.5 sc', 'the colour space was lost for the following text');
+});
+test('fonts: non-embedded symbolic fonts (Symbol, ZapfDingbats, symbolic-flag TrueType) are refused, never decoded as Latin', async () => {
+  const desc = '/FontDescriptor << /Type /FontDescriptor /FontName /Wingdings-Regular /Flags 4 /FontBBox [0 0 1000 1000] /ItalicAngle 0 /Ascent 800 /Descent -200 /CapHeight 700 /StemV 80 >>';
+  for (const font of ['<< /Type /Font /Subtype /Type1 /BaseFont /Symbol >>', '<< /Type /Font /Subtype /Type1 /BaseFont /ZapfDingbats /FirstChar 97 /LastChar 99 /Widths [600 600 600] >>', `<< /Type /Font /Subtype /TrueType /BaseFont /Wingdings-Regular /FirstChar 97 /LastChar 99 /Widths [600 600 600] ${desc} >>`]) {
+    const { blocks } = await blocksOf(mk('BT /F1 12 Tf 72 700 Td (abc) Tj ET', { F1: font }), 0); assert.ok(blocks.length && blocks.every(b => !b.editable), font);
+  }
+});
+test('outline: a document whose old outline has a /Next cycle can still be rewritten (no stack overflow)', async () => {
+  const doc = await P.PDFDocument.load(mk('BT /F1 12 Tf 72 700 Td (x) Tj ET')), ctx = doc.context; const a = ctx.nextRef(), b = ctx.nextRef(), root = ctx.nextRef();
+  const dict = o => P.PDFDict.fromMapWithContext(new Map(Object.entries(o).map(([k, v]) => [P.PDFName.of(k), v])), ctx);
+  ctx.assign(root, dict({ Type: P.PDFName.of('Outlines'), First: a, Last: b, Count: P.PDFNumber.of(2) }));
+  ctx.assign(a, dict({ Title: P.PDFString.of('A'), Parent: root, Next: b })); ctx.assign(b, dict({ Title: P.PDFString.of('B'), Parent: root, Next: a })); doc.catalog.set(P.PDFName.of('Outlines'), root);
+  const tree = O.readOutline(P, doc, 's').tree; assert.equal(O.countItems(tree), 2); O.writeOutline(P, doc, tree, () => doc.getPage(0)); const out = await doc.save(); assert.ok(out.length > 100);
 });

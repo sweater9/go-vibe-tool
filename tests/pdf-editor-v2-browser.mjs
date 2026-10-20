@@ -8,7 +8,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { HAVE, pdftotext, pdffonts, pypdfInspect, poppler, words, render, colourIn, imageCount } from './helpers/pdf-verify.mjs';
+import { HAVE, pageCount, pdftotext, pdffonts, pypdfInspect, poppler, words, render, colourIn, imageCount } from './helpers/pdf-verify.mjs';
 import { committed, noUnicode, scanned, stdInvoice, mixedImage, formXObject, bigDocument, tinyPng, paragraphDoc } from './helpers/pdf-fixtures.mjs';
 const pw = await import(process.env.PLAYWRIGHT_PACKAGE || 'playwright');
 const engine = process.argv[2] || 'chromium';
@@ -152,6 +152,13 @@ for (const w of WIDTHS) {
     await S.setText(full.replace('committee', 'board')); await page.waitForTimeout(500); await S.apply();
     await page.locator('#runRevert').click(); await S.settle(); assert.equal(await page.evaluate(() => window.pdfEditorDebug.v2.edits ? window.pdfEditorDebug.v2.edits() : 0), 0);
     const back = await S.exportBytes(); needTools('poppler'); assert.ok(compact(pdftotext(back, 1)).includes('The committee reviewed'));
+  });
+
+  await check(`${tag}: a blank page added before an edited page does not break the export check (page index in the exported file)`, async () => {
+    await S.open(fx.std, 'std.pdf'); await S.tool('edittext'); await S.goPage(2); await S.pickBlock('Thank you for your business'); await S.setText('Thank you for your custom. Late fees apply after 45 days.'); await S.apply();
+    await S.goPage(1); await S.showPages(); await page.locator('#pgBlank').click(); await page.waitForTimeout(500);
+    const bytes = await S.exportBytes(); needTools('poppler'); assert.equal(pageCount(bytes), 3, 'original two pages plus the blank page');
+    assert.ok(compact(pdftotext(bytes, 3)).includes('Thank you for your custom'), pdftotext(bytes, 3)); assert.equal(compact(pdftotext(bytes, 2)), '', 'page 2 is the blank page');
   });
 
   await check(`${tag}: clicking the page selects the text under the pointer`, async () => {

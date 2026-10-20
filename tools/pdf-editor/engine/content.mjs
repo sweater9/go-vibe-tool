@@ -42,7 +42,7 @@ const cloneGs = g => ({ ...g, ctm: g.ctm.slice() });
 /* fonts(name) -> {bytes: 1|2, width(code) (1000ths), usable} | null */
 export function interpret(bytes, fonts) {
   const ops = operations(bytes), shows = []; const stack = [];
-  let gs = { ctm: IDENT.slice(), font: null, size: 0, tc: 0, tw: 0, tz: 100, tl: 0, ts: 0, tr: 0, fill: '' };
+  let gs = { ctm: IDENT.slice(), font: null, size: 0, tc: 0, tw: 0, tz: 100, tl: 0, ts: 0, tr: 0, fill: '', fillCs: '' };
   let tm = IDENT.slice(), tlm = IDENT.slice(), bt = -1, inText = false, posIdx = -1, doCount = 0, lastShow = -1;
   for (let i = 0; i < ops.length; i++) {
     const o = ops[i], a = o.args;
@@ -87,8 +87,9 @@ export function interpret(bytes, fonts) {
       }
       default:
         if (COLOR_SET.has(o.op)) {
-          if (o.op === 'cs' || o.op === 'g' || o.op === 'rg' || o.op === 'k') gs.fill = o.raw;
-          else gs.fill = gs.fill && /\bcs$/.test(gs.fill) ? gs.fill + '\n' + o.raw : o.raw; // sc/scn
+          if (o.op === 'cs') { gs.fillCs = o.raw; gs.fill = o.raw; }
+          else if (o.op === 'g' || o.op === 'rg' || o.op === 'k') { gs.fillCs = ''; gs.fill = o.raw; }
+          else gs.fill = gs.fillCs ? gs.fillCs + '\n' + o.raw : o.raw; // sc/scn always re-select their colour space
         }
     }
   }

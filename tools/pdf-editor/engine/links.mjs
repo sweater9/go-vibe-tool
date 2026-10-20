@@ -4,6 +4,8 @@
 import { pageIndexMap, resolveDest, makeDest } from './dest.mjs';
 
 export const SAFE_URI = /^(https?:\/\/|mailto:|tel:)[^\s<>"]+$/i;
+/* pdf-lib's PDFString.of writes its argument verbatim between parentheses, so ( ) and \ must be escaped by the caller. */
+export const pdfLiteral = s => String(s).replace(/[\\()]/g, '\\$&');
 export function normalizeUri(raw) {
   let u = String(raw || '').trim(); if (!u) return null;
   if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u) ? 'mailto:' + u : 'https://' + u;
@@ -38,7 +40,7 @@ export function readLinks(P, doc, src = 's1') {
 
 function fillAction(P, doc, a, rec, pageFor, warnings) {
   const { PDFName } = P; a.delete(PDFName.of('A')); a.delete(PDFName.of('Dest'));
-  if (rec.kind === 'uri') { const u = normalizeUri(rec.uri); if (!u) { warnings.push(`Link address "${rec.uri}" is not allowed (use http, https, mailto or tel).`); return false; } a.set(PDFName.of('A'), doc.context.obj({ Type: 'Action', S: 'URI', URI: P.PDFString.of(u) })); return true; }
+  if (rec.kind === 'uri') { const u = normalizeUri(rec.uri); if (!u) { warnings.push(`Link address "${rec.uri}" is not allowed (use http, https, mailto or tel).`); return false; } a.set(PDFName.of('A'), doc.context.obj({ Type: 'Action', S: 'URI', URI: P.PDFString.of(pdfLiteral(u)) })); return true; }
   if (rec.kind === 'page') {
     const pg = pageFor(rec.dest.src, rec.dest.page); if (!pg) { warnings.push('A link points to a page that is not in the exported document and was removed.'); return false; }
     a.set(PDFName.of('Dest'), makeDest(P, doc, pg, rec.dest)); return true;

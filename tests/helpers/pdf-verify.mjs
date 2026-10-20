@@ -59,7 +59,9 @@ for i, p in enumerate(r.pages):
         act = a.get('/A'); 
         if act is not None: act = act.get_object()
         if act is not None and act.get('/S') == '/URI': rec['uri'] = str(act['/URI'])
-        elif act is not None and act.get('/S') == '/GoTo': d = act['/D']; rec['destPage'] = r.get_destination_page_number(__import__('pypdf').generic.Destination('x', d[0], '/XYZ')) + 1 if not isinstance(d, (str, bytes)) else None
+        elif act is not None and act.get('/S') == '/GoTo':
+            d = act['/D']
+            rec['destPage'] = [pg.indirect_reference.idnum for pg in r.pages].index(d[0].idnum) + 1 if isinstance(d, list) and d and isinstance(d[0], IndirectObject) else None
         elif '/Dest' in a:
             d = a['/Dest']
             if isinstance(d, list) or hasattr(d, '__len__') and not isinstance(d, (str, bytes)):

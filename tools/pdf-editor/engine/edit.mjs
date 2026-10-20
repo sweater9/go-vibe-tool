@@ -93,24 +93,28 @@ export async function renderBlock(P, doc, lib, block, edit, pf, notes, opts = {}
   await resolveEntries(lib, block, entries, edit.fmt || [], notes, pf);
   for (const e of entries) e.w = widthOf(e, block);
   // 2. alignment anchor
-  let newW = 0; for (const e of entries) newW += -e.adj / 1000 * e.size * th + e.w;
+  let newW = 0; for (const e of entries) newW += (e.virtual ? 0 : -e.adj / 1000 * e.size * th) + e.w;
   let shift = 0; if (edit.align === 'right') shift = block.width - newW; else if (edit.align === 'center') shift = (block.width - newW) / 2;
   if (entries.length && Math.abs(shift) > 1e-6) { entries[0].adj += -shift / th / entries[0].size * 1000; }
   // 3. emit
   const out = []; if (block.prefix) out.push(block.prefix); let cur = { font: block.startState.font, size: block.startState.size, fill: block.startState.fill };
-  const real = entries.filter(e => !e.virtual); void real;
   let i = 0, pend = 0;
   while (i < entries.length) {
-    const run = []; const head = entries[i]; const key = e => `${e.res || e.font}|${e.size}|${e.fill}`; const rk = key(head);
-    // virtual spaces are pure adjustments: fold them into the following real entry
-    while (i < entries.length) { const e = entries[i]; if (e.virtual) { pend += e.adj; i++; continue; } if (run.length && key(e) !== rk) break; if (!run.length && key(e) !== rk) break; run.push(e); i++; }
+    // virtual spaces are pure adjustments, never glyphs: they keep their position between the real entries of a run
+    // (or, at a run boundary, carry over to the first entry of the next run)
+    const key = e => `${e.res || e.font}|${e.size}|${e.fill}`;
+    while (i < entries.length && entries[i].virtual) pend += entries[i++].adj;
+    if (i >= entries.length) break;
+    const run = [], rk = key(entries[i]);
+    while (i < entries.length) { const e = entries[i]; if (e.virtual) { run.push(e); i++; continue; } if (key(e) !== rk) break; run.push(e); i++; }
+    while (run.length && run[run.length - 1].virtual) pend += run.pop().adj; // trailing gap belongs to whatever comes next
     if (!run.length) continue;
     const res = run[0].res || run[0].font;
     if (res !== cur.font || run[0].size !== cur.size) { out.push(`/${res} ${fmtNum(run[0].size)} Tf`); cur.font = res; cur.size = run[0].size; }
     if (run[0].fill !== cur.fill) { out.push(run[0].fill || DEFAULT_FILL); cur.fill = run[0].fill; }
     const parts = []; let buf = '';
     const flush = () => { if (buf) { parts.push(`<${buf}>`); buf = ''; } };
-    for (const e of run) { const a = e.adj + pend; pend = 0; if (Math.abs(a) > 1e-6) { flush(); parts.push(fmtNum(a)); } buf += hex(e.code, e.bytes); }
+    for (const e of run) { if (e.virtual) { pend += e.adj; continue; } const a = e.adj + pend; pend = 0; if (Math.abs(a) > 1e-6) { flush(); parts.push(fmtNum(a)); } buf += hex(e.code, e.bytes); }
     flush(); out.push(`[${parts.join(' ')}] TJ`);
   }
   // 4. restore the state the rest of the stream expects

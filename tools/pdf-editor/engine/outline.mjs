@@ -2,6 +2,7 @@
    links and explicit destinations. Items are plain objects so the editor can keep them in its undo history:
    {id, title, open, dest:{src,page,mode,params}|null, uri|null, color:[r,g,b]|null, flags:0|1|2|3, children:[]} */
 import { pageIndexMap, resolveDest, makeDest } from './dest.mjs';
+import { pdfLiteral } from './links.mjs';
 
 const MAX_NODES = 5000, MAX_DEPTH = 40;
 let seq = 0; export const newOutlineId = () => 'bm' + (++seq);
@@ -54,7 +55,15 @@ export function writeOutline(P, doc, tree, pageFor) {
   const { PDFName } = P, ctx = doc.context, warnings = []; let written = 0;
   // drop the old tree
   const oldRootRef = doc.catalog.get(PDFName.of('Outlines'));
-  const drop = (ref, depth = 0) => { if (!(ref instanceof P.PDFRef) || depth > MAX_DEPTH) return; const d = ctx.lookup(ref); if (d instanceof P.PDFDict) { const f = d.get(PDFName.of('First')), n = d.get(PDFName.of('Next')); if (f) drop(f, depth + 1); if (n) drop(n, depth); ctx.delete(ref); } };
+  const drop = start => {
+    const seen = new Set(), stack = [start];
+    while (stack.length && seen.size < MAX_NODES * 2) {
+      const ref = stack.pop(); if (!(ref instanceof P.PDFRef)) continue; const key = ref.toString(); if (seen.has(key)) continue; seen.add(key);
+      const d = ctx.lookup(ref); if (!(d instanceof P.PDFDict)) continue;
+      const f = d.get(PDFName.of('First')), n = d.get(PDFName.of('Next')); if (n) stack.push(n); if (f) stack.push(f);
+      ctx.delete(ref);
+    }
+  };
   if (oldRootRef instanceof P.PDFRef) { const od = ctx.lookup(oldRootRef); if (od instanceof P.PDFDict) { const f = od.get(PDFName.of('First')); if (f) drop(f); } }
   if (!tree.length) { doc.catalog.delete(PDFName.of('Outlines')); return { warnings, written: 0 }; }
   const rootRef = ctx.nextRef(), root = P.PDFDict.withContext(ctx); root.set(PDFName.of('Type'), PDFName.of('Outlines'));
@@ -66,7 +75,7 @@ export function writeOutline(P, doc, tree, pageFor) {
       d.set(PDFName.of('Title'), P.PDFHexString.fromText(n.title || 'Untitled')); d.set(PDFName.of('Parent'), parentRef);
       if (i > 0) d.set(PDFName.of('Prev'), refs[i - 1]); if (i < items.length - 1) d.set(PDFName.of('Next'), refs[i + 1]);
       if (n.dest) { const pg = pageFor(n.dest.src, n.dest.page); if (pg) d.set(PDFName.of('Dest'), makeDest(P, doc, pg, n.dest)); else warnings.push(`Bookmark "${n.title}" pointed to a page that is not in the exported document; it was kept without a destination.`); }
-      else if (n.uri && /^(https?:\/\/|mailto:|tel:)[^\s<>"]+$/i.test(n.uri)) d.set(PDFName.of('A'), ctx.obj({ S: 'URI', URI: P.PDFString.of(n.uri) }));
+      else if (n.uri && /^(https?:\/\/|mailto:|tel:)[^\s<>"]+$/i.test(n.uri)) d.set(PDFName.of('A'), ctx.obj({ S: 'URI', URI: P.PDFString.of(pdfLiteral(n.uri)) }));
       if (n.color) d.set(PDFName.of('C'), ctx.obj(n.color)); if (n.flags) d.set(PDFName.of('F'), P.PDFNumber.of(n.flags));
       if (n.children.length) { const kids = build(n.children, refs[i]); d.set(PDFName.of('First'), kids.first); d.set(PDFName.of('Last'), kids.last); const vis = visibleCount(n); d.set(PDFName.of('Count'), P.PDFNumber.of(n.open ? vis : -vis)); }
       ctx.assign(refs[i], d);

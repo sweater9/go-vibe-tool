@@ -594,7 +594,7 @@ async function buildPdf(only) {
   // Verify the result re-opens, before offering it.
   const kept = only ? state.pages.filter(p => only.includes(p.id)) : state.pages, expected = kept.length;
   const chk = await PDFLib.PDFDocument.load(bytes); if (chk.getPageCount() !== expected) throw new Error("The exported PDF did not pass the page-count check. Nothing was downloaded.");
-  const problems = await v2.verifyExport(bytes, { pagesList: kept.filter(p => !p.blank), report, rebuiltOutline: !!report.outlineRebuilt });
+  const problems = await v2.verifyExport(bytes, { pagesList: kept, report, rebuiltOutline: !!report.outlineRebuilt });
   if (problems.length) throw new Error("The exported PDF did not pass the content check (" + problems.join("; ") + "). Nothing was downloaded.");
   const doc = await pdfjs.getDocument({ data: bytes.slice(), ...PDFJS_OPTS }).promise; try { await (await doc.getPage(1)).getTextContent(); } finally { doc.destroy(); }
   lastReport = report; return bytes;

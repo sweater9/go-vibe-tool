@@ -89,7 +89,7 @@ function makeBlock(interp, i, j, n, pageIndex) {
   }
   if (entries.some(e => e.unmapped)) reason = reason || 'unmapped';
   // geometry in text space of the first fragment
-  let x = 0; for (const e of entries) { x += -e.adj / 1000 * e.size * (first.tz / 100); e.x = x; x += e.w; }
+  let x = 0; for (const e of entries) { if (!e.virtual) x += -e.adj / 1000 * e.size * (first.tz / 100); e.x = x; x += e.w; } // a virtual space carries its gap in w; adj is only the TJ number it stands for
   const width = x, th = first.tz / 100; void th;
   const info = first.fontInfo, asc = ((info && info.ascent) || 750) / 1000 * first.size, desc = ((info && info.descent) || -250) / 1000 * first.size;
   const M = mul(first.tm0, first.ctm), c = [applyPt(M, 0, desc), applyPt(M, width, desc), applyPt(M, width, asc), applyPt(M, 0, asc)];
