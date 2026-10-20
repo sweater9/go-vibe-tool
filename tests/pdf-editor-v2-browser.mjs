@@ -161,6 +161,16 @@ for (const w of WIDTHS) {
     assert.ok(compact(pdftotext(bytes, 3)).includes('Thank you for your custom'), pdftotext(bytes, 3)); assert.equal(compact(pdftotext(bytes, 2)), '', 'page 2 is the blank page');
   });
 
+  await check(`${tag}: the browser really receives the download (download event, file name, valid PDF containing the edit)`, async () => {
+    await S.open(fx.std, 'std.pdf'); await S.tool('edittext'); await S.pickBlock('Travel expenses'); await S.setText('Travel and lodging'); await S.apply();
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('#download').click()]);
+    assert.match(dl.suggestedFilename(), /^std-edited\.pdf$/, 'download file name'); assert.equal(await dl.failure(), null, 'the download must not fail');
+    const file = await dl.path(); assert.ok(file, 'the downloaded file exists'); const bytes = await fs.readFile(file);
+    assert.equal(bytes.subarray(0, 5).toString('latin1'), '%PDF-', 'a real PDF was saved'); assert.ok(bytes.length > 500);
+    needTools('poppler'); assert.ok(compact(pdftotext(bytes, 1)).includes('Travel and lodging') && !/Travel expenses/.test(pdftotext(bytes, 1)), pdftotext(bytes, 1));
+    await fs.writeFile(`${dir}/download-event-${w}.pdf`, bytes); await S.settle();
+  });
+
   await check(`${tag}: clicking the page selects the text under the pointer`, async () => {
     await S.open(fx.std, 'std.pdf'); await S.tool('edittext'); await page.waitForFunction(() => (window.pdfEditorDebug.v2.blocks() || []).length > 3);
     const b = (await S.blocks()).find(x => /Bill to/.test(x.text)); await S.clickAt(b.box.x + b.box.w / 2, b.box.y + b.box.h / 2);
