@@ -27,7 +27,7 @@
   ];
 
   /* ---------------- settings and record ---------------- */
-  var settings = Object.assign({ skill: 1, rounds: 1, speed: 1, helper: true, multiWin: true }, store.get('settings', {}));
+  var settings = Object.assign({ skill: 1, rounds: 1, speed: 1, helper: true, multiWin: true, numbers: true }, store.get('settings', {}));
   var stats = Object.assign({ hands: 0, wins: 0, self: 0, best: 0, bestName: '', matches: 0, matchWins: 0 }, store.get('stats', {}));
   function saveSettings() { store.set('settings', settings); }
   function saveStats() { store.set('stats', stats); }
@@ -96,9 +96,9 @@
   function face(t) {
     if (faceCache[t]) return faceCache[t];
     var h;
-    if (t < 9) h = '<span class="num">' + '一二三四五六七八九'.charAt(t) + '</span><span class="suitc red">萬</span>';
-    else if (t < 18) h = dotsSVG(t - 8);
-    else if (t < 27) h = bambooSVG(t - 17);
+    if (t < 9) h = '<span class="num">' + '一二三四五六七八九'.charAt(t) + '</span><span class="suitc red">萬</span><span class="dg c">' + (t + 1) + '</span>';
+    else if (t < 18) h = dotsSVG(t - 8) + '<span class="dg d">' + (t - 8) + '</span>';
+    else if (t < 27) h = bambooSVG(t - 17) + '<span class="dg b">' + (t - 17) + '</span>';
     else if (t < 31) h = '<span class="hon">' + WIND_ZH.charAt(t - 27) + '</span>';
     else if (t === 31) h = '<span class="hon red">中</span>';
     else if (t === 32) h = '<span class="hon green">發</span>';
@@ -142,6 +142,9 @@
     $('#optHelper2').checked = !!settings.helper;
     $('#optMulti').checked = !!settings.multiWin;
     $('#optMulti2').checked = !!settings.multiWin;
+    $('#optNum').checked = settings.numbers !== false;
+    $('#optNum2').checked = settings.numbers !== false;
+    $('.twmj').classList.toggle('shownum', settings.numbers !== false);
     $('#skillHint').textContent = SKILL_HINT[settings.skill];
   }
   document.addEventListener('click', function (e) {
@@ -156,6 +159,9 @@
   function setMulti(e) { settings.multiWin = e.target.checked; saveSettings(); syncSeg(document); if (match) match.cfg.multiWin = settings.multiWin; }
   $('#optMulti').addEventListener('change', setMulti);
   $('#optMulti2').addEventListener('change', setMulti);
+  function setNum(e) { settings.numbers = e.target.checked; saveSettings(); syncSeg(document); }
+  $('#optNum').addEventListener('change', setNum);
+  $('#optNum2').addEventListener('change', setNum);
 
   function renderStats() {
     var card = $('#statsCard');

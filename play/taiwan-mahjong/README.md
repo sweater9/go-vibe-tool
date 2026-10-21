@@ -18,7 +18,7 @@ Drop the folder in as `/play/taiwan-mahjong/`. It opens straight from `index.htm
 
 ## Look
 
-A tilted 3D felt table on a wooden rim (pure CSS, no images): wall stacks that shrink as tiles are drawn, opponents’ hands standing along three edges, discards in the centre, and tiles with an ivory face on a jade body. Tile faces are inline SVG/text. Your hand sits below the table so tiles stay large enough to tap.
+A tilted 3D felt table on a wooden rim (pure CSS, no images): wall stacks that shrink as tiles are drawn, opponents’ hands standing along three edges, discards in the centre, and tiles with an ivory face on a jade body. Tile faces are inline SVG/text. Suit tiles also carry a small plain 1–9 digit in the corner (setting "Show numbers on tiles", on by default, key `numbers` in `gvt.twmj.settings`): traditional sets have only Chinese numerals and pip counts. The digit is hidden on tiles too small to read it (opponent flower strips, claim-button previews, the helper's winning tiles, and phone-landscape discards). Your hand sits below the table so tiles stay large enough to tap.
 
 ## Rules implemented
 

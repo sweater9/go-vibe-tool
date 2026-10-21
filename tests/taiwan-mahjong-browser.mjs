@@ -109,6 +109,32 @@ try {
       assert.ok(await fits(page));
       assert.deepEqual(A.errs, []);
     });
+    await check(`${name}: plain 1-9 digits show on suit tiles by default, can be switched off in the Menu, persist, and never change the layout`, async () => {
+      await page.reload(); await page.click('#btnStart'); await page.waitForSelector('#game:not([hidden])');
+      await page.waitForFunction(() => document.querySelectorAll('#hand .tile').length >= 16);
+      await page.waitForTimeout(1500); // let the start-of-match scroll settle
+      const stats = () => page.evaluate(() => {
+        const g0 = document.querySelector('#game').getBoundingClientRect(), R = (x) => { const q = x.getBoundingClientRect(); return [q.left - g0.left, q.top - g0.top, q.width, q.height].map((v) => Math.round(v * 10) / 10).join(','); };
+        const dgs = [...document.querySelectorAll('#hand .tile .dg')], vis = dgs.filter((e) => e.getBoundingClientRect().width > 0);
+        const digits = vis.map((e) => e.textContent.trim());
+        return { root: document.querySelector('.twmj').classList.contains('shownum'), suit: dgs.length, visible: vis.length, ok: digits.every((d) => /^[1-9]$/.test(d)), minFont: vis.length ? Math.min(...vis.map((e) => parseFloat(getComputedStyle(e).fontSize))) : 0, layout: [...document.querySelectorAll('#game, #stage, #hand, .tile')].map(R).join('|'), saved: JSON.parse(localStorage.getItem('gvt.twmj.settings') || '{}').numbers };
+      });
+      const on = await stats();
+      assert.equal(on.root, true, 'digits are on by default');
+      assert.ok(on.suit > 0 && on.visible === on.suit && on.ok, 'every suit tile in the hand shows a 1-9 digit: ' + JSON.stringify(on));
+      assert.ok(on.minFont >= 9, 'hand digits are legible: ' + on.minFont + 'px');
+      await page.click('#btnMenu'); await page.waitForSelector('#menuDlg[open]');
+      assert.equal(await page.locator('#optNum2').isChecked(), true);
+      await page.locator('#optNum2').uncheck(); await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+      const off = await stats();
+      assert.equal(off.root, false); assert.equal(off.visible, 0, 'no digits when switched off'); assert.equal(off.saved, false);
+      assert.equal(off.layout, on.layout, 'tile and table layout must not change with digits on or off');
+      await page.reload(); assert.equal(await page.locator('#optNum').isChecked(), false, 'setting persists across reload');
+      assert.equal(await page.evaluate(() => document.querySelector('.twmj').classList.contains('shownum')), false);
+      await page.locator('#optNum').check(); // restore the default for later checks
+      assert.equal(await page.evaluate(() => document.querySelector('.twmj').classList.contains('shownum')), true);
+      assert.ok(await fits(page)); assert.deepEqual(A.errs, []);
+    });
     await check(`${name}: record persists across reload and the Tai table dialog opens`, async () => {
       await page.reload();
       assert.ok(await page.locator('#statsCard:not([hidden])').count(), 'saved record visible after reload');

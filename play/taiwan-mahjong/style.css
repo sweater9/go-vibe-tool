@@ -376,3 +376,20 @@
   .twmj .keys { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .8rem; }
   .twmj .exposed { padding-top: 2px; }
 }
+
+/* Plain 1-9 digit in the corner of Characters, Dots and Bamboo tiles (setting "Show numbers on tiles", on by default).
+   Purely visual: tile sizes are unchanged; the pips only shrink a little to leave the top-left corner free. */
+.twmj .tile .dg { display: none; }
+.twmj.shownum .tile .dg { display: block; position: absolute; left: 9%; top: 4%; font-family: var(--ui); font-weight: 800; font-size: max(7px, calc(var(--tw) * .3)); line-height: 1; color: var(--t-ink); pointer-events: none; }
+.twmj.shownum .tile .dg.c { color: var(--t-red); }
+.twmj.shownum .tile .dg.d { color: var(--t-blue); }
+.twmj.shownum .tile .dg.b { color: var(--t-green); }
+.twmj.shownum .tile svg { width: 74%; height: 72%; margin-top: 15%; }
+/* Too small to read a digit: opponent flower strips, claim-button previews and the helper's winning tiles. */
+.twmj.shownum .minis .tile .dg, .twmj.shownum .act .mini .tile .dg, .twmj.shownum .helper .tile .dg { display: none; }
+.twmj.shownum .minis .tile svg, .twmj.shownum .act .mini .tile svg, .twmj.shownum .helper .tile svg { width: 78%; height: 82%; margin-top: 0; }
+/* Phone landscape discards are only 13-15px wide: no digit there. */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
+  .twmj.shownum .pool .tile .dg { display: none; }
+  .twmj.shownum .pool .tile svg { width: 78%; height: 82%; margin-top: 0; }
+}
