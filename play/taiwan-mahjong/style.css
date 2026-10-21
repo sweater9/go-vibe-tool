@@ -1,0 +1,395 @@
+/* GoVibeTool — Taiwanese Mahjong. Scoped under .twmj so it cannot collide with v2.css/v5.css. System fonts only, no external requests. */
+/* Embedded-band additions */
+.twmj { display: block; width: 100%; margin: 24px 0 0; border-radius: var(--radius); overflow: clip; }
+.twmj :where(h1,h2,h3,p,li,dt,dd,b,strong,em,label,summary,span) { color: inherit; }
+.twmj {
+  --bg: #0f0c2a;
+  --bg2: #151238;
+  --panel: #1b1744;
+  --panel2: #251f5a;
+  --line: #342d78;
+  --ink: #ece9ff;
+  --muted: #a8a3d6;
+  --accent: #ec4899;
+  --accent-ink: #1a0b14;
+  --violet: #8b5cf6;
+  --ok: #34d399;
+  --warn: #fbbf24;
+  --bad: #fb7185;
+
+  --felt: #0e6048;
+  --felt2: #094434;
+  --tile: #f8f3e4;
+  --tile2: #ece3c8;
+  --tile-edge: #b9ad86;
+  --back: #1a8a70;
+  --back2: #0d5f4c;
+  --t-red: #c8352f;
+  --t-green: #1b8a5a;
+  --t-blue: #1e5aa8;
+  --t-ink: #1c1b2b;
+
+  --cjk: "Noto Serif TC", "Noto Serif CJK TC", "Songti TC", "PMingLiU", "Source Han Serif TC", "Noto Serif CJK SC", serif;
+  --ui: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --radius: 14px;
+  color-scheme: dark;
+}
+.twmj, .twmj * { box-sizing: border-box; }
+.twmj {
+  margin: 0;  background: radial-gradient(1200px 600px at 50% -200px, #2a1f6b 0%, var(--bg) 60%), var(--bg);
+  color: var(--ink); font: 16px/1.5 var(--ui);
+  -webkit-tap-highlight-color: transparent;
+}
+.twmj [hidden] { display: none !important; }
+.twmj a { color: #c4b5fd; }
+.twmj h1, .twmj h2, .twmj h3 { line-height: 1.2; margin: 0 0 .5em; }
+.twmj :focus-visible { outline: 3px solid #fcd34d; outline-offset: 2px; border-radius: 6px; }
+.twmj .tw-wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+.twmj .tw-hero { padding: 18px 0 14px; }
+.twmj .tw-eyebrow { margin: 0 0 6px; font-size: .75rem; letter-spacing: .14em; color: var(--accent); font-weight: 700; }
+.twmj .tw-hero h1 { font-size: clamp(1.8rem, 5.5vw, 2.8rem); letter-spacing: -.01em; }
+.twmj .tw-hero h1 span { font-family: var(--cjk); font-weight: 700; color: #fcd9ec; white-space: nowrap; }
+.twmj .lede { color: var(--muted); max-width: 60ch; margin: 0; }
+.twmj .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+.twmj .setup-card { display: grid; gap: 18px; max-width: 640px; margin-top: 8px; }
+.twmj .stats-card { max-width: 640px; margin-top: 16px; }
+.twmj .stats-card h2 { font-size: 1rem; }
+.twmj .stats-card h2 small { color: var(--muted); font-weight: 400; }
+.twmj .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 0 0 10px; }
+.twmj .stats div { background: var(--bg2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.twmj .stats dt { color: var(--muted); font-size: .75rem; }
+.twmj .stats dd { margin: 0; font-weight: 700; font-size: 1.15rem; }
+.twmj .label { display: block; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+.twmj .hint-text, .twmj .fine { color: var(--muted); font-size: .85rem; margin: 6px 0 0; }
+.twmj .tw-field { min-width: 0; }
+.twmj .seg { display: flex; gap: 0; background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 3px; }
+.twmj .seg button { flex: 1; appearance: none; border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600; padding: 10px 8px; border-radius: 9px; cursor: pointer; min-height: 44px; }
+.twmj .seg button[aria-pressed="true"] { background: var(--panel2); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.twmj .check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.twmj .check input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+.twmj .row { display: flex; gap: 10px; flex-wrap: wrap; }
+.twmj .row.tw-end { justify-content: flex-end; margin-top: 14px; }
+.twmj .tw-btn { appearance: none; border: 1px solid var(--line); background: var(--panel2); color: var(--ink); font: inherit; font-weight: 600; padding: 10px 16px; border-radius: 12px; cursor: pointer; min-height: 44px; }
+.twmj .tw-btn:hover { border-color: #5b50b8; }
+.twmj .tw-btn.primary { background: linear-gradient(135deg, var(--accent), #d946ef); color: #fff; border-color: transparent; }
+.twmj .tw-btn.primary:hover { filter: brightness(1.08); }
+.twmj .tw-btn.big { padding: 12px 22px; font-size: 1.05rem; }
+.twmj .tw-btn.tw-small { min-height: 38px; padding: 6px 14px; font-size: .9rem; }
+.twmj .tw-btn.tw-danger { background: #3b1230; border-color: #7f1d4d; color: #fecdd3; }
+.twmj .linkbtn { appearance: none; background: none; border: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85rem; padding: 4px 0; }
+.twmj .iconbtn { appearance: none; background: var(--panel2); border: 1px solid var(--line); color: var(--ink); font: inherit; font-size: .82rem; font-weight: 600; padding: 6px 12px; border-radius: 10px; cursor: pointer; min-height: 36px; }
+.twmj .iconbtn:hover { border-color: #5b50b8; }
+.twmj .tile {
+  --tw: 40px;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; flex-direction: column; flex: none;
+  width: var(--tw); height: calc(var(--tw) * 1.34);
+  font-family: var(--cjk); font-weight: 900; font-size: calc(var(--tw) * .72); line-height: 1;
+  color: var(--t-ink);
+  background: linear-gradient(170deg, #fffdf6 0%, var(--tile) 45%, var(--tile2) 100%);
+  border-radius: calc(var(--tw) * .14);
+  box-shadow: 0 calc(var(--tw) * .06) 0 #fbf6e6, 0 calc(var(--tw) * .12) 0 #2fa073, 0 calc(var(--tw) * .2) 0 #1a6f4f, 0 calc(var(--tw) * .26) calc(var(--tw) * .14) rgba(0,0,0,.5);
+  user-select: none; -webkit-user-select: none; padding: 0; border: 0; margin: 0;
+}
+.twmj button.tile { cursor: pointer; transition: transform .12s ease, box-shadow .12s ease; }
+.twmj .tile .num { font-size: .62em; margin-bottom: .04em; }
+.twmj .tile .suitc { font-size: .52em; margin-top: -.02em; }
+.twmj .tile .red, .twmj .tile.red { color: var(--t-red); }
+.twmj .tile .green { color: var(--t-green); }
+.twmj .tile .hon { font-size: .86em; }
+.twmj .tile svg { width: 78%; height: 82%; display: block; }
+.twmj .tile .wf { width: 52%; height: 62%; border: calc(var(--tw) * .06) solid var(--t-blue); border-radius: calc(var(--tw) * .06); display: block; box-shadow: inset 0 0 0 calc(var(--tw) * .035) #fff, inset 0 0 0 calc(var(--tw) * .075) var(--t-blue); }
+.twmj .tile .flw { font-size: .78em; }
+.twmj .tile .fnum { position: absolute; right: 9%; bottom: 5%; font-family: var(--ui); font-size: .3em; font-weight: 800; color: #6b6a86; }
+.twmj .tile.season { background: linear-gradient(170deg, #fffaf0, #fde7c0); }
+.twmj .tile.season .flw { color: #c2410c; }
+.twmj .tile.plant { background: linear-gradient(170deg, #f6fff6, #d4f0d8); }
+.twmj .tile.plant .flw { color: #15803d; }
+.twmj .tile.back {
+  background: linear-gradient(160deg, #26a37c, #137456);
+  box-shadow: 0 calc(var(--tw) * .06) 0 #35b184, 0 calc(var(--tw) * .12) 0 #1f8160, 0 calc(var(--tw) * .2) 0 #115a40, 0 calc(var(--tw) * .26) calc(var(--tw) * .14) rgba(0,0,0,.5);
+}
+.twmj .tile.back::after { content: ""; position: absolute; inset: 14%; border: 1.5px solid rgba(255,255,255,.28); border-radius: calc(var(--tw) * .08); }
+.twmj .hand { --tw: clamp(20px, calc((min(100vw, 1040px) - 96px) / 19.2), 52px); display: flex; flex-wrap: wrap; justify-content: center; gap: calc(var(--tw) * .06); padding: 6px 0 14px; min-height: calc(var(--tw) * 1.34 + 24px); }
+.twmj .hand .tile { --tw: inherit; }
+.twmj .hand .tile.drawn { margin-left: calc(var(--tw) * .55); }
+.twmj button.tile:hover { transform: translateY(-3px); }
+.twmj button.tile.sel { transform: translateY(calc(var(--tw) * -.34)); box-shadow: 0 0 0 3px var(--accent), 0 calc(var(--tw) * .16) calc(var(--tw) * .22) rgba(0,0,0,.5); }
+.twmj button.tile.ready::before { content: ""; position: absolute; top: -7px; left: 50%; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 2px rgba(0,0,0,.35); }
+.twmj button.tile.hint { animation: tw-pulse 1s ease-in-out infinite; }
+.twmj button.tile:disabled { cursor: default; transform: none; }
+@keyframes tw-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(252,211,77,.0), 0 3px 6px rgba(0,0,0,.45); } 50% { box-shadow: 0 0 0 4px rgba(252,211,77,.9), 0 3px 6px rgba(0,0,0,.45); } }
+@media (max-width: 640px) {
+.twmj .hand { --tw: calc((100vw - 52px) / 9.6); }
+.twmj .hand .tile.drawn { margin-left: calc(var(--tw) * .3); }
+}
+.twmj .game { padding-bottom: 28px; }
+.twmj .hud { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; padding: 8px 2px 10px; font-size: .9rem; color: var(--muted); }
+.twmj .hud .k { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; margin-right: 4px; }
+.twmj .hud b { color: var(--ink); }
+.twmj .grow { flex: 1; }
+.twmj .opps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.twmj .opp { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px 9px; min-width: 0; transition: border-color .2s, box-shadow .2s; }
+.twmj .opp.turn { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.twmj .opp .top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.twmj .opp .nm { font-weight: 700; }
+.twmj .opp .pos { color: var(--muted); font-size: .72rem; }
+.twmj .wind { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 5px; border-radius: 6px; background: var(--panel2); font-family: var(--cjk); font-weight: 900; font-size: .85rem; }
+.twmj .wind.dealer { background: var(--accent); color: #fff; }
+.twmj .opp .meta { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .8rem; margin-top: 2px; flex-wrap: wrap; }
+.twmj .opp .meta b { color: var(--ink); }
+.twmj .minis { display: flex; flex-wrap: wrap; gap: 3px 6px; margin-top: 6px; min-height: 4px; }
+.twmj .minis .grp { display: inline-flex; gap: 1px; }
+.twmj .minis .tile { --tw: 15px; }
+.twmj .opp .tile.back.cnt { --tw: 12px; }
+.twmj .stage {
+  --S: min(calc(100vw - 32px), 700px);          /* table width */
+  --F: calc(var(--S) * .925);                    /* felt width = height */
+  --u: calc(var(--F) / 21);                      /* base tile width on the table */
+  --uw: var(--u);                                /* wall and standing-hand tile width */
+  --wo: calc(var(--F) * .092); --wob: calc(var(--F) * .13);  /* wall offsets */
+  position: relative; width: var(--S); margin: 4px auto 14px; perspective: calc(var(--S) * 1.5); perspective-origin: 50% -10%;
+  height: calc(var(--S) * .76); pointer-events: none;
+}
+.twmj .rim {
+  position: absolute; left: 0; top: calc(var(--S) * -.24); width: var(--S); height: var(--S);
+  padding: calc(var(--S) * .0375); border-radius: calc(var(--S) * .05);
+  background: linear-gradient(150deg, #8a5629 0%, #62381a 45%, #7c4c22 100%);
+  box-shadow: 0 calc(var(--S) * .018) 0 #3c200c, 0 calc(var(--S) * .036) 0 #2b1707, 0 calc(var(--S) * .07) calc(var(--S) * .06) rgba(0,0,0,.6);
+  transform-origin: 50% 100%; transform: rotateX(42deg);
+  transform-style: preserve-3d;
+}
+.twmj .felt {
+  position: relative; width: var(--F); height: var(--F); border-radius: calc(var(--S) * .025); overflow: hidden;
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.018) 0 2px, rgba(0,0,0,.02) 2px 4px),
+    radial-gradient(75% 75% at 50% 45%, #178a63 0%, #0f6a4b 55%, #0a4c36 100%);
+  box-shadow: inset 0 0 calc(var(--S) * .05) rgba(0,0,0,.55), inset 0 0 0 calc(var(--S) * .006) rgba(0,0,0,.35);
+}
+.twmj .wall { position: absolute; display: flex; gap: 0; }
+.twmj .stack {
+  display: block; width: var(--uw); height: calc(var(--uw) * 1.34); border-radius: calc(var(--uw) * .12);
+  background: linear-gradient(160deg, #2bb083, #167a5b);
+  box-shadow: 0 calc(var(--uw) * .24) 0 #0f5a42, 0 calc(var(--uw) * .4) 0 #0b4331, 0 calc(var(--uw) * .5) calc(var(--uw) * .2) rgba(0,0,0,.45);
+}
+.twmj .stack.gone { visibility: hidden; }
+.twmj .wall.wt { left: 50%; top: var(--wo); transform: translateX(-50%); }
+.twmj .wall.wb { left: 50%; bottom: var(--wob); transform: translateX(-50%); flex-direction: row-reverse; }
+.twmj .wall.wl, .twmj .wall.wr { flex-direction: column; top: 50%; transform: translateY(-50%); }
+.twmj .wall.wl { left: var(--wo); }
+.twmj .wall.wr { right: var(--wo); flex-direction: column-reverse; }
+.twmj .wall.wl .stack, .twmj .wall.wr .stack { width: calc(var(--uw) * 1.34); height: var(--uw); }
+.twmj .wall.wl .stack { box-shadow: calc(var(--uw) * .24) 0 0 #0f5a42, calc(var(--uw) * .4) 0 0 #0b4331, calc(var(--uw) * .5) 0 calc(var(--uw) * .2) rgba(0,0,0,.45); }
+.twmj .wall.wr .stack { box-shadow: calc(var(--uw) * -.24) 0 0 #0f5a42, calc(var(--uw) * -.4) 0 0 #0b4331, calc(var(--uw) * -.5) 0 calc(var(--uw) * .2) rgba(0,0,0,.45); }
+.twmj .standing { position: absolute; display: flex; gap: calc(var(--u) * .06); transition: filter .2s; }
+.twmj .standing .tile { --tw: var(--uw); }
+.twmj .standing.turn { filter: drop-shadow(0 0 calc(var(--u) * .35) rgba(236,72,153,.95)); }
+.twmj .hs2 { left: 50%; top: calc(var(--F) * .012); transform: translateX(-50%); }
+.twmj .hs1, .twmj .hs3 { flex-direction: column; top: 50%; transform: translateY(-50%); }
+.twmj .hs1 { right: calc(var(--F) * .012); }
+.twmj .hs3 { left: calc(var(--F) * .012); }
+.twmj .hs1 .tile, .twmj .hs3 .tile { width: calc(var(--uw) * 1.34); height: var(--uw); }
+.twmj .standing .gap { margin-top: calc(var(--uw) * .5); }
+.twmj .hs2 .gap { margin-top: 0; margin-left: calc(var(--uw) * .5); }
+.twmj .standing .tile.back::after { inset: 18%; }
+.twmj .pool-wrap { position: absolute; --pw: calc(var(--u) * 1.15 * var(--ps, 1)); --cols: 6.7; }
+.twmj .pool-wrap.dense { --cols: 8; }
+.twmj .pool { display: flex; gap: calc(var(--pw) * .08); align-content: flex-start; }
+.twmj .pool .tile { --tw: var(--pw); }
+.twmj .pool-wrap.p2, .twmj .pool-wrap.p0 { left: 50%; transform: translateX(-50%); width: calc(var(--pw) * var(--cols)); }
+.twmj .pool-wrap.p2 .pool, .twmj .pool-wrap.p0 .pool { flex-wrap: wrap; }
+.twmj .pool-wrap.p2 { top: calc(var(--F) * .198); }
+.twmj .pool-wrap.p0 { top: calc(var(--F) * .585); }
+.twmj .pool-wrap.p1, .twmj .pool-wrap.p3 { top: calc(var(--F) * .385); }
+.twmj .pool-wrap.p3 { left: calc(var(--F) * .175); }
+.twmj .pool-wrap.p1 { right: calc(var(--F) * .175); }
+.twmj .pool-wrap.p1 .pool, .twmj .pool-wrap.p3 .pool { flex-flow: column wrap; height: calc(var(--pw) * 1.34 * 4 + var(--pw) * .32); }
+.twmj .pool-wrap.p1 .pool { flex-flow: column-reverse wrap-reverse; align-content: flex-start; }
+.twmj .ptag { position: absolute; z-index: 2; display: inline-flex; align-items: center; gap: calc(var(--u) * .2); font-size: calc(var(--u) * .62); font-weight: 700; color: #d6f5e6; white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.twmj .ptag .wind { min-width: calc(var(--u) * .95); height: calc(var(--u) * .95); font-size: calc(var(--u) * .62); border-radius: calc(var(--u) * .25); }
+.twmj .p2 .ptag { top: calc(var(--u) * -.95); left: 0; }
+.twmj .p0 .ptag { bottom: calc(var(--u) * -1.1); top: auto; left: 0; }
+.twmj .p3 .ptag { top: calc(var(--u) * -.95); left: 0; }
+.twmj .p1 .ptag { top: calc(var(--u) * -.95); right: 0; flex-direction: row-reverse; }
+.twmj .tile.lastd { outline: calc(var(--tw) * .12) solid #fcd34d; outline-offset: 1px; animation: tw-drop .35s ease-out; z-index: 1; }
+@keyframes tw-drop { from { transform: translateY(-14px) scale(1.15); opacity: 0; } to { transform: none; opacity: 1; } }
+.twmj .hub { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 0; color: #c8f0de; text-align: center; line-height: 1.05; }
+.twmj .hub .big { font-family: var(--cjk); font-weight: 900; font-size: calc(var(--u) * 1.5); color: #eafff5; text-shadow: 0 2px 6px rgba(0,0,0,.5); }
+.twmj .hub .sm { font-size: calc(var(--u) * .5); letter-spacing: .06em; text-transform: uppercase; opacity: .85; }
+.twmj .flash {
+  position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%) scale(.9); pointer-events: none; opacity: 0;
+  background: rgba(10,8,36,.9); border: 2px solid var(--accent); color: #fff; padding: 10px 22px; border-radius: 16px; text-align: center; white-space: nowrap;
+  font-weight: 800; font-size: 1.25rem; z-index: 5;
+}
+.twmj .flash small { display: block; font-size: .75rem; font-weight: 600; color: #fbcfe8; }
+.twmj .flash .zh { font-family: var(--cjk); font-size: 1.9rem; display: block; line-height: 1.1; }
+.twmj .flash.show { animation: tw-pop 1s ease-out forwards; }
+@keyframes tw-pop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.7); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); } 25% { transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -58%) scale(1); } }
+.twmj .you { margin-top: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 12px 10px 10px; }
+.twmj .status { font-weight: 600; min-height: 1.6em; padding: 0 6px; }
+.twmj .status .dim { color: var(--muted); font-weight: 500; }
+.twmj .tw-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 6px 2px; min-height: 8px; }
+.twmj .act { appearance: none; border: 0; font: inherit; font-weight: 800; padding: 10px 18px; border-radius: 12px; min-height: 48px; cursor: pointer; color: #fff; background: #4338ca; display: inline-flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.twmj .act .zh { font-family: var(--cjk); font-size: 1.25rem; }
+.twmj .act .en { font-size: .72rem; font-weight: 600; opacity: .9; }
+.twmj .act.hu { background: linear-gradient(135deg, #f43f5e, #ec4899); }
+.twmj .act.pass { background: var(--panel2); border: 1px solid var(--line); color: var(--muted); }
+.twmj .act:hover { filter: brightness(1.12); }
+.twmj .act .mini { display: inline-flex; gap: 1px; margin-top: 3px; }
+.twmj .act .mini .tile { --tw: 14px; }
+.twmj .helper { color: var(--muted); font-size: .88rem; padding: 6px 6px 0; min-height: 1.4em; }
+.twmj .helper b { color: var(--ink); }
+.twmj .helper .minis { display: inline-flex; margin: 0 0 0 6px; vertical-align: middle; }
+.twmj .helper .tile { --tw: 18px; }
+.twmj .exposed { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; min-height: 4px; padding: 6px 0 0; --tw: 24px; }
+.twmj .exposed .grp { display: inline-flex; gap: 1px; }
+.twmj .exposed .tile { --tw: inherit; }
+.twmj .exposed .fl { display: inline-flex; gap: 1px; opacity: .95; padding-left: 10px; border-left: 2px solid var(--line); }
+.twmj .tw-tools { display: flex; align-items: center; gap: 12px; padding: 0 6px; flex-wrap: wrap; }
+.twmj .keys { color: var(--muted); font-size: .75rem; }
+@media (max-width: 640px) {
+.twmj .keys { display: none; }
+}
+.twmj .content { margin-top: 36px; max-width: 760px; color: #d6d2f3; }
+.twmj .content h2 { font-size: 1.4rem; }
+.twmj .content h3 { font-size: 1.05rem; margin-top: 1.3em; }
+.twmj .content li { margin: .25em 0; }
+.twmj details { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin: 8px 0; }
+.twmj summary { cursor: pointer; font-weight: 600; }
+.twmj details p { margin: .6em 0 .2em; color: var(--muted); }
+.twmj dialog { color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 0; width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 24px); box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.twmj dialog::backdrop { background: rgba(6,4,22,.72); backdrop-filter: blur(3px); }
+.twmj .dlg { padding: 20px; margin: 0; }
+.twmj .dlg.wide { }
+.twmj dialog:has(.wide) { width: min(720px, calc(100vw - 24px)); }
+.twmj .dlg h2 { font-size: 1.35rem; margin-bottom: .2em; }
+.twmj .tw-sub { margin: 0 0 12px; color: var(--muted); }
+.twmj .steps { padding-left: 1.2em; }
+.twmj .steps li { margin: .6em 0; }
+.twmj .steps ul { margin: .3em 0; padding-left: 1.1em; }
+.twmj .res-hand { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; padding: 10px 6px 14px; --tw: 24px; background: linear-gradient(var(--felt), var(--felt2)); border-radius: 12px; }
+.twmj .res-hand .grp { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 1px; }
+.twmj .res-hand .tile { --tw: inherit; }
+.twmj .res-hand .winning { outline: 3px solid #fcd34d; outline-offset: 1px; }
+@media (max-width: 560px) {
+.twmj .res-hand { --tw: clamp(15px, calc((100vw - 110px) / 16), 24px); padding-left: 4px; padding-right: 4px; }
+}
+.twmj table.tai { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: .92rem; }
+.twmj table.tai td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.twmj table.tai td:first-child { font-family: var(--cjk); font-weight: 800; white-space: nowrap; width: 1%; }
+.twmj table.tai td:last-child { text-align: right; font-weight: 700; white-space: nowrap; color: #fbcfe8; }
+.twmj table.tai tr.total td { border-bottom: 0; font-size: 1.05rem; color: #fff; }
+.twmj .taibody { max-height: min(58vh, 520px); overflow: auto; padding-right: 4px; }
+.twmj .taibody h3 { margin: 14px 0 4px; font-size: .8rem; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); }
+.twmj table.pay td:first-child { font-family: var(--ui); font-weight: 700; }
+.twmj table.pay td:nth-child(2) { text-align: right; }
+.twmj table.pay td:last-child { color: var(--muted); font-weight: 500; }
+.twmj .pos { color: var(--ok); font-weight: 700; }
+.twmj .neg { color: var(--bad); font-weight: 700; }
+.twmj .standings { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.twmj .standings li { display: flex; align-items: center; gap: 12px; background: var(--bg2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.twmj .standings li.me { border-color: var(--accent); }
+.twmj .standings .rk { font-weight: 800; font-size: 1.3rem; width: 1.4em; color: var(--accent); }
+.twmj .standings .nm { flex: 1; font-weight: 700; }
+.twmj .standings .pts { font-variant-numeric: tabular-nums; font-weight: 700; }
+.twmj .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #3b1230; border: 1px solid #7f1d4d; color: #ffe4ea; padding: 10px 16px; border-radius: 12px; z-index: 50; max-width: calc(100vw - 24px); }
+@media (prefers-reduced-motion: reduce) {
+.twmj, .twmj * { animation: none !important; transition: none !important; }
+.twmj .flash.show { opacity: 1; }
+}
+.twmj .rim, .twmj .felt { pointer-events: none; }
+.twmj .opp .meta .cnt { display: none; }
+@media (max-width: 640px) {
+.twmj .opp .pos { display: none; }
+.twmj .opp .top { gap: 5px; }
+.twmj .opp .nm { font-size: .92rem; }
+}
+.twmj .stage { z-index: 0; }
+.twmj .you { position: relative; z-index: 2; }
+@media (max-width: 640px) {
+.twmj .stage { --S: calc(100vw - 8px); width: var(--S); margin-left: calc(50% - var(--S) / 2); margin-right: 0;
+    --uw: calc(var(--F) / 29); --wo: calc(var(--F) * .074); --wob: calc(var(--F) * .095); }
+.twmj .pool-wrap { --pw: calc(var(--F) / 14.2 * var(--ps, 1)); --cols: 5.5; }
+.twmj .pool-wrap.dense { --cols: 7; }
+.twmj .pool-wrap.p2, .twmj .pool-wrap.p0 { width: calc(var(--pw) * var(--cols)); }
+.twmj .pool-wrap.p2 { top: calc(var(--F) * .165); }
+.twmj .pool-wrap.p0 { top: auto; bottom: calc(var(--F) * .165); }
+.twmj .pool-wrap.p0 .pool { flex-wrap: wrap-reverse; }
+.twmj .pool-wrap.p1, .twmj .pool-wrap.p3 { top: calc(var(--F) * .335); }
+.twmj .pool-wrap.p3 { left: calc(var(--F) * .15); }
+.twmj .pool-wrap.p1 { right: calc(var(--F) * .15); }
+.twmj .p0 .ptag { bottom: calc(var(--u) * -1.2); }
+.twmj .hub .big { font-size: calc(var(--u) * 1.25); }
+}
+
+/* Phones: let the table band run edge to edge of the viewport so the 3D table keeps its full width. */
+@media (max-width: 640px) {
+  .twmj { width: 100vw; margin-left: calc(50% - 50vw); border-radius: 0; }
+}
+
+.twmj .res-winner { margin: 14px 0 6px; font-size: 1rem; }
+
+/* Phones in landscape (short and wide): table on the left, opponents and your hand on the right,
+   so the whole table and your hand fit one screen without scrolling between them. */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
+  .twmj .game { --LS: min(36vw, calc((100vh - 56px) / .76), 560px); display: grid; grid-template-columns: var(--LS) minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "hud hud" "stage opps" "stage you"; column-gap: 14px; align-items: start; }
+  .twmj .hud { grid-area: hud; padding: 0 2px 4px; gap: 2px 14px; font-size: .82rem; }
+  .twmj .hud .iconbtn { min-height: 30px; padding-top: 3px; padding-bottom: 3px; }
+  .twmj .opps { grid-area: opps; gap: 6px; margin-bottom: 4px; }
+  .twmj .stage { grid-area: stage; --S: var(--LS); width: var(--S); margin: 0; }
+  .twmj .you { grid-area: you; margin-top: 0; padding: 4px 6px 2px; min-width: 0; border-radius: 14px; }
+  .twmj .hand { --tw: clamp(22px, calc((100vw - var(--LS) - 98px) / 9.7), 40px); padding: 2px 0 4px; }
+  .twmj .hand .tile.drawn { margin-left: calc(var(--tw) * .3); }
+  .twmj dialog .tw-end { position: sticky; bottom: 0; background: var(--panel); padding-top: 8px; }
+  .twmj .opp { padding: 4px 7px; border-radius: 10px; }
+  .twmj .opp .pos { display: none; }
+  .twmj .opp .meta { margin-top: 0; }
+  .twmj .minis { margin-top: 3px; }
+  .twmj .keys { display: none; }
+  .twmj .status { font-size: .9rem; min-height: 1.2em; }
+  .twmj .helper { font-size: .8rem; padding: 3px 6px 0; min-height: 1.2em; }
+  .twmj .tw-actions { padding: 4px 6px 0; gap: 6px; }
+  .twmj .act { min-height: 40px; padding: 4px 14px; }
+  .twmj .tw-tools { padding: 0 6px 2px; }
+  .twmj .exposed { padding-top: 2px; --tw: 20px; }
+}
+
+/* Page-only: a sticky 75px site header would take a fifth of a landscape phone screen, so let it scroll away here. */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
+  body > header { position: static; }
+}
+
+/* Laptops and desktops: the whole game (HUD, opponents, 3D table with discards, status, your 17-tile hand) fits one viewport.
+   Table on the left sized by the available height, opponents and your hand in the right column. --LSh is the table width
+   that leaves room for the sticky site header (75px), the HUD and spacing; the right column's width then sets hand tile size
+   (two rows of up to 9 tiles). Container units (cqw) keep this independent of the page scrollbar. */
+@media (min-width: 900px) and (min-height: 521px) {
+  .twmj .game { --LSh: calc((100vh - 75px - 64px - 34px) / .76); container-type: inline-size; max-width: none; padding-bottom: 12px;
+    display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "hud hud" "stage opps" "stage you"; column-gap: 16px; align-items: start; scroll-margin-top: 84px; }
+  .twmj .hud { grid-area: hud; padding: 0 2px 6px; }
+  .twmj .opps { grid-area: opps; margin-bottom: 0; }
+  .twmj .stage { grid-area: stage; --S: min(var(--LSh), 640px, 54cqw); width: var(--S); margin: 0; }
+  .twmj .you { grid-area: you; margin-top: 0; min-width: 0; padding: 10px 8px 6px; }
+  .twmj .hand { --tw: clamp(34px, calc((100cqw - min(var(--LSh), 640px, 54cqw) - 70px) / 10.2), 40px); padding: 4px 0 6px; }
+  .twmj .hand .tile.drawn { margin-left: calc(var(--tw) * .4); }
+  .twmj .helper { padding-top: 4px; }
+  .twmj .tw-tools { flex-wrap: nowrap; gap: 10px; padding: 0 6px; }
+  .twmj .keys { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .8rem; }
+  .twmj .exposed { padding-top: 2px; }
+}
+
+/* Plain 1-9 digit in the corner of Characters, Dots and Bamboo tiles (setting "Show numbers on tiles", on by default).
+   Purely visual: tile sizes are unchanged; the pips only shrink a little to leave the top-left corner free. */
+.twmj .tile .dg { display: none; }
+.twmj.shownum .tile .dg { display: block; position: absolute; left: 9%; top: 4%; font-family: var(--ui); font-weight: 800; font-size: max(7px, calc(var(--tw) * .3)); line-height: 1; color: var(--t-ink); pointer-events: none; }
+.twmj.shownum .tile .dg.c { color: var(--t-red); }
+.twmj.shownum .tile .dg.d { color: var(--t-blue); }
+.twmj.shownum .tile .dg.b { color: var(--t-green); }
+.twmj.shownum .tile svg { width: 74%; height: 72%; margin-top: 15%; }
+/* Too small to read a digit: opponent flower strips, claim-button previews and the helper's winning tiles. */
+.twmj.shownum .minis .tile .dg, .twmj.shownum .act .mini .tile .dg, .twmj.shownum .helper .tile .dg { display: none; }
+.twmj.shownum .minis .tile svg, .twmj.shownum .act .mini .tile svg, .twmj.shownum .helper .tile svg { width: 78%; height: 82%; margin-top: 0; }
+/* Phone landscape discards are only 13-15px wide: no digit there. */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
+  .twmj.shownum .pool .tile .dg { display: none; }
+  .twmj.shownum .pool .tile svg { width: 78%; height: 82%; margin-top: 0; }
+}

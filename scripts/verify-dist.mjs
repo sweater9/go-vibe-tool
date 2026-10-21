@@ -36,12 +36,15 @@ export function verifyDist(dist, { root } = {}) {
   if (!sw) errors.push('sw.js missing from output');
   const precache = [...sw.matchAll(/"(\.\/[^"]*)"/g)].map(m => m[1]);
   for (const a of precache) { const p = a.slice(2); if (!hasPath(p)) errors.push(`service worker precaches a file that is not in the output: ${a}`); }
-  const need = ['./index.html', './labs/index.html', './labs/ai/index.html', './labs/cyber/index.html', './labs/science/index.html', './labs/finance/index.html', './labs/workflow/index.html', './labs/api-playground/index.html', './play/index.html', './play/mahjong-solitaire/index.html', './play/2048/index.html', './play/daily-word/index.html', './labs/shared/kit.js'];
+  const need = ['./index.html', './labs/index.html', './labs/ai/index.html', './labs/cyber/index.html', './labs/science/index.html', './labs/finance/index.html', './labs/workflow/index.html', './labs/api-playground/index.html', './play/index.html', './play/taiwan-mahjong/index.html', './play/2048/index.html', './play/daily-word/index.html', './labs/shared/kit.js'];
   for (const a of precache) { if (UNRELEASED_SITE_PATHS.some(u => a.startsWith('./' + u + '/'))) errors.push(`service worker precaches an unreleased path: ${a}`); }
   for (const n of need) if (!precache.includes(n)) errors.push(`service worker does not precache ${n}`);
 
   if (set.has('sitemap.xml')) { for (const m of fs.readFileSync(path.join(dist, 'sitemap.xml'), 'utf8').matchAll(/<loc>https:\/\/govibetool\.com\/([^<]*)<\/loc>/g)) { const p = m[1]; if (!hasPath(p)) errors.push(`sitemap URL has no page in the output: /${p}`); } }
-  for (const f of ['index.html', '404.html', 'robots.txt', 'ads.txt', 'sitemap.xml', 'manifest.webmanifest', 'sw.js']) if (!set.has(f)) errors.push(`missing ${f}`);
+  for (const f of ['index.html', '404.html', 'robots.txt', 'ads.txt', 'sitemap.xml', 'manifest.webmanifest', 'sw.js', '_redirects']) if (!set.has(f)) errors.push(`missing ${f}`);
+  if (set.has('_redirects')) { const r = fs.readFileSync(path.join(dist, '_redirects'), 'utf8'); if (!/^\/play\/mahjong-solitaire\/\s+\/play\/taiwan-mahjong\/\s+301\s*$/m.test(r)) errors.push('_redirects must 301 /play/mahjong-solitaire/ to /play/taiwan-mahjong/'); }
+  if (files.some(f => f.startsWith('play/mahjong-solitaire/'))) errors.push('retired Mahjong Solitaire files are still in the output');
+  if (set.has('sitemap.xml') && fs.readFileSync(path.join(dist, 'sitemap.xml'), 'utf8').includes('mahjong-solitaire')) errors.push('sitemap still lists the retired Mahjong Solitaire URL');
   if (root) { for (const f of ['ads.txt', 'robots.txt', 'privacy.html', 'terms.html']) { const a = path.join(root, f), b = path.join(dist, f); if (fs.existsSync(a) && fs.existsSync(b) && !fs.readFileSync(a).equals(fs.readFileSync(b))) errors.push(`${f} differs from the source file`); } }
   return { ok: errors.length === 0, errors, files: files.length, totalBytes, largest };
 }

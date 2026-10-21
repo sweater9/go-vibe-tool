@@ -11,12 +11,15 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
 
 export function createDistServer(dist, { port = 0 } = {}) {
   const root = path.resolve(dist); const sockets = new Set(); let server;
+  const rules = (() => { try { return fs.readFileSync(path.join(root, '_redirects'), 'utf8').split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#')).map(l => l.split(/\s+/)).filter(a => a.length >= 2); } catch { return []; } })();
   const isFile = p => { try { return fs.statSync(p).isFile(); } catch { return false; } };
   const send = (res, status, file, extra = {}) => { const ext = path.extname(file); res.writeHead(status, { 'Content-Type': TYPES[ext] || 'application/octet-stream', 'Cache-Control': 'no-cache', ...extra }); res.end(fs.readFileSync(file)); };
   const handler = (req, res) => {
     const u = new URL(req.url, 'http://x'); let p; try { p = decodeURIComponent(u.pathname); } catch { res.writeHead(400).end(); return; }
     const file = path.resolve(root, '.' + p); if (file !== root && !file.startsWith(root + path.sep)) { res.writeHead(403).end(); return; }
     const redirect = to => { res.writeHead(307, { Location: to + u.search }); res.end(); };
+    /* Workers static assets apply _redirects first and always (rules: exact path or trailing /*, optional status, default 302). */
+    for (const [from, to, code] of rules) { if (p === from || (from.endsWith('/*') && p.startsWith(from.slice(0, -1)))) { res.writeHead(Number(code) || 302, { Location: to, 'Cache-Control': 'no-cache' }); res.end(); return; } }
     if (p.endsWith('/index.html')) return redirect(p.slice(0, -'index.html'.length));
     if (p.endsWith('.html') && isFile(file)) return redirect(p.slice(0, -'.html'.length));
     if (p.endsWith('/')) { const idx = path.join(file, 'index.html'); if (isFile(idx)) return send(res, 200, idx); if (isFile(file.slice(0, -1) + '.html')) return redirect(p.slice(0, -1)); }

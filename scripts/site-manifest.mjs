@@ -3,7 +3,7 @@ export const MAX_ASSET_BYTES = 25 * 1024 * 1024; // Workers static assets: 25 Mi
 export const MAX_ASSET_FILES = 20000;             // Workers static assets: files per Worker version (free plan)
 
 // Root-level files that are part of the website.
-export const ROOT_FILES = ['index.html', 'studios.html', '404.html', 'contact.html', 'privacy.html', 'terms.html', 'ads.txt', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest', 'sw.js'];
+export const ROOT_FILES = ['index.html', 'studios.html', '404.html', 'contact.html', 'privacy.html', 'terms.html', 'ads.txt', 'robots.txt', 'sitemap.xml', 'manifest.webmanifest', 'sw.js', '_redirects'];
 export const ROOT_FILE_PATTERN = /^[A-Za-z0-9._-]+\.(js|css)$/; // root scripts and stylesheets (tools.js, v2.css, ...)
 
 // Top-level directories that are part of the website. Everything else (node_modules, tests, docs, qa, multiplayer,
