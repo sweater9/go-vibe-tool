@@ -127,9 +127,25 @@ t('half flush 混一色', () => {
   const r = score('123m 456m 789m 234m 111z 99m', '9m');
   assert(r && has(r, '混一色'), r && names(r));
 });
-t('honours only 字一色', () => {
+t('honours only 字一色 is 8 tai', () => {
   const r = score('111z 222z 333z 444z 555z 66z', '6z');
   assert(has(r, '字一色'), names(r));
+  assert.strictEqual(r.items.find(i => i.zh === '字一色').tai, 8);
+});
+t('平胡 requires a win off a discard (not self-drawn)', () => {
+  const ron = score('123m 456m 789m 123p 456p 99s', '6p', {});
+  const tsumo = score('123m 456m 789m 123p 456p 99s', '6p', { self: true });
+  assert(has(ron, '平胡'), names(ron));
+  assert(!has(tsumo, '平胡'), names(tsumo));
+});
+t('人胡 scores 8 tai, 天胡 24, 地胡 16', () => {
+  const base = score('123m 456m 789m 123p 456p 99s', '6p', {});
+  const ren = score('123m 456m 789m 123p 456p 99s', '6p', { flags: { renhu: true } });
+  const di = score('123m 456m 789m 123p 456p 99s', '6p', { flags: { dihu: true } });
+  const tian = score('123m 456m 789m 123p 456p 99s', '6p', { self: true, seat: 0, dealer: 0, flags: { tianhu: true } });
+  assert.strictEqual(ren.tai - base.tai, 8, names(ren));
+  assert.strictEqual(di.tai - base.tai, 16, names(di));
+  assert.strictEqual(tian.items.find(i => i.zh === '天胡').tai, 24);
 });
 t('concealed triplets count', () => {
   const r = score('111m 222p 333s 456m 789p 99s', '9s', { self: true });
@@ -145,9 +161,10 @@ t('matching flowers', () => {
   const f = r.items.find(i => i.zh === '花牌');
   assert(f && f.tai === 2, names(r));
 });
-t('flower kong', () => {
+t('completing a flower set earns no extra bonus (花槓 removed to match the reference table)', () => {
   const r = score('123m 456m 789m 123p 456p 99s', '5p', { self: true, flowers: [34, 35, 36, 37] });
-  assert(has(r, '花槓'), names(r));
+  assert(!has(r, '花槓'), names(r));
+  assert.strictEqual(r.items.filter(i => i.zh === '花牌').reduce((a, i) => a + i.tai, 0), 1, 'only the seat-matching flower scores'); // seat 1: 夏 only
 });
 t('all eight flowers', () => {
   const r = score('123m 456m 789m 123p 456p 99s', '5p', { self: true, flowers: [34, 35, 36, 37, 38, 39, 40, 41] });
@@ -174,8 +191,8 @@ t('picks the best decomposition', () => {
 
 console.log('Full-match simulation (bots only)');
 
-function sim(seed, skill, log) {
-  const m = new E.Match({ seed, skill, humanSeats: [], rounds: 1 });
+function sim(seed, skill, log, multiWin) {
+  const m = new E.Match({ seed, skill, humanSeats: [], rounds: 1, multiWin: !!multiWin });
   let hands = 0, wins = 0, draws = 0, selfdraws = 0, maxTai = 0, steps = 0;
   let ev = m.startHand();
   const t0 = Date.now();
@@ -203,6 +220,8 @@ function sim(seed, skill, log) {
       hands++; wins++; if (ev.selfDraw) selfdraws++; maxTai = Math.max(maxTai, ev.tai);
       const sum = ev.pay.reduce((a, b) => a + b, 0);
       if (sum !== 0) throw new Error('payments do not balance');
+      if (!ev.flowerWin) ev.winners.forEach(w => { if (!E.isComplete(w.hand.conc, w.hand.melds.length)) throw new Error('winner hand incomplete'); });
+      if (!multiWin && ev.winners.length !== 1) throw new Error('several winners with multiWin off');
       m.nextHand();
     } else if (ev.type === 'drawgame') { hands++; draws++; m.nextHand(); }
   }
@@ -222,6 +241,27 @@ function sim(seed, skill, log) {
     console.log('       skill ' + skill + ': ' + H + ' hands, ' + W + ' wins (' + S + ' self-draw), ' + D + ' draws, max tai ' + M + ', ' + Math.round(ms / H) + ' ms/hand');
     assert(H > 0);
   });
+});
+
+t('bot matches with the multiple-winners house rule on stay balanced and conserve points', () => {
+  let multi = 0;
+  for (let s = 1; s <= 30; s++) {
+    const m = new E.Match({ seed: 500 + s, skill: 1, humanSeats: [], rounds: 1, multiWin: true });
+    let ev = m.startHand(), steps = 0;
+    while (!m.over) {
+      ev = m.step();
+      if (++steps > 20000) throw new Error('runaway');
+      if (ev.type === 'win') {
+        assert.strictEqual(ev.pay.reduce((a, b) => a + b, 0), 0);
+        if (ev.winners.length > 1) multi++;
+        const sum = ev.winners.reduce((a, w) => a + w.pay.reduce((x, y) => x + y, 0), 0);
+        assert.strictEqual(sum, 0);
+        m.nextHand();
+      } else if (ev.type === 'drawgame') m.nextHand();
+    }
+    assert.strictEqual(m.players.reduce((a, p) => a + p.chips, 0), 4000);
+  }
+  console.log('       multi-winner hands seen: ' + multi);
 });
 
 console.log('\n' + passed + ' checks passed' + (process.exitCode ? ' — with failures' : ''));

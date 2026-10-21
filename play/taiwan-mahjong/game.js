@@ -27,7 +27,7 @@
   ];
 
   /* ---------------- settings and record ---------------- */
-  var settings = Object.assign({ skill: 1, rounds: 1, speed: 1, helper: true }, store.get('settings', {}));
+  var settings = Object.assign({ skill: 1, rounds: 1, speed: 1, helper: true, multiWin: false }, store.get('settings', {}));
   var stats = Object.assign({ hands: 0, wins: 0, self: 0, best: 0, bestName: '', matches: 0, matchWins: 0 }, store.get('stats', {}));
   function saveSettings() { store.set('settings', settings); }
   function saveStats() { store.set('stats', stats); }
@@ -140,6 +140,8 @@
     });
     $('#optHelper').checked = !!settings.helper;
     $('#optHelper2').checked = !!settings.helper;
+    $('#optMulti').checked = !!settings.multiWin;
+    $('#optMulti2').checked = !!settings.multiWin;
     $('#skillHint').textContent = SKILL_HINT[settings.skill];
   }
   document.addEventListener('click', function (e) {
@@ -151,6 +153,9 @@
   });
   $('#optHelper').addEventListener('change', function (e) { settings.helper = e.target.checked; saveSettings(); syncSeg(document); renderYou(); });
   $('#optHelper2').addEventListener('change', function (e) { settings.helper = e.target.checked; saveSettings(); syncSeg(document); renderYou(); });
+  function setMulti(e) { settings.multiWin = e.target.checked; saveSettings(); syncSeg(document); if (match) match.cfg.multiWin = settings.multiWin; }
+  $('#optMulti').addEventListener('change', setMulti);
+  $('#optMulti2').addEventListener('change', setMulti);
 
   function renderStats() {
     var card = $('#statsCard');
@@ -172,7 +177,7 @@
 
   function startMatch() {
     clearTimeout(timer);
-    match = new E.Match({ skill: settings.skill, rounds: settings.rounds, humanSeats: [0], names: NAMES });
+    match = new E.Match({ skill: settings.skill, rounds: settings.rounds, humanSeats: [0], names: NAMES, multiWin: settings.multiWin });
     $('#setup').hidden = true; $('#game').hidden = false;
     window.scrollTo(0, 0);
     beginHand(match.startHand());
@@ -250,7 +255,7 @@
         }
         break;
       case 'win':
-        flash('胡', ev.selfDraw ? 'Self-draw' : 'Win', ev.seat); renderAll();
+        flash('胡', ev.flowerWin ? 'Flowers' : ev.selfDraw ? 'Self-draw' : (ev.winners && ev.winners.length > 1 ? 'Wins' : 'Win'), ev.seat); renderAll();
         wait(1100, function () { showResult(ev); }); break;
       case 'drawgame':
         flash('流局', 'Draw game'); renderAll();
@@ -474,9 +479,10 @@
   /* ---------------- results ---------------- */
   function updateStats(ev) {
     stats.hands++;
-    if (ev.type === 'win' && ev.seat === 0) {
+    var mine = ev.type === 'win' && (ev.winners || [ev]).filter(function (w) { return w.seat === 0; })[0];
+    if (mine) {
       stats.wins++; if (ev.selfDraw) stats.self++;
-      if (ev.tai > stats.best) { stats.best = ev.tai; stats.bestName = ev.items.map(function (i) { return i.zh; }).join(' '); }
+      if (mine.tai > stats.best) { stats.best = mine.tai; stats.bestName = mine.items.map(function (i) { return i.zh; }).join(' '); }
     }
     saveStats();
   }
@@ -492,18 +498,23 @@
       sub.textContent = 'The wall ran out. Nobody wins, and the dealer stays.';
       body.innerHTML = '';
     } else {
-      var w = match.players[ev.seat];
-      title.innerHTML = (ev.seat === 0 ? 'You win!' : esc(w.name) + ' wins') + ' <span lang="zh-Hant">' + (ev.selfDraw ? '自摸' : '胡') + '</span>';
-      sub.textContent = ev.selfDraw ? 'Self-draw: every opponent pays.' : 'Won on ' + name(ev.from) + '’s discard' + (ev.robKong ? ' (robbing a kong)' : '') + ': ' + name(ev.from) + ' pays.';
-      var h = ev.hand, conc = h.conc.slice();
-      conc[ev.tile]--;
-      var hh = '<div class="res-hand">' + h.melds.map(function (m) { return meldHTML(m, false); }).join('') +
-        '<span class="grp">' + tilesHTML(sortedTiles(conc)) + tileHTML(ev.tile, 'winning') + '</span>' +
-        (h.flowers.length ? '<span class="grp">' + tilesHTML(h.flowers) + '</span>' : '') + '</div>';
-      var rows = ev.items.map(function (i) { return '<tr><td>' + i.zh + '</td><td>' + esc(i.en) + '</td><td>' + (i.tai ? '+' + i.tai : '0') + '</td></tr>'; }).join('');
-      var tbl = '<table class="tai"><tbody>' + rows + '<tr class="total"><td>合計</td><td>Total · ' + match.cfg.base + ' + ' + match.cfg.perTai + ' × ' + ev.tai + ' = ' + ev.amount + ' pts each</td><td>' + ev.tai + ' tai</td></tr></tbody></table>';
-      body.innerHTML = hh + tbl + payTable(ev.pay);
-      willEnd = (ev.seat !== match.dealer) && (match.rotations + 1 >= match.cfg.rounds * 4);
+      var ws = ev.winners || [ev], multi = ws.length > 1;
+      var wn = ws.map(function (x) { return x.seat === 0 ? 'You' : name(x.seat); });
+      title.innerHTML = esc(multi ? wn.join(' and ') + ' win' : (ws[0].seat === 0 ? 'You win!' : name(ws[0].seat) + ' wins')) + ' <span lang="zh-Hant">' + (ev.selfDraw ? '自摸' : '胡') + '</span>';
+      if (ev.flowerWin === 'all') sub.textContent = 'All eight flowers win at once: every opponent pays.';
+      else if (ev.flowerWin === 'seven') sub.textContent = 'Seven flowers, and ' + name(ev.from) + ' drew the eighth: ' + name(ev.from) + ' pays.';
+      else sub.textContent = ev.selfDraw ? 'Self-draw: every opponent pays.' : 'Won on ' + name(ev.from) + '’s discard' + (ev.robKong ? ' (robbing a kong)' : '') + ': ' + name(ev.from) + (multi ? ' pays each winner.' : ' pays.');
+      body.innerHTML = ws.map(function (x) {
+        var h = x.hand, conc = h.conc.slice(), last = '';
+        if (ev.tile !== null && ev.tile !== undefined) { conc[ev.tile]--; last = tileHTML(ev.tile, 'winning'); }
+        var hh = '<div class="res-hand">' + h.melds.map(function (m) { return meldHTML(m, false); }).join('') +
+          '<span class="grp">' + tilesHTML(sortedTiles(conc)) + last + '</span>' +
+          (h.flowers.length ? '<span class="grp">' + tilesHTML(h.flowers) + '</span>' : '') + '</div>';
+        var rows = x.items.map(function (i) { return '<tr><td>' + i.zh + '</td><td>' + esc(i.en) + '</td><td>' + (i.tai ? '+' + i.tai : '0') + '</td></tr>'; }).join('');
+        var tbl = '<table class="tai"><tbody>' + rows + '<tr class="total"><td>合計</td><td>Total · ' + match.cfg.base + ' + ' + match.cfg.perTai + ' × ' + x.tai + ' = ' + x.amount + ' pts each</td><td>' + x.tai + ' tai</td></tr></tbody></table>';
+        return (multi ? '<h3 class="res-winner">' + esc(x.seat === 0 ? 'You' : name(x.seat)) + '</h3>' : '') + hh + tbl;
+      }).join('') + payTable(ev.pay);
+      willEnd = !ws.some(function (x) { return x.seat === match.dealer; }) && (match.rotations + 1 >= match.cfg.rounds * 4);
     }
     if (ev.type === 'drawgame') body.innerHTML = payTable([0, 0, 0, 0]);
     $('#btnNext').textContent = willEnd ? 'See final result' : 'Next hand';

@@ -208,8 +208,9 @@
       ['河底撈魚', 'Win on the discard after the last draw', '1'],
       ['槓上開花', 'Win on the replacement tile after a kong', '1'],
       ['搶槓', 'Win by robbing a kong', '1'],
-      ['天胡', 'Dealer wins on the opening draw', '16'],
-      ['地胡', 'Non-dealer wins before any meld or their first discard', '16']
+      ['天胡', 'Dealer wins on the opening draw', '24'],
+      ['地胡', 'Non-dealer wins before any meld or their first discard', '16'],
+      ['人胡', 'Non-dealer wins on another player\'s discard in the first go-around, before their own first draw and before any meld (not the dealer\'s first discard, which is 地胡)', '8']
     ] },
     { group: 'Sets', rows: [
       ['圈風 / 門風', 'Triplet of the round wind / your seat wind', '1 each'],
@@ -218,7 +219,7 @@
       ['大三元', 'Three dragon triplets (replaces dragon tai)', '8'],
       ['小四喜', 'Three wind triplets + wind pair (replaces wind tai)', '8'],
       ['大四喜', 'Four wind triplets (replaces wind tai)', '16'],
-      ['平胡', 'All sequences, no honours, no flowers, two-sided wait', '2'],
+      ['平胡', 'All sequences, no honours, no flowers, two-sided wait, not self-drawn', '2'],
       ['碰碰胡', 'All triplets and kongs', '4'],
       ['兩暗刻', 'Two concealed triplets', '1'],
       ['三暗刻', 'Three concealed triplets', '2'],
@@ -228,12 +229,12 @@
     { group: 'Suits', rows: [
       ['混一色', 'One suit plus honours', '4'],
       ['清一色', 'One suit only', '8'],
-      ['字一色', 'Honours only', '16']
+      ['字一色', 'Honours only', '8']
     ] },
     { group: 'Flowers', rows: [
       ['花牌', 'A flower whose number matches your seat', '1 each'],
-      ['花槓', 'All four flowers of one season set or plant set', '2'],
-      ['八仙過海', 'All eight flowers (replaces flower tai)', '8']
+      ['八仙過海', 'All eight flowers: wins at once, paid by all three', '8'],
+      ['七搶一', 'Seven flowers, then another player draws the eighth: wins at once, that player pays', '8']
     ] }
   ];
 
@@ -330,7 +331,7 @@
       sets.forEach(function (s) { var su = suitOf(s.t); if (su === 3) honors = true; else suitsSeen[su] = true; });
       var ps = suitOf(D.pair); if (ps === 3) honors = true; else suitsSeen[ps] = true;
       var nSuits = Object.keys(suitsSeen).length;
-      if (nSuits === 0) add('字一色', 'All honours', 16);
+      if (nSuits === 0) add('字一色', 'All honours', 8);
       else if (nSuits === 1 && !honors) add('清一色', 'Full flush', 8);
       else if (nSuits === 1 && honors) add('混一色', 'Half flush', 4);
 
@@ -343,7 +344,7 @@
 
       // pinghu
       if (flowers.length === 0 && sets.every(function (s) { return s.k === 0; }) &&
-          !isHonor(D.pair) && si >= 0 && D.sets[si].k === 0 && twoSided(D.sets[si].t, w)) {
+          !selfDraw && !isHonor(D.pair) && si >= 0 && D.sets[si].k === 0 && twoSided(D.sets[si].t, w)) {
         add('平胡', 'All sequences', 2);
       }
 
@@ -359,8 +360,6 @@
           if ((idx & 3) === seatWind) matched++;
         });
         if (matched) add('花牌', 'Matching flowers ×' + matched, matched);
-        if (grp[0] === 4) add('花槓', 'Season flower kong', 2);
-        if (grp[1] === 4) add('花槓', 'Plant flower kong', 2);
       }
 
       // situational
@@ -368,8 +367,9 @@
       if (flags.lastTile && !selfDraw && !flags.robKong) add('河底撈魚', 'Last discard win', 1);
       if (flags.kongDraw && selfDraw) add('槓上開花', 'Win on kong replacement', 1);
       if (flags.robKong) add('搶槓', 'Robbing a kong', 1);
-      if (flags.tianhu) add('天胡', 'Heavenly hand', 16);
+      if (flags.tianhu) add('天胡', 'Heavenly hand', 24);
       if (flags.dihu) add('地胡', 'Earthly hand', 16);
+      if (flags.renhu) add('人胡', 'Hand of man', 8);
 
       var tai = 0;
       items.forEach(function (it) { tai += it.tai; });
@@ -400,6 +400,7 @@
       chips: opts.chips === undefined ? 1000 : opts.chips,
       skill: opts.skill === undefined ? 1 : opts.skill,
       humanSeats: opts.humanSeats || [0],
+      multiWin: !!opts.multiWin,         // house rule: several players may win on the same discard (off = nearest winner only)
       names: opts.names || ['You', 'Mei', 'Hao', 'Lin'],
       seed: seed
     };
@@ -435,19 +436,21 @@
       var s = (this.dealer + i) % 4;
       for (var k = 0; k < 16; k++) {
         var t = this.wall.shift();
-        while (isFlower(t)) { this.players[s].flowers.push(t); flowersEv.push({ seat: s, tile: t }); t = this.wall.pop(); }
+        while (isFlower(t)) { this.players[s].flowers.push(t); flowersEv.push({ seat: s, tile: t }); this._lastFlowerSeat = s; t = this.wall.pop(); }
         this.players[s].conc[t]++;
       }
     }
+    this._fwCheck = true;
     this.turn = this.dealer; this.stage = 'draw'; this.drawBack = false;
     return { type: 'deal', flowers: flowersEv, dealer: this.dealer, round: this.roundWind(), lian: this.lian, hand: this.handNo };
   };
 
   P.nextHand = function () {
     if (this.stage !== 'between') return null;
-    var r = this.last;
+    var r = this.last, dealer = this.dealer;
     if (r && r.type === 'win') {
-      if (r.seat === this.dealer) this.lian++;
+      var dealerWon = r.winners ? r.winners.some(function (w) { return w.seat === dealer; }) : r.seat === dealer;
+      if (dealerWon) this.lian++;
       else { this.dealer = (this.dealer + 1) % 4; this.lian = 0; this.rotations++; }
     }
     if (this.rotations >= this.cfg.rounds * 4) {
@@ -462,13 +465,51 @@
     var t = fromBack ? this.wall.pop() : this.wall.shift();
     while (t !== undefined && isFlower(t)) {
       p.flowers.push(t); flowersEv.push({ seat: seat, tile: t });
+      this._lastFlowerSeat = seat; this._fwCheck = true;
       t = this.wall.pop();
     }
     return t;
   };
 
+  /* 八仙過海 (all eight flowers) and 七搶一 (seven flowers, the eighth drawn by someone else) end the hand at once. */
+  P._flowerWin = function () {
+    this._fwCheck = false;
+    var self = this, holder = -1, payer = null, kind = null, total = 0;
+    this.players.forEach(function (p) { total += p.flowers.length; });
+    this.players.forEach(function (p) { if (p.flowers.length === 8) { holder = p.seat; kind = 'all'; } });
+    if (holder < 0 && total === 8) {
+      this.players.forEach(function (p) { if (p.flowers.length === 7) holder = p.seat; });
+      if (holder >= 0) {
+        kind = 'seven';
+        this.players.forEach(function (p) { if (p.flowers.length === 1) payer = p.seat; });
+      }
+    }
+    if (holder < 0 || (kind === 'seven' && payer === null)) return null;
+    var items = [];
+    if (holder === this.dealer) {
+      items.push({ zh: '莊家', en: 'Dealer', tai: 1 });
+      if (this.lian > 0) items.push({ zh: '連' + this.lian + '拉' + this.lian, en: 'Dealer streak ×' + this.lian, tai: 2 * this.lian });
+    }
+    items.push(kind === 'all' ? { zh: '八仙過海', en: 'All eight flowers', tai: 8 } : { zh: '七搶一', en: 'Seven flowers, eighth drawn by another player', tai: 8 });
+    var tai = 0; items.forEach(function (it) { tai += it.tai; });
+    var amount = this.cfg.base + this.cfg.perTai * tai, pay = [0, 0, 0, 0], i;
+    if (kind === 'all') { for (i = 0; i < 4; i++) if (i !== holder) { pay[i] -= amount; pay[holder] += amount; } }
+    else { pay[payer] -= amount; pay[holder] += amount; }
+    for (i = 0; i < 4; i++) this.players[i].chips += pay[i];
+    var p = this.players[holder];
+    var hand = { conc: p.conc.slice(), melds: p.melds.slice(), flowers: p.flowers.slice(), sets: null, pair: null };
+    this.stage = 'between';
+    this.last = {
+      type: 'win', seat: holder, from: kind === 'all' ? null : payer, selfDraw: kind === 'all', tile: null, flowerWin: kind,
+      tai: tai, items: items, amount: amount, pay: pay, hand: hand, dealer: this.dealer, lian: this.lian, robKong: false,
+      winners: [{ seat: holder, tai: tai, items: items, amount: amount, pay: pay.slice(), hand: hand }]
+    };
+    return this.last;
+  };
+
   P.step = function () {
     if (this.over) return { type: 'over' };
+    if (this._fwCheck && (this.stage === 'draw' || this.stage === 'self')) { var fw = this._flowerWin(); if (fw) return fw; }
     switch (this.stage) {
       case 'draw': return this._doDraw();
       case 'self': return this._doSelf();
@@ -550,31 +591,40 @@
     if (!anyMelds && seat !== this.dealer) {
       if (selfDraw && this.players[seat].discards.length === 0) f.dihu = true;
       if (!selfDraw && this.stats.discards === 1) f.dihu = true;
+      if (!selfDraw && this.stats.discards >= 2 && this.stats.discards <= this.seatWind(seat) && this.players[seat].discards.length === 0) f.renhu = true;
     }
     return f;
   };
 
-  P._win = function (seat, tile, selfDraw, from, extra) {
-    var p = this.players[seat];
-    var conc = p.conc.slice();
-    if (!selfDraw) conc[tile]++;
-    var sc = scoreHand({
-      conc: conc, melds: p.melds, flowers: p.flowers, winTile: tile, selfDraw: selfDraw,
-      seat: seat, dealer: this.dealer, roundWind: this.roundWind(), lian: this.lian,
-      flags: this._flags(seat, selfDraw, extra)
+  P._win = function (seat, tile, selfDraw, from, extra) { return this._winMany([seat], tile, selfDraw, from, extra); };
+
+  /* One or more winners on the same tile. Each winner is paid separately; a discard is paid for by the discarder alone. */
+  P._winMany = function (seats, tile, selfDraw, from, extra) {
+    var self = this, pay = [0, 0, 0, 0], winners = [], i;
+    seats.forEach(function (seat) {
+      var p = self.players[seat], conc = p.conc.slice();
+      if (!selfDraw) conc[tile]++;
+      var sc = scoreHand({
+        conc: conc, melds: p.melds, flowers: p.flowers, winTile: tile, selfDraw: selfDraw,
+        seat: seat, dealer: self.dealer, roundWind: self.roundWind(), lian: self.lian,
+        flags: self._flags(seat, selfDraw, extra)
+      });
+      var amount = self.cfg.base + self.cfg.perTai * sc.tai, wp = [0, 0, 0, 0];
+      if (selfDraw) { for (i = 0; i < 4; i++) if (i !== seat) { wp[i] -= amount; wp[seat] += amount; } }
+      else { wp[from] -= amount; wp[seat] += amount; }
+      for (i = 0; i < 4; i++) pay[i] += wp[i];
+      winners.push({
+        seat: seat, tai: sc.tai, items: sc.items, amount: amount, pay: wp,
+        hand: { conc: conc, melds: p.melds.map(function (m) { return m; }), flowers: p.flowers.slice(), sets: sc.sets, pair: sc.pair }
+      });
     });
-    var amount = this.cfg.base + this.cfg.perTai * sc.tai;
-    var pay = [0, 0, 0, 0], i;
-    if (selfDraw) {
-      for (i = 0; i < 4; i++) if (i !== seat) { pay[i] -= amount; pay[seat] += amount; }
-    } else { pay[from] -= amount; pay[seat] += amount; }
     for (i = 0; i < 4; i++) this.players[i].chips += pay[i];
+    var w = winners[0];
     this.stage = 'between';
     this.last = {
-      type: 'win', seat: seat, from: selfDraw ? null : from, selfDraw: selfDraw, tile: tile,
-      tai: sc.tai, items: sc.items, amount: amount, pay: pay,
-      hand: { conc: conc, melds: p.melds.map(function (m) { return m; }), flowers: p.flowers.slice(), sets: sc.sets, pair: sc.pair },
-      dealer: this.dealer, lian: this.lian, robKong: !!(extra && extra.robKong)
+      type: 'win', seat: w.seat, from: selfDraw ? null : from, selfDraw: selfDraw, tile: tile,
+      tai: w.tai, items: w.items, amount: w.amount, pay: pay, hand: w.hand,
+      dealer: this.dealer, lian: this.lian, robKong: !!(extra && extra.robKong), winners: winners
     };
     return this.last;
   };
@@ -650,12 +700,11 @@
     this.pending = null;
 
     // resolve: win > kong/pung > chi
-    for (i = 1; i < 4; i++) {
-      s = (from + i) % 4;
-      if (ch[s] && ch[s].kind === 'hu') {
-        this.players[from].discards.pop();
-        return this._win(s, t, false, from, { lastTile: this.lastDiscard.lastLive });
-      }
+    var hus = [];
+    for (i = 1; i < 4; i++) { s = (from + i) % 4; if (ch[s] && ch[s].kind === 'hu') hus.push(s); }
+    if (hus.length) {
+      this.players[from].discards.pop();
+      return this._winMany(this.cfg.multiWin ? hus : [hus[0]], t, false, from, { lastTile: this.lastDiscard.lastLive });
     }
     for (i = 1; i < 4; i++) {
       s = (from + i) % 4;
@@ -739,8 +788,8 @@
       ch[s] = { kind: 'hu' };
     }
     this.pending = null;
-    var robbed = null;
-    for (i = 1; i < 4; i++) { s = (kg + i) % 4; if (ch[s] && ch[s].kind === 'hu') { robbed = s; break; } }
+    var robbed = null, robbers = [];
+    for (i = 1; i < 4; i++) { s = (kg + i) % 4; if (ch[s] && ch[s].kind === 'hu') { robbers.push(s); if (robbed === null) robbed = s; } }
     this._robOpts = null; this._robChoices = null;
     if (robbed !== null) {
       // the kong is undone: the tile goes back to a pung
@@ -749,7 +798,7 @@
       kp.conc[t]++;
       this.stats.melds--;
       var rp = this.players[robbed];
-      var res = this._win(robbed, t, false, kg, { robKong: true });
+      var res = this._winMany(this.cfg.multiWin ? robbers : [robbed], t, false, kg, { robKong: true });
       kp.conc[t]--;
       return res;
     }

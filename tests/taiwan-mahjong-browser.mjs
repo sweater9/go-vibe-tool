@@ -21,6 +21,7 @@ const URL_PATH = '/play/taiwan-mahjong/';
 const browser = await pw[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}), ...(engine === 'chromium' ? { args: ['--no-sandbox'] } : {}) });
 const checks = [];
 async function check(label, fn) {
+  if (process.env.CHECK_FILTER && !new RegExp(process.env.CHECK_FILTER).test(label)) return; // local debugging aid
   const t0 = Date.now();
   try { await fn(); checks.push({ label, ok: true, ms: Date.now() - t0 }); console.log('PASS', label); }
   catch (e) { checks.push({ label, ok: false, ms: Date.now() - t0, error: String(e.message).slice(0, 1500) }); console.error('FAIL', label, '\n    ', String(e.message).split('\n').slice(0, 6).join('\n     ')); }
@@ -119,6 +120,43 @@ try {
     await check(`${name}: privacy, no third-party request and no errors`, async () => { assert.deepEqual(A.external, []); assert.deepEqual(A.errs, []); });
     await page.screenshot({ path: path.join(out, name + '.png') });
     await A.ctx.close();
+  }
+
+  for (const [w, h] of [[844, 390], [667, 375], [932, 430], [640, 360]]) {
+    await check(`landscape phone ${w}x${h}: whole table and hand fit one screen, tiles are tappable, dialogs reachable, no overflow`, async () => {
+      const L = await open(w, h);
+      const { page } = L;
+      await page.goto(origin + URL_PATH);
+      await page.click('#btnStart'); await page.waitForSelector('#game:not([hidden])');
+      await page.waitForFunction(() => window.__twmj.awaiting && window.__twmj.awaiting.kind === 'self', null, { timeout: 30000 });
+      await page.evaluate(() => document.querySelector('.hud').scrollIntoView({ block: 'start', behavior: 'instant' }));
+      await page.waitForFunction(() => Math.abs(document.querySelector('.hud').getBoundingClientRect().top) < 3); // the site css smooth-scrolls
+      const m = await page.evaluate(() => {
+        const r = (s) => document.querySelector(s).getBoundingClientRect();
+        const tiles = [...document.querySelectorAll('#hand .tile')];
+        let tappable = 0;
+        tiles.forEach((t) => { const b = t.getBoundingClientRect(); const e = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2); if (e && t.contains(e) && b.top >= 0 && b.bottom <= innerHeight && b.left >= 0 && b.right <= innerWidth) tappable++; });
+        return { n: tiles.length, tappable, minW: Math.min(...tiles.map((t) => t.getBoundingClientRect().width)), rows: new Set(tiles.map((t) => Math.round(t.getBoundingClientRect().top))).size, stageB: r('#stage').bottom, youB: r('#you').bottom, hudT: r('.hud').top, vh: innerHeight, ovX: document.documentElement.scrollWidth - document.documentElement.clientWidth, headerPos: getComputedStyle(document.querySelector('body > header')).position };
+      });
+      assert.ok(m.n >= 16, 'hand rendered');
+      assert.equal(m.tappable, m.n, 'every hand tile is visible and not covered: ' + JSON.stringify(m));
+      assert.ok(m.minW >= 31.5, 'hand tiles at least 32px wide: ' + m.minW);
+      assert.ok(m.rows <= 2, 'hand wraps to at most two rows: ' + m.rows);
+      assert.ok(m.stageB <= m.vh && m.youB <= m.vh && m.hudT >= -1, 'table and hand inside one screen: ' + JSON.stringify(m));
+      assert.ok(m.ovX <= 1, 'horizontal overflow ' + m.ovX);
+      assert.notEqual(m.headerPos, 'sticky', 'site header must not eat the short screen');
+      for (const [btn, dlg] of [['#btnTai', '#taiDlg'], ['#btnHelp', '#helpDlg'], ['#btnMenu', '#menuDlg']]) {
+        await page.evaluate((b) => document.querySelector(b).scrollIntoView({ block: 'center', behavior: 'instant' }), btn);
+        await page.waitForTimeout(150);
+        await page.click(btn); await page.waitForSelector(dlg + '[open]');
+        const d = await page.evaluate((id) => { const x = document.querySelector(id), r = x.getBoundingClientRect(), c = x.querySelector('button[value=close], #btnQuit').getBoundingClientRect(); return { fits: r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth, close: c.top >= 0 && c.bottom <= innerHeight }; }, dlg);
+        assert.ok(d.fits && d.close, dlg + ' reachable: ' + JSON.stringify(d));
+        await page.keyboard.press('Escape');
+        await page.evaluate((id) => { const x = document.querySelector(id); if (x.open) x.close(); }, dlg);
+      }
+      assert.deepEqual(L.errs, []); assert.deepEqual(L.external, []);
+      await L.ctx.close();
+    });
   }
 
   await check('service-worker: direct visit installs the site worker, drops older caches and precaches the four game files', async () => {

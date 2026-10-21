@@ -325,3 +325,35 @@
 @media (max-width: 640px) {
   .twmj { width: 100vw; margin-left: calc(50% - 50vw); border-radius: 0; }
 }
+
+.twmj .res-winner { margin: 14px 0 6px; font-size: 1rem; }
+
+/* Phones in landscape (short and wide): table on the left, opponents and your hand on the right,
+   so the whole table and your hand fit one screen without scrolling between them. */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
+  .twmj .game { --LS: min(36vw, calc((100vh - 56px) / .76), 560px); display: grid; grid-template-columns: var(--LS) minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "hud hud" "stage opps" "stage you"; column-gap: 14px; align-items: start; }
+  .twmj .hud { grid-area: hud; padding: 0 2px 4px; gap: 2px 14px; font-size: .82rem; }
+  .twmj .hud .iconbtn { min-height: 30px; padding-top: 3px; padding-bottom: 3px; }
+  .twmj .opps { grid-area: opps; gap: 6px; margin-bottom: 4px; }
+  .twmj .stage { grid-area: stage; --S: var(--LS); width: var(--S); margin: 0; }
+  .twmj .you { grid-area: you; margin-top: 0; padding: 4px 6px 2px; min-width: 0; border-radius: 14px; }
+  .twmj .hand { --tw: clamp(22px, calc((100vw - var(--LS) - 98px) / 9.7), 40px); padding: 2px 0 4px; }
+  .twmj .hand .tile.drawn { margin-left: calc(var(--tw) * .3); }
+  .twmj dialog .tw-end { position: sticky; bottom: 0; background: var(--panel); padding-top: 8px; }
+  .twmj .opp { padding: 4px 7px; border-radius: 10px; }
+  .twmj .opp .pos { display: none; }
+  .twmj .opp .meta { margin-top: 0; }
+  .twmj .minis { margin-top: 3px; }
+  .twmj .keys { display: none; }
+  .twmj .status { font-size: .9rem; min-height: 1.2em; }
+  .twmj .helper { font-size: .8rem; padding: 3px 6px 0; min-height: 1.2em; }
+  .twmj .tw-actions { padding: 4px 6px 0; gap: 6px; }
+  .twmj .act { min-height: 40px; padding: 4px 14px; }
+  .twmj .tw-tools { padding: 0 6px 2px; }
+  .twmj .exposed { padding-top: 2px; --tw: 20px; }
+}
+
+/* Page-only: a sticky 75px site header would take a fifth of a landscape phone screen, so let it scroll away here. */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
+  body > header { position: static; }
+}

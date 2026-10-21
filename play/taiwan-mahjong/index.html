@@ -93,6 +93,10 @@
       <div class="tw-field">
         <label class="check"><input type="checkbox" id="optHelper" checked> <span>Show helper: steps to ready, winning tiles and hints</span></label>
       </div>
+      <div class="tw-field">
+        <label class="check"><input type="checkbox" id="optMulti"> <span>House rule: let several players win on the same discard</span></label>
+        <p class="hint-text">Off by default: the nearest winner in turn order takes the discard.</p>
+      </div>
       <div class="row">
         <button type="button" class="tw-btn primary big" id="btnStart">Start game</button>
         <button type="button" class="tw-btn big" id="btnHowTo">How to play</button>
@@ -208,7 +212,7 @@
           <li><b>吃 Chi</b> — complete a run, only from the player before you.</li>
           <li><b>碰 Peng</b> — complete a triplet from anyone.</li>
           <li><b>槓 Kong</b> — take a fourth tile. You draw a replacement from the back of the wall.</li>
-          <li><b>胡 Hu</b> — win with the discarded tile. This beats every other claim.</li>
+          <li><b>胡 Hu</b> — win with the discarded tile. This beats every other claim. By default only the nearest winner in turn order wins a discard; the optional house rule lets several players win, and the discarder pays each of them.</li>
         </ul>
         Claiming exposes the set, so you lose the 門清 (concealed) bonus.
       </li>
@@ -233,6 +237,7 @@
   <form method="dialog" class="dlg">
     <h2 id="menuTitle">Menu</h2>
     <label class="check"><input type="checkbox" id="optHelper2"> <span>Show helper (steps to ready, winning tiles, hints)</span></label>
+    <label class="check"><input type="checkbox" id="optMulti2"> <span>Several players may win on the same discard</span></label>
     <div class="tw-field">
       <span class="label">Game speed</span>
       <div class="seg" data-setting="speed2">
