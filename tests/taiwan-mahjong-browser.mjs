@@ -159,6 +159,38 @@ try {
     });
   }
 
+  /* Laptops and desktops: the whole game (HUD, opponents, table, status, 17-tile hand) fits one viewport. The page scrolls the
+     table into view when the match starts, and it keeps fitting through real turns (claims, flowers, kongs). */
+  for (const [width, height] of [[1366, 680], [1280, 650], [1440, 760], [1536, 730], [1920, 950], [1280, 900]]) {
+    await check(`laptop ${width}x${height}: the whole game fits the screen at start and through real turns`, async () => {
+      const L = await open(width, height);
+      const { page } = L;
+      await page.goto(origin + URL_PATH);
+      await page.click('.seg[data-setting="speed"] button[data-v="0.45"]');
+      await page.click('#btnStart');
+      await page.waitForSelector('#game:not([hidden])');
+      const box = () => page.evaluate(() => {
+        const g = document.querySelector('#game').getBoundingClientRect(), h = document.querySelector('body > header').getBoundingClientRect();
+        const hand = [...document.querySelectorAll('#hand .tile')].map((t) => t.getBoundingClientRect());
+        return { top: g.top, bottom: g.bottom, hdr: h.bottom, vh: innerHeight, left: g.left, right: g.right, vw: innerWidth, handW: hand.length ? Math.min(...hand.map((r) => r.width)) : 0, handBottom: hand.length ? Math.max(...hand.map((r) => r.bottom)) : 0, hOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+      });
+      await page.waitForFunction(() => { const g = document.querySelector('#game').getBoundingClientRect(); return g.top >= document.querySelector('body > header').getBoundingClientRect().bottom - 1 && g.bottom <= innerHeight + 1; }, null, { timeout: 8000 })
+        .catch(async () => { throw new Error('game block not fully on screen after start: ' + JSON.stringify(await box())); });
+            for (let i = 0; i < 40; i++) {
+        const b = await box();
+        // The block's height must fit the space below the sticky header whatever the scroll position (Playwright's own clicks
+        // may scroll the page), so a player can always have the whole game on screen.
+        assert.ok(b.bottom - b.top <= b.vh - b.hdr + 1, `game block ${Math.round(b.bottom - b.top)}px high does not fit ${Math.round(b.vh - b.hdr)}px at step ${i}`);
+        assert.ok(b.left >= -1 && b.right <= b.vw + 1, 'game wider than viewport');
+        assert.ok(b.hOverflow <= 0, 'horizontal page overflow ' + b.hOverflow);
+        if (b.handW) assert.ok(b.handW >= 34, 'hand tile too small: ' + b.handW);
+        if ((await step(page)) === 'final') break;
+      }
+      assert.deepEqual(L.errs, []); assert.deepEqual(L.external, []);
+      await L.ctx.close();
+    });
+  }
+
   await check('service-worker: direct visit installs the site worker, drops older caches and precaches the four game files', async () => {
     const S = await open(375);
     const { page } = S;

@@ -357,3 +357,22 @@
 @media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
   body > header { position: static; }
 }
+
+/* Laptops and desktops: the whole game (HUD, opponents, 3D table with discards, status, your 17-tile hand) fits one viewport.
+   Table on the left sized by the available height, opponents and your hand in the right column. --LSh is the table width
+   that leaves room for the sticky site header (75px), the HUD and spacing; the right column's width then sets hand tile size
+   (two rows of up to 9 tiles). Container units (cqw) keep this independent of the page scrollbar. */
+@media (min-width: 900px) and (min-height: 521px) {
+  .twmj .game { --LSh: calc((100vh - 75px - 64px - 34px) / .76); container-type: inline-size; max-width: none; padding-bottom: 12px;
+    display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "hud hud" "stage opps" "stage you"; column-gap: 16px; align-items: start; scroll-margin-top: 84px; }
+  .twmj .hud { grid-area: hud; padding: 0 2px 6px; }
+  .twmj .opps { grid-area: opps; margin-bottom: 0; }
+  .twmj .stage { grid-area: stage; --S: min(var(--LSh), 640px, 54cqw); width: var(--S); margin: 0; }
+  .twmj .you { grid-area: you; margin-top: 0; min-width: 0; padding: 10px 8px 6px; }
+  .twmj .hand { --tw: clamp(34px, calc((100cqw - min(var(--LSh), 640px, 54cqw) - 70px) / 10.2), 40px); padding: 4px 0 6px; }
+  .twmj .hand .tile.drawn { margin-left: calc(var(--tw) * .4); }
+  .twmj .helper { padding-top: 4px; }
+  .twmj .tw-tools { flex-wrap: nowrap; gap: 10px; padding: 0 6px; }
+  .twmj .keys { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .8rem; }
+  .twmj .exposed { padding-top: 2px; }
+}

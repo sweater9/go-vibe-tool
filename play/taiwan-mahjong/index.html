@@ -286,6 +286,18 @@
     // Register the site-wide worker (../../sw.js) so the four game files are cached for offline play.
     if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("../../sw.js").catch(() => {}));
   </script>
+  <script>
+    // laptop-fit: on laptop and desktop screens bring the table into view when a match starts, so the whole game is on screen.
+    (function () {
+      var g = document.getElementById("game");
+      if (!g || !window.MutationObserver || !window.matchMedia) return;
+      new MutationObserver(function () {
+        if (g.hidden || !matchMedia("(min-width: 900px) and (min-height: 521px)").matches) return;
+        var h = document.querySelector("body > header"), top = h ? h.getBoundingClientRect().bottom : 0, r = g.getBoundingClientRect();
+        if (r.top < top || r.bottom > innerHeight) g.scrollIntoView({ block: "start", behavior: "smooth" });
+      }).observe(g, { attributes: true, attributeFilter: ["hidden"] });
+    })();
+  </script>
   <script src="engine.js"></script>
   <script src="game.js"></script>
 </body>
