@@ -192,7 +192,7 @@ t('picks the best decomposition', () => {
 console.log('Full-match simulation (bots only)');
 
 function sim(seed, skill, log, multiWin) {
-  const m = new E.Match({ seed, skill, humanSeats: [], rounds: 1, multiWin: !!multiWin });
+  const m = new E.Match({ seed, skill, humanSeats: [], rounds: 1, multiWin });
   let hands = 0, wins = 0, draws = 0, selfdraws = 0, maxTai = 0, steps = 0;
   let ev = m.startHand();
   const t0 = Date.now();
@@ -221,7 +221,7 @@ function sim(seed, skill, log, multiWin) {
       const sum = ev.pay.reduce((a, b) => a + b, 0);
       if (sum !== 0) throw new Error('payments do not balance');
       if (!ev.flowerWin) ev.winners.forEach(w => { if (!E.isComplete(w.hand.conc, w.hand.melds.length)) throw new Error('winner hand incomplete'); });
-      if (!multiWin && ev.winners.length !== 1) throw new Error('several winners with multiWin off');
+      if (!m.cfg.multiWin && ev.winners.length !== 1) throw new Error('several winners with multiWin off');
       m.nextHand();
     } else if (ev.type === 'drawgame') { hands++; draws++; m.nextHand(); }
   }
@@ -243,7 +243,39 @@ function sim(seed, skill, log, multiWin) {
   });
 });
 
-t('bot matches with the multiple-winners house rule on stay balanced and conserve points', () => {
+t('multiple winners are on by default and can be switched off', () => {
+  assert.strictEqual(new E.Match({ seed: 1 }).cfg.multiWin, true);
+  assert.strictEqual(new E.Match({ seed: 1, multiWin: undefined }).cfg.multiWin, true);
+  assert.strictEqual(new E.Match({ seed: 1, multiWin: true }).cfg.multiWin, true);
+  assert.strictEqual(new E.Match({ seed: 1, multiWin: false }).cfg.multiWin, false);
+});
+
+t('bot matches with the default (multiple winners on) and with it switched off both balance and conserve points', () => {
+  let multiDefault = 0;
+  for (const mode of ['default', 'off']) {
+    for (let s = 1; s <= 20; s++) {
+      const opts = { seed: 900 + s, skill: 1, humanSeats: [], rounds: 1 };
+      if (mode === 'off') opts.multiWin = false;
+      const m = new E.Match(opts);
+      assert.strictEqual(m.cfg.multiWin, mode === 'default');
+      let ev = m.startHand(), steps = 0;
+      while (!m.over) {
+        ev = m.step();
+        if (++steps > 20000) throw new Error('runaway');
+        if (ev.type === 'win') {
+          assert.strictEqual(ev.pay.reduce((a, b) => a + b, 0), 0);
+          if (mode === 'off') assert.strictEqual(ev.winners.length, 1);
+          else if (ev.winners.length > 1) multiDefault++;
+          m.nextHand();
+        } else if (ev.type === 'drawgame') m.nextHand();
+      }
+      assert.strictEqual(m.players.reduce((a, p) => a + p.chips, 0), 4000);
+    }
+  }
+  console.log('       multi-winner hands seen with the default: ' + multiDefault);
+});
+
+t('bot matches with the multiple-winners rule explicitly on stay balanced and conserve points', () => {
   let multi = 0;
   for (let s = 1; s <= 30; s++) {
     const m = new E.Match({ seed: 500 + s, skill: 1, humanSeats: [], rounds: 1, multiWin: true });

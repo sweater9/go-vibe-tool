@@ -24,7 +24,7 @@ A tilted 3D felt table on a wooden rim (pure CSS, no images): wall stacks that s
 
 - 144 tiles (including 8 flowers), 16 tiles per player, 17th tile completes five sets and a pair.
 - Chi (only from the player before you), peng, kong (open, concealed, added), flower replacement from the back of the wall.
-- Claim priority: win over peng/kong over chi. Robbing a kong (搶槓). By default the nearest winner in turn order takes a discard; the optional house rule (setup screen or menu) lets several players win on the same discard, and the discarder pays each winner.
+- Claim priority: win over peng/kong over chi. Robbing a kong (搶槓). By default several players can win on the same discard and the discarder pays each winner (on by default); switch it off in the setup screen or menu for nearest-winner-only.
 - Dealer stays on a dealer win or a draw game, with 連莊 streak tai. A round ends once every seat has dealt.
 - Tai table: see `TAI_TABLE` in `engine.js`. Values follow MahJongo's published Taiwan table (https://mahjongo.com/taiwan) where it defines them; see "Rules source and open questions" below. House rules vary in Taiwan, so edit that table and `scoreHand()` if you want a different one.
 - Flower wins: all eight flowers (八仙過海) win at once and all three opponents pay; seven flowers when another player draws the eighth (七搶一) wins at once and that player pays. 8 tai each.

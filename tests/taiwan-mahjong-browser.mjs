@@ -159,6 +159,26 @@ try {
     });
   }
 
+  await check('multiple winners on one discard: on by default, switch-off is remembered, menu toggle applies in a running match', async () => {
+    const M = await open(1280, 900);
+    const { page } = M;
+    await page.goto(origin + URL_PATH);
+    assert.equal(await page.locator('#optMulti').isChecked(), true, 'default on for a first-time visitor');
+    await page.click('#btnStart'); await page.waitForSelector('#game:not([hidden])');
+    assert.equal(await page.evaluate(() => window.__twmj.match.cfg.multiWin), true, 'match starts with the rule on');
+    await page.click('#btnMenu'); await page.waitForSelector('#menuDlg[open]');
+    assert.equal(await page.locator('#optMulti2').isChecked(), true);
+    await page.locator('#optMulti2').uncheck();
+    assert.equal(await page.evaluate(() => window.__twmj.match.cfg.multiWin), false, 'menu toggle applies to the running match');
+    await page.click('#menuDlg button[value="close"]');
+    await page.reload();
+    assert.equal(await page.locator('#optMulti').isChecked(), false, 'the stored choice (off) is kept');
+    await page.click('#btnStart'); await page.waitForSelector('#game:not([hidden])');
+    assert.equal(await page.evaluate(() => window.__twmj.match.cfg.multiWin), false, 'a new match honours the stored choice');
+    assert.deepEqual(M.errs, []);
+    await M.ctx.close();
+  });
+
   /* Laptops and desktops: the whole game (HUD, opponents, table, status, 17-tile hand) fits one viewport. The page scrolls the
      table into view when the match starts, and it keeps fitting through real turns (claims, flowers, kongs). */
   for (const [width, height] of [[1366, 680], [1280, 650], [1440, 760], [1536, 730], [1920, 950], [1280, 900]]) {

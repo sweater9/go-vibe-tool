@@ -400,7 +400,7 @@
       chips: opts.chips === undefined ? 1000 : opts.chips,
       skill: opts.skill === undefined ? 1 : opts.skill,
       humanSeats: opts.humanSeats || [0],
-      multiWin: !!opts.multiWin,         // house rule: several players may win on the same discard (off = nearest winner only)
+      multiWin: opts.multiWin === undefined ? true : !!opts.multiWin,  // several players may win on the same discard (default on; false = nearest winner only)
       names: opts.names || ['You', 'Mei', 'Hao', 'Lin'],
       seed: seed
     };

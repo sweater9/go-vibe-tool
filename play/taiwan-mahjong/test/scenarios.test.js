@@ -194,7 +194,12 @@ function twoReady(multiWin) {
   m.turn = 1; m.stage = 'claim'; m._claimOpts = null; m._claimChoices = null; m._fwCheck = false;
   return m;
 }
-t('one winner by default: the nearest player in turn order wins, the discarder pays once', () => {
+t('multiple winners are the default: both win with no option given', () => {
+  const m = twoReady(undefined); assert.strictEqual(m.cfg.multiWin, true); const win = m.step();
+  assert.deepStrictEqual(win.winners.map(w => w.seat), [2, 3]);
+  assert.strictEqual(win.pay.reduce((a, b) => a + b, 0), 0); assert.strictEqual(m.players.reduce((a, p) => a + p.chips, 0), 4000);
+});
+t('switched off: one winner, the nearest player in turn order wins, the discarder pays once', () => {
   const m = twoReady(false); const win = m.step();
   assert.strictEqual(win.winners.length, 1); assert.strictEqual(win.seat, 2);
   assert.strictEqual(win.pay.reduce((a, b) => a + b, 0), 0); assert.strictEqual(win.pay[3], 0);

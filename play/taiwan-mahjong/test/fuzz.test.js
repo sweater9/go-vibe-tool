@@ -20,7 +20,7 @@ let counts = { hu: 0, selfHu: 0, angang: 0, jiagang: 0, peng: 0, chi: 0, gang: 0
 
 function playMatch(seed, skill, policy, multiWin) {
   const r = rng(seed ^ 0x9e3779b9);
-  const m = new E.Match({ seed, skill, humanSeats: [0], rounds: 1, multiWin: !!multiWin });
+  const m = new E.Match({ seed, skill, humanSeats: [0], rounds: 1, multiWin });
   m.startHand();
   let steps = 0;
   while (!m.over) {
@@ -75,7 +75,7 @@ function playMatch(seed, skill, policy, multiWin) {
         ev.winners.forEach(w => assert(E.isComplete(w.hand.conc, w.hand.melds.length), 'every winner complete'));
       }
       assert.strictEqual(ev.winners.reduce((a, w) => a + w.pay.reduce((x, y) => x + y, 0), 0), 0, 'per-winner payments balance');
-      assert(multiWin || ev.winners.length === 1, 'one winner unless multiWin');
+      assert(m.cfg.multiWin || ev.winners.length === 1, 'one winner unless multiWin');
       if (ev.winners.length > 1) counts.multi++;
       m.nextHand();
     } else if (ev.type === 'drawgame') { counts.draw++; counts.hands++; m.nextHand(); }
@@ -85,7 +85,7 @@ function playMatch(seed, skill, policy, multiWin) {
 
 let n = 0;
 for (let s = 1; s <= 160; s++) {
-  playMatch(s * 7919, s % 3, s % 2 ? 'greedy' : 'random', s % 4 >= 2);
+  playMatch(s * 7919, s % 3, s % 2 ? 'greedy' : 'random', [undefined, false, true, undefined][s % 4]);  // undefined = the default (on), false = switched off
   n++;
 }
 console.log('fuzz matches:', n);

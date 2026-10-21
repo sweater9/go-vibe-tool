@@ -27,7 +27,7 @@
   ];
 
   /* ---------------- settings and record ---------------- */
-  var settings = Object.assign({ skill: 1, rounds: 1, speed: 1, helper: true, multiWin: false }, store.get('settings', {}));
+  var settings = Object.assign({ skill: 1, rounds: 1, speed: 1, helper: true, multiWin: true }, store.get('settings', {}));
   var stats = Object.assign({ hands: 0, wins: 0, self: 0, best: 0, bestName: '', matches: 0, matchWins: 0 }, store.get('stats', {}));
   function saveSettings() { store.set('settings', settings); }
   function saveStats() { store.set('stats', stats); }
