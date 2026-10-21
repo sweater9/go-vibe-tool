@@ -1,3 +1,5 @@
+> **Superseded (PR #55):** Mahjong Solitaire (`/play/mahjong-solitaire/`) was retired and replaced by Taiwanese Mahjong at `/play/taiwan-mahjong/`. The old URL now returns a real HTTP 301 (`_redirects`). References below to the Solitaire files and tests (`tests/mahjong-solitaire*.mjs`, `tests/solitaire-only-release.mjs`) are historical; see `docs/taiwan-mahjong-integration-handoff.md`.
+
 # GoVibeTool Mahjong — Comprehensive Engineering & QA Final Report
 
 ## 1. Features Completed

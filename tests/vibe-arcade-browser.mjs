@@ -374,10 +374,10 @@ await check('dark mode + reduced motion render without overflow; contrast tokens
 });
 
 /* =============== 8. Play directory, discovery search, Mahjong =============== */
-await check('Play directory lists Vibe Arcade first and Mahjong Solitaire last; no four-player Mahjong', async () => {
+await check('Play directory lists Vibe Arcade first and Taiwanese Mahjong last; no four-player Mahjong', async () => {
   const c = await open({ w: 390 }); const { page } = c; await page.goto(origin + '/play/', { waitUntil: 'networkidle' });
   const hrefs = await page.locator('.v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href')));
-  assert.deepEqual(hrefs, ['vibe-arcade/', 'word-logic/', '2048/', 'daily-word/', 'mahjong-solitaire/']);
+  assert.deepEqual(hrefs, ['vibe-arcade/', 'word-logic/', '2048/', 'daily-word/', 'taiwan-mahjong/']);
   assert.ok(!/four-player|multiplayer|friends/i.test(await page.innerText('main'))); assert.equal(await overflow(page), 0);
   await page.click('a[href="vibe-arcade/"]'); await page.waitForURL(/\/play\/vibe-arcade\/$/); await page.waitForSelector('#hub h1'); assert.equal(await page.textContent('#hub h1'), 'Vibe Arcade'); assert.deepEqual(c.errs, []); await c.ctx.close();
 });
@@ -389,11 +389,12 @@ await check('discovery search finds Vibe Arcade for its game names; mahjong quer
     const links = await page.evaluate(() => [...document.querySelectorAll('a[href]')].map(a => new URL(a.href, location.href).pathname));
     assert.ok(links.includes('/play/vibe-arcade/'), `"${q}" should offer /play/vibe-arcade/; got ${links.filter(l => /play/.test(l))}`);
   }
-  for (const q of ['mahjong', 'solitaire', 'mahjong solitaire', 'multiplayer', 'four-player mahjong']) {
+  for (const q of ['mahjong', 'taiwanese mahjong', 'solitaire', 'multiplayer', 'four-player mahjong']) {
     await page.fill('#toolSearch', q); await page.waitForTimeout(200);
     const links = await page.evaluate(() => [...document.querySelectorAll('a[href]')].map(a => new URL(a.href, location.href).pathname));
     assert.deepEqual(links.filter(l => /^\/play\/mahjong(\/|$)/.test(l)), [], q);
-    if (/solitaire/.test(q) || q === 'mahjong') assert.ok(links.includes('/play/mahjong-solitaire/'), q);
+    assert.ok(!links.includes('/play/mahjong-solitaire/'), q + ' must not offer the retired Solitaire page');
+    if (/taiwan|台灣/.test(q) || q === 'mahjong') assert.ok(links.includes('/play/taiwan-mahjong/'), q);
   }
   assert.deepEqual(c.errs, []); await c.ctx.close();
 });

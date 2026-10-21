@@ -1,0 +1,6 @@
+# Real HTTP 301s served by Cloudflare Workers static assets (not a meta refresh).
+# Mahjong Solitaire was replaced by Taiwanese Mahjong. Both the folder and the index.html spellings are covered.
+/play/mahjong-solitaire /play/taiwan-mahjong/ 301
+/play/mahjong-solitaire/ /play/taiwan-mahjong/ 301
+/play/mahjong-solitaire/index.html /play/taiwan-mahjong/ 301
+/play/mahjong-solitaire/* /play/taiwan-mahjong/ 301
