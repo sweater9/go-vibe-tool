@@ -63,7 +63,7 @@ try {
         if (c.errs.length) problems.push(`${p}: ${c.errs[0]}`); if (c.bad.length) problems.push(`${p}: failed request ${c.bad[0]}`);
         if (!(await c.page.locator('h1').count())) problems.push(`${p}: no h1`);
       }
-      assert.deepEqual(problems, []); assert.deepEqual(c.external, []); await c.ctx.close();
+      assert.equal(problems.join(' | ').slice(0, 900), '', 'page-load problems'); assert.deepEqual(c.external, []); await c.ctx.close();
     });
   }
   await check('test harness: ad hosts are aborted silently, any other third-party host is reported', async () => {
