@@ -96,7 +96,6 @@ jobs:
   preview:
     # Waits on a Cloudflare preview (up to 15 min): manual / full runs only, see docs/ci-test-selection.md
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    if: github.event_name != 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     strategy:
