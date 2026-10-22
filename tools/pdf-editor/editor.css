@@ -218,3 +218,7 @@ input[type=range]{width:100%;height:32px}
   .thumb .chk{padding:6px}
 }
 @media (prefers-reduced-motion:reduce){.pages,body.pages-open .pages{transition:none}}
+
+/* Offline indicator: the top bar is full on phones and tablets, so there it sits beside the welcome heading instead. */
+@media (max-width:900px){.topbar .gvt-offline{display:none}}
+@media (min-width:901px){.welcome .gvt-offline{display:none}}
