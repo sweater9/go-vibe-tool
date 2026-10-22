@@ -150,16 +150,20 @@ renderFeatured=function(){};
 renderDiscoveryShelf=function(){
  const box=$("#discoveryShelf");if(!box||typeof discoveryLoad!=="function")return;
  const pick=k=>discoveryLoad(k).map(byId).filter(Boolean);
- const fav=pick(DISCOVERY_FAV_KEY),rec=pick(DISCOVERY_RECENT_KEY);
- if(!fav.length&&!rec.length){
+ const fav=pick(DISCOVERY_FAV_KEY),rec=pick(DISCOVERY_RECENT_KEY),cont=(window.GVTContinue&&window.GVTContinue.get())||[];
+ if(!fav.length&&!rec.length&&!cont.length){
   box.innerHTML='<span class="shelf-empty">'+ic("sparkle")+'<span>Favourites and recently used tools appear here — saved only on this device.</span></span>';
   return;
  }
  const pill=(t,star)=>{const i=iconFor(t);return '<button type="button" class="pill" data-open="'+E(t[0])+'"><span class="ico xs '+i[1]+'">'+ic(i[0])+'</span>'+E(t[2])+(star?'<i aria-hidden="true">★</i>':"")+'</button>'};
  box.innerHTML=
   (fav.length?'<div class="shelf-group" role="group" aria-label="Favourites"><span class="shelf-label">★ Favourites</span>'+fav.map(t=>pill(t,true)).join("")+'</div>':"")+
-  (rec.length?'<div class="shelf-group" role="group" aria-label="Recently used"><span class="shelf-label">Recently used</span>'+rec.map(t=>pill(t,false)).join("")+'</div>':"");
+  (cont.length?'<div class="shelf-group" role="group" aria-label="Continue playing"><span class="shelf-label">Continue playing</span>'+cont.map(c=>'<a class="pill" href="'+E(c.path)+'" aria-label="Continue '+E(c.title)+'. '+E(c.detail)+'"><span class="ico xs h-v">'+ic("sparkle")+'</span>'+E(c.title)+'<i>'+E(c.detail)+'</i></a>').join("")+'</div>':"")+
+  (rec.length?'<div class="shelf-group" role="group" aria-label="Recently used"><span class="shelf-label">Recently used</span>'+rec.map(t=>pill(t,false)).join("")+'<button type="button" class="pill" data-clear-recent aria-label="Clear recently used tools from this device">Clear</button></div>':"");
 };
+
+addEventListener("pageshow",e=>{if(e.persisted)renderDiscoveryShelf()});
+addEventListener("storage",e=>{if(e.key&&/^(it_play_|vibearcade:|vibe-(crown|loop)-)/.test(e.key))renderDiscoveryShelf()});
 
 /* ---------- Category view (dedicated view at ?category=<id>) ---------- */
 const baseTitle=document.title;
@@ -238,6 +242,7 @@ function boot(){
   }
   const open=e.target.closest("[data-open]");
   if(open&&typeof openTool==="function"){openTool(open.dataset.open);return}
+  if(e.target.closest("[data-clear-recent]")){if(typeof discoverySave==="function"){discoverySave(DISCOVERY_RECENT_KEY,[]);renderDiscoveryShelf()}return}
   const fav=e.target.closest("[data-fav]");
   if(fav&&typeof toggleFavorite==="function"){toggleFavorite(fav.dataset.fav,e);return}
   if(e.target.closest("#clearSearch")){const i=$("#toolSearch");if(i){i.value="";renderAlso("");renderSearch();i.focus()}}

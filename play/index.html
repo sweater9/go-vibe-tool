@@ -48,6 +48,14 @@
       </div>
     </section>
 
+    <section class="section continue-playing" id="continue-playing" aria-labelledby="continue-title" hidden>
+      <div class="wrap">
+        <h2 id="continue-title">Continue playing</h2>
+        <p class="sub">Saved only on this device. Games without a resumable save never appear here.</p>
+        <ul class="continue-list" id="continue-list"></ul>
+      </div>
+    </section>
+
     <section class="section">
       <div class="wrap">
         <div class="section-heading">
@@ -197,5 +205,6 @@
       arcadeInventory.textContent = games.join(" / ");
     }
   </script>
+  <script src="continue.js"></script>
 </body>
 </html>
