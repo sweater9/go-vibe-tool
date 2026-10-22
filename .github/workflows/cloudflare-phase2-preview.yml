@@ -141,10 +141,10 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Create a GitHub Environment named cloudflare-phase2-preview, put the two secrets there, and (optionally)
+    # Reuses the existing GitHub Environment cloudflare-v8-preview (credentials only; target stays go-vibe-tool-phase2-preview), put the two secrets there, and (optionally)
     # add required reviewers so a person approves every deployment.
     environment:
-      name: cloudflare-phase2-preview
+      name: cloudflare-v8-preview
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -58,7 +58,8 @@ console.log('✓ Cloudflare reconciliation: production pinned and independent; p
   assert.equal(p2.workers_dev, true); assert.ok(!p2.routes && !p2.route && !p2.custom_domain, 'no routes or domains');
   assert.match(p2wf, /REQUIRED_REF: refs\/heads\/feature\/phase-2-usability/); assert.match(p2wf, /inputs\.deploy == true/);
   assert.match(p2wf.split('jobs:')[0], /paths: \['\.github\/workflows\/cloudflare-phase2-preview\.yml'\]/); assert.ok(!/inputs\.deploy == true/.test('') || true); assert.match(p2wf, /if: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.deploy == true \}\}/, 'deploy only on a manual run with deploy ticked');
-  assert.match(p2wf, /environment:\s*\n\s*name: cloudflare-phase2-preview/); assert.ok(!/wrangler\.preview\.jsonc|cf-preflight\.mjs/.test(p2wf));
+  assert.match(p2wf, /environment:\s*\n\s*name: cloudflare-v8-preview/); assert.ok(!/wrangler\.preview\.jsonc|cf-preflight\.mjs/.test(p2wf));
+  assert.ok(!/cloudflare-production/.test(p2wf), 'phase 2 preview never uses the production environment'); assert.match(p2wf, /PREVIEW_WORKER: go-vibe-tool-phase2-preview/);
   assert.match(v8wf, /REQUIRED_REF: refs\/heads\/feature\/v8-discovery-navigation/, 'V8 preview branch restriction untouched');
   assert.ok(!/phase2/.test(prodWf), 'production never references the phase 2 preview');
   const pre = (name) => run({ CLOUDFLARE_API_TOKEN: 'SECRET-TOKEN-VALUE', CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32), PREVIEW_WORKER: name }, 'scripts/cf-preflight-phase2.mjs');
