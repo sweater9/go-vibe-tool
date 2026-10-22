@@ -1,16 +1,43 @@
 name: Quality
 
 on:
+  workflow_call:
+  workflow_dispatch:
   push:
     branches: [main, feature/intellitools-v2, release/v2-full-integration, feature/knowledge-integration-v3, qa/knowledge-v3-ambiguity-gate, feature/knowledge-v4-learning, feature/knowledge-v4-search-intelligence]
   pull_request:
     branches: [main, feature/knowledge-base-preview, feature/knowledge-v4-learning]
 
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      plan: ${{ steps.p.outputs.plan }}
+      tier: ${{ steps.p.outputs.tier }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: p
+        uses: ./.github/actions/ci-plan
+        with:
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.sha }}
+          force-full: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
+          labels: ${{ toJson(github.event.pull_request.labels.*.name) }}
   test:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -18,10 +45,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm test
-      - run: node tests/knowledge-ambiguity-gate.mjs
+      - name: Essentials (build, preview config, live assets, ads, service worker) at every tier
+        run: npm run test:essentials
+      - name: Full unit suite (shared or unclassified changes, or manual full run)
+        if: ${{ fromJSON(needs.plan.outputs.plan).unit_full }}
+        run: |
+          npm test
+          node tests/knowledge-ambiguity-gate.mjs
+      - name: Focused unit tests for the changed areas
+        if: ${{ !fromJSON(needs.plan.outputs.plan).unit_full && fromJSON(needs.plan.outputs.plan).unit_scripts != '' }}
+        env:
+          SCRIPTS: ${{ fromJSON(needs.plan.outputs.plan).unit_scripts }}
+        run: for s in $SCRIPTS; do npm run "$s" || exit 1; done
 
   search-browser:
+    needs: plan
+    if: ${{ fromJSON(needs.plan.outputs.plan).run_knowledge }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:

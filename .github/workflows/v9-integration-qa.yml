@@ -8,13 +8,35 @@ on:
     branches: [main]
     paths-ignore: ['**/*.md']
   workflow_dispatch:
+  workflow_call:
 permissions:
   contents: read
 concurrency:
   group: v9-integration-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      plan: ${{ steps.p.outputs.plan }}
+      tier: ${{ steps.p.outputs.tier }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: p
+        uses: ./.github/actions/ci-plan
+        with:
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.sha }}
+          force-full: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
+          labels: ${{ toJson(github.event.pull_request.labels.*.name) }}
   unit-build:
+    needs: plan
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -24,8 +46,8 @@ jobs:
           node-version: '22'
       - run: git rev-parse HEAD | tee revision.txt
       - run: npm install --no-save --package-lock=false tailwindcss@3.4.17
-      - name: All unit, static and V8 regression checks (npm test)
-        run: npm test 2>&1 | tee unit.log
+      - name: Unit, static and V8 regression checks (npm test for shared changes; essentials otherwise)
+        run: ${{ fromJSON(needs.plan.outputs.plan).unit_full && 'npm test' || 'npm run test:essentials' }} 2>&1 | tee unit.log
         shell: bash
       - name: V9 unit tests incl. 1 GiB memory-bounded hash
         run: V9_BIG_GIB=1 npm run test:v9 2>&1 | tee v9-unit.log
@@ -48,12 +70,14 @@ jobs:
             build.log
 
   browser-v9:
+    needs: plan
+    if: ${{ fromJSON(needs.plan.outputs.plan).full || fromJSON(needs.plan.outputs.plan).run_pdf || fromJSON(needs.plan.outputs.plan).run_utilities }}
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
-        engine: [chromium, firefox, webkit]
+        engine: ${{ fromJSON(needs.plan.outputs.plan).browsers }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -93,12 +117,14 @@ jobs:
           path: artifacts/
 
   browser-v8-regression:
+    needs: plan
+    if: ${{ fromJSON(needs.plan.outputs.plan).run_regression }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        engine: [chromium, firefox, webkit]
+        engine: ${{ fromJSON(needs.plan.outputs.plan).browsers }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

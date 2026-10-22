@@ -1,19 +1,47 @@
 name: Mahjong review tests
 on:
+  workflow_call:
+  workflow_dispatch:
   push:
     branches: [feature/v8-discovery-navigation]
   pull_request:
     branches: [main]
+concurrency:
+  group: mahjong-review-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      plan: ${{ steps.p.outputs.plan }}
+      tier: ${{ steps.p.outputs.tier }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: p
+        uses: ./.github/actions/ci-plan
+        with:
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.sha }}
+          force-full: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
+          labels: ${{ toJson(github.event.pull_request.labels.*.name) }}
   mahjong:
+    needs: plan
+    if: ${{ fromJSON(needs.plan.outputs.plan).run_mahjong }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: ${{ fromJSON(needs.plan.outputs.plan).browsers }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

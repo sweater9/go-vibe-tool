@@ -1,0 +1,70 @@
+{
+  "$comment": "Risk-based CI selection. Read by scripts/ci-plan.mjs. Rules and tiers are documented in docs/ci-test-selection.md. Anything that matches no rule is treated as shared infrastructure (full regression).",
+  "version": 1,
+  "docs": ["docs/**", "**/*.md", "LICENSE*", "THIRD_PARTY_NOTICES.md", "qa/**"],
+  "minorExtensions": [".css", ".txt", ".svg", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".ico"],
+  "htmlTextOnly": {
+    "maxChangedLines": 40,
+    "riskyPatterns": ["<script", "</script", "<form", "<iframe", "<link", "<meta", "<base", "\\bon[a-z]+\\s*=", "\\b(href|src|srcset|action|formaction|data-[a-z-]+)\\s*="]
+  },
+  "areas": {
+    "pdf": {
+      "paths": ["tools/pdf-editor/**", "tools/pdf-compare/**", "tools/pdf-studio/**", "tools/private-pdf-tools.html", "tests/pdf-*", "tests/helpers/pdf-*", "tests/fixtures/pdf-v2/**", "scripts/*pdf*"],
+      "unit": ["test:pdf-studio", "test:pdf-compare"],
+      "crossBrowser": true,
+      "regression": false
+    },
+    "play": {
+      "paths": ["play/2048/**", "play/daily/**", "play/daily-word/**", "play/word-logic/**", "play/vibe-arcade/**", "play/vibeline/**", "play/index.html", "play/continue.js", "play/games.css", "tests/play-*", "tests/vibe-arcade-*", "tests/seo-play.mjs"],
+      "unit": ["test:play-unit"],
+      "crossBrowser": true,
+      "regression": true,
+      "v5Suites": ["play-games-browser", "vibe-arcade-browser"]
+    },
+    "mahjong": {
+      "paths": ["play/mahjong/**", "play/taiwan-mahjong/**", "multiplayer/**", "tests/mahjong-*", "tests/taiwan-mahjong-*", "docs/taiwan-mahjong-*"],
+      "unit": ["test:mahjong", "test:taiwan-mahjong"],
+      "crossBrowser": true,
+      "regression": true
+    },
+    "knowledge": {
+      "paths": ["knowledge/**", "learn/**", "tests/knowledge-*"],
+      "unit": ["test:knowledge-unit"],
+      "crossBrowser": false,
+      "regression": true
+    },
+    "labs": {
+      "paths": ["labs/**", "tests/labs-*"],
+      "unit": ["test:labs-unit"],
+      "crossBrowser": false,
+      "regression": true,
+      "v5Suites": ["labs-browser"]
+    },
+    "utilities": {
+      "paths": ["v8-developer*", "v8-regex-worker.js", "studios*", "v9-*", "tools/file-media/**", "tools/v9-media/**", "tests/v9-*", "tests/v8-developer-*", "tests/v8-studio*", "tests/file-media-*"],
+      "unit": ["test:utilities-unit"],
+      "crossBrowser": true,
+      "regression": true
+    },
+    "pages": {
+      "paths": ["prompt-improver*", "v6-tools.js", "tools/*.html", "tools/ai-*/**", "tests/prompt-improver*", "tests/tool-fixes-browser.mjs"],
+      "unit": ["test:pages-unit"],
+      "crossBrowser": false,
+      "regression": true,
+      "v5Suites": ["prompt-improver-browser", "tool-fixes-browser"]
+    }
+  },
+  "shared": [
+    "index.html", "tools.js", "v2-tools.js", "v21-tools.js", "discovery.js", "v8-discovery.js", "v2.css", "v5.css", "v6.css", "v8.css",
+    "sw.js", "manifest.webmanifest", "_redirects", "404.html", "CNAME", "robots.txt", "sitemap.xml", "ads.txt", "wrangler*.jsonc",
+    "privacy.html", "terms.html", "contact.html", "package.json", "package-lock.json", ".gitignore",
+    "config/**", "scripts/**", "vendor/**", "ads/**", "assets/**", ".github/**", "tests/lib/**", "tests/helpers/**"
+  ],
+  "v5Suites": {
+    "always": ["dist-browser", "v5-browser-smoke"],
+    "all": ["v8-browser", "play-games-browser", "vibe-arcade-browser", "labs-browser", "dist-browser", "v5-browser-smoke", "prompt-improver-browser", "tool-fixes-browser"],
+    "homepage": ["v8-browser", "dist-browser", "v5-browser-smoke"]
+  },
+  "allBrowsers": ["chromium", "firefox", "webkit"],
+  "essentialsScript": "test:essentials"
+}
