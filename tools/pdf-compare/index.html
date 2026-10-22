@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; worker-src 'self' blob:; connect-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>PDF Compare · GoVibeTool</title>
+<meta name="description" content="Compare two PDFs privately in your browser. See added, removed and changed text and jump between differences. Files never leave your device.">
+<link rel="canonical" href="https://govibetool.com/tools/pdf-compare/">
+<link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="compare.css">
+</head>
+<body class="no-result">
+<a class="skip" href="#results">Skip to the results</a>
+<header class="topbar" role="banner">
+  <a class="brand" href="../../" aria-label="GoVibeTool home">GoVibeTool</a>
+  <h1 class="tool-name">PDF Compare</h1>
+  <span class="spacer"></span>
+  <button id="swap" class="btn" type="button" disabled>Swap A and B</button>
+  <button id="reset" class="btn" type="button" disabled>Clear</button>
+</header>
+
+<main id="main" class="page">
+  <section class="intro" aria-labelledby="introTitle">
+    <h2 id="introTitle">Compare two PDFs privately</h2>
+    <p>Choose an original (A) and a revised (B) PDF. The text of both is read on this device and compared word by word. Nothing is uploaded.</p>
+  </section>
+
+  <section class="slots" aria-label="Choose the two PDFs">
+    <div class="slot" id="slotA" data-slot="A">
+      <h3><span class="badge a" aria-hidden="true">A</span> Original</h3>
+      <div class="drop" id="dropA">
+        <button id="chooseA" class="btn primary" type="button">Choose PDF A</button>
+        <p class="hint">or drop a PDF here</p>
+      </div>
+      <p id="infoA" class="info" aria-live="polite">No file chosen.</p>
+      <input id="fileA" type="file" accept="application/pdf,.pdf" hidden>
+    </div>
+    <div class="slot" id="slotB" data-slot="B">
+      <h3><span class="badge b" aria-hidden="true">B</span> Revised</h3>
+      <div class="drop" id="dropB">
+        <button id="chooseB" class="btn primary" type="button">Choose PDF B</button>
+        <p class="hint">or drop a PDF here</p>
+      </div>
+      <p id="infoB" class="info" aria-live="polite">No file chosen.</p>
+      <input id="fileB" type="file" accept="application/pdf,.pdf" hidden>
+    </div>
+  </section>
+
+  <fieldset class="options">
+    <legend>Options</legend>
+    <label class="check"><input id="optCase" type="checkbox"> Ignore capital letters</label>
+    <label class="check"><input id="optPunct" type="checkbox"> Ignore punctuation</label>
+    <p class="hint">Differences in spacing and line breaks are always ignored.</p>
+  </fieldset>
+
+  <p id="status" class="status" role="status" aria-live="polite">Choose two PDFs to begin.</p>
+  <p id="error" class="error" role="alert" hidden></p>
+  <ul id="warnings" class="warnings" aria-label="Things to know about this comparison" hidden></ul>
+
+  <section id="results" class="results" aria-labelledby="resultsTitle" tabindex="-1" hidden>
+    <h2 id="resultsTitle">Differences</h2>
+    <p id="summary" class="summary"></p>
+    <div class="viewbar">
+      <div class="tabs" role="tablist" aria-label="View">
+        <button id="tabList" class="tab" role="tab" aria-selected="true" aria-controls="viewList" type="button">Differences</button>
+        <button id="tabFull" class="tab" role="tab" aria-selected="false" aria-controls="viewFull" type="button">Full text</button>
+      </div>
+    </div>
+    <div id="viewList" class="view" role="tabpanel" aria-labelledby="tabList">
+      <p id="noDiff" class="nodiff" hidden></p>
+      <ol id="diffList" class="difflist"></ol>
+      <button id="moreBtn" class="btn" type="button" hidden>Show more differences</button>
+    </div>
+    <div id="viewFull" class="view" role="tabpanel" aria-labelledby="tabFull" hidden>
+      <div class="cols">
+        <section class="col" aria-label="Original (A) full text"><h3><span class="badge a" aria-hidden="true">A</span> Original</h3><div id="fullA" class="fulltext" tabindex="0"></div></section>
+        <section class="col" aria-label="Revised (B) full text"><h3><span class="badge b" aria-hidden="true">B</span> Revised</h3><div id="fullB" class="fulltext" tabindex="0"></div></section>
+      </div>
+    </div>
+    <nav id="nav" class="navbar" aria-label="Move between differences">
+      <button id="prev" class="btn" type="button" aria-label="Previous difference" disabled>&#9664; Previous</button>
+      <output id="pos" class="pos" aria-live="polite">0 of 0</output>
+      <button id="next" class="btn primary" type="button" aria-label="Next difference" disabled>Next &#9654;</button>
+    </nav>
+  </section>
+
+  <details class="limits">
+    <summary>What this compares, and what it does not</summary>
+    <ul>
+      <li>Compares the <strong>selectable text</strong> of the two PDFs, in the order it is stored. Both files are read in your browser; nothing is sent anywhere.</li>
+      <li><strong>Scanned or image-only pages</strong> have no text to read. They are listed as not compared. There is no OCR.</li>
+      <li>Images, drawings, colours, fonts, layout, form fields, comments and links are <strong>not</strong> compared.</li>
+      <li>Text in columns, tables, headers and footers can be stored in an unusual order, which may show up as extra differences.</li>
+      <li>Moved text appears as one removal and one addition. Words split across lines with a hyphen are re-joined.</li>
+      <li>Password-protected PDFs must be unlocked first. Limits: 50 MB and 300 pages per file.</li>
+      <li>A "no differences" result means the readable text matched, not that the files are identical.</li>
+    </ul>
+  </details>
+</main>
+
+<footer class="foot"><a href="../../">GoVibeTool</a> · <a href="../pdf-editor/">PDF Editor</a> · <a href="../../privacy.html">Privacy</a></footer>
+<script type="module" src="compare.js"></script>
+</body>
+</html>
