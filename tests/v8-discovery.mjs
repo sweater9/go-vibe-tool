@@ -15,7 +15,7 @@ for(const f of ['icon-192.png','icon-512.png','icon-maskable-512.png','apple-tou
 const man=JSON.parse(fs.readFileSync('manifest.webmanifest','utf8'));assert.ok(man.icons.some(i=>i.purpose==='maskable')&&man.icons.some(i=>i.sizes==='192x192'),'manifest icons');
 assert.ok(sw.includes('govibetool-v8-12')&&sw.includes('./assets/logo-mark.svg'),'service worker cache bumped and precaches the mark');
 assert.ok(sw.includes('./v8.css')&&sw.includes('./v8-discovery.js'),'service worker precaches v8 assets');
-for(const a of ['AI & Prompts','Productivity','PDF Tools','Images & Design','Privacy & Security','Developer','Business & Finance','Writing & Text','Links & Web'])assert.ok(fs.readFileSync('v8-discovery.js','utf8').includes('label:"'+a+'"'),'category '+a);
+for(const a of ['Agentic Tools','Productivity','PDF Tools','Images & Design','Privacy & Security','Developer','Business & Finance','Writing & Text','Links & Web'])assert.ok(fs.readFileSync('v8-discovery.js','utf8').includes('label:"'+a+'"'),'category '+a);
 assert.ok(!/start with these/i.test(html)&&!html.includes('featuredTools'),'no featured section');
 assert.ok(!/\b51\s+(tools|fast|free|browser)/i.test(html),'no public 51 total');assert.ok(html.includes('50+'),'50+ wording');
 console.log('v8 static checks passed');
