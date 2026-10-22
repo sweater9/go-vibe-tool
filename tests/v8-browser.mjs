@@ -70,11 +70,11 @@ try{
    assert.deepEqual([...seen.keys()].sort(),listedIds.sort(),'categories cover exactly the listed catalogue');
    assert.equal(total,REAL,'category counts sum to catalogue total');
    assert.equal(tiles.reduce((a,t)=>a+t.n,0),REAL,'tile counts sum to catalogue total')});
-  await check(`${width} PDF & Tables category label, description and stable URL`,async()=>{await home();
-   assert.equal(await cp.locator('.cat-tile[data-cat="files-pdf"] strong').innerText(),'PDF & Tables');
+  await check(`${width} PDF Tools category label, description and stable URL`,async()=>{await home();
+   assert.equal(await cp.locator('.cat-tile[data-cat="files-pdf"] strong').innerText(),'PDF Tools');
    assert.equal(await cp.locator('.cat-tile[data-cat="files-pdf"]').getAttribute('href'),'?category=files-pdf');
    await cp.locator('.cat-tile[data-cat="files-pdf"]').click();await cp.waitForSelector('#categoryTools .toolcard');
-   assert.equal(await cp.locator('#categoryView h1').innerText(),'PDF & Tables');
+   assert.equal(await cp.locator('#categoryView h1').innerText(),'PDF Tools');
    assert.match(await cp.locator('#categoryView .cv-title p').innerText(),/Work with PDFs and spreadsheet-style tables locally\./);
    assert.deepEqual((await cp.locator('#categoryTools .toolcard').evaluateAll(e=>e.map(x=>x.dataset.tool))).sort(),['pdf-compare','pdf-editor','pdf-signer','pdf-studio','table-converter','table-formatter']);
    assert.ok(!/Files & PDF/.test(await cp.locator('body').innerText()));
