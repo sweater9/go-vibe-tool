@@ -186,7 +186,17 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
           { echo "### Preview deployed"; echo "- worker: \`${PREVIEW_WORKER}\` (isolated; production Worker untouched)"; echo "- commit: \`${{ needs.build.outputs.sha }}\`"; echo "- URL: $url"; } >> "$GITHUB_STEP_SUMMARY"
       - name: Verify the live site serves exactly the built bytes
-        run: node scripts/verify-live-assets.mjs "${{ steps.deploy.outputs.url }}" dist
+        run: |
+          # A brand-new workers.dev Worker can take a short while to serve every asset; retry, and surface the
+          # exact mismatches as an annotation so a failure is diagnosable without opening the raw log.
+          for attempt in 1 2 3; do
+            node scripts/verify-live-assets.mjs "${{ steps.deploy.outputs.url }}" dist > live-verify.log 2>&1 && { cat live-verify.log; exit 0; }
+            cat live-verify.log
+            echo "::warning title=live asset check attempt $attempt::$(head -c 700 live-verify.log | tr '\n' ' ')"
+            sleep 30
+          done
+          echo "::error title=Live asset verification failed::$(head -c 900 live-verify.log | tr '\n' ' ')"
+          exit 1
       - run: npm install --no-save playwright@${{ env.PLAYWRIGHT_VERSION }}
       - name: Install Chromium (retry)
         timeout-minutes: 14
