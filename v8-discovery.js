@@ -9,7 +9,7 @@
 const V8_CATEGORIES=[
  {id:"ai-prompts",label:"AI & Prompts",icon:"sparkle",tone:"h-v",blurb:"Build, improve and compare AI prompts and workflows.",ids:["prompt-improver","ai-prompt-builder","prompt-diff","agentic-workflow-generator","ai-signals","fact-anchor-checker"]},
  {id:"productivity",label:"Productivity",icon:"bolt",tone:"h-a",blurb:"Plan, focus and decide faster.",cats:["Productivity"],exclude:["ai-prompt-builder","agentic-workflow-generator","prompt-diff","prompt-improver"]},
- {id:"files-pdf",label:"PDF & Tables",icon:"file",tone:"h-r",blurb:"Work with PDFs and spreadsheet-style tables locally.",cats:["PDF & Tables"],ids:["table-formatter"]},
+ {id:"files-pdf",label:"PDF Tools",icon:"file",tone:"h-r",blurb:"Work with PDFs and spreadsheet-style tables locally.",cats:["PDF & Tables"],ids:["table-formatter"]},
  {id:"images-design",label:"Images & Design",icon:"image",tone:"h-b",blurb:"Resize, compress and style visuals.",cats:["Images & Design"]},
  {id:"privacy-security",label:"Privacy & Security",icon:"shield",tone:"h-g",blurb:"Redact, check and protect sensitive data.",cats:["Privacy & Safety"]},
  {id:"developer",label:"Developer",icon:"code",tone:"h-t",blurb:"Format, decode and sanitise code and data.",cats:["Developer"]},
