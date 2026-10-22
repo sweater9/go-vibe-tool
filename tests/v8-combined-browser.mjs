@@ -16,7 +16,7 @@ for(const width of [375,1280]){
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(server.base);
  await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(r=>navigator.serviceWorker.addEventListener('controllerchange',r,{once:true}));});
- await check(`${width}: nine categories and 70 listed tools (59 V8 + 10 V9 + the standalone PDF Editor)`,async()=>{assert.equal(await page.locator('.cat-tile').count(),9);assert.equal(await page.evaluate(()=>tools.filter(isListed).length),70);});
+ await check(`${width}: nine categories and 71 listed tools (59 V8 + 10 V9 + the standalone PDF Editor and PDF Compare)`,async()=>{assert.equal(await page.locator('.cat-tile').count(),9);assert.equal(await page.evaluate(()=>tools.filter(isListed).length),71);});
  for(const id of ['curl-snippets','key-hash','regex-playground','tailwind-css','shadow-glass','svg-sanitizer','image-metadata-stripper','image-batch-compressor','table-converter']){
  await check(`${width}: ${id} deep link`,async()=>{await page.goto(server.base+'?tool='+id);await page.waitForSelector('#workspace.active');assert.ok((await page.locator('#workspace').innerText()).length>100);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));});
  }

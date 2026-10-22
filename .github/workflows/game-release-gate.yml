@@ -1,19 +1,46 @@
 name: Game Release Gate
 # Read-only game-focused validation; never deploys.
 on:
+  workflow_call:
   pull_request:
     branches: [main]
   workflow_dispatch:
+concurrency:
+  group: game-gate-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      plan: ${{ steps.p.outputs.plan }}
+      tier: ${{ steps.p.outputs.tier }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: p
+        uses: ./.github/actions/ci-plan
+        with:
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.sha }}
+          force-full: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
+          labels: ${{ toJson(github.event.pull_request.labels.*.name) }}
   game-browser:
+    needs: plan
+    if: ${{ fromJSON(needs.plan.outputs.plan).run_play || fromJSON(needs.plan.outputs.plan).run_mahjong }}
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: ${{ fromJSON(needs.plan.outputs.plan).browsers }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

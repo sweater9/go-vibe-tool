@@ -643,3 +643,14 @@
 @media (max-width: 900px) { .workflow-app { grid-template-columns: 1fr !important; height: auto !important; } .canvas-container { min-height: 460px; } }
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (max-width: 700px) { .wf-heading { flex-direction: column; align-items: stretch; } .wf-heading .actions { justify-content: flex-start; } }
+
+/* Play: Continue playing (shown only when a game holds resumable progress) */
+.continue-playing[hidden]{display:none}
+.continue-playing{padding-bottom:0}
+.continue-playing h2{margin:0 0 4px}
+.continue-list{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.continue-item{display:flex;flex-direction:column;gap:2px;min-height:44px;padding:12px 14px;border:1px solid var(--line,#d3dae4);border-radius:14px;background:var(--panel,#fff);color:inherit;text-decoration:none}
+.continue-item span{font-size:.875rem;opacity:.75}
+.continue-item b{margin-top:6px;font-size:.875rem;color:var(--accent,#2057d6)}
+.continue-item:hover{border-color:var(--accent,#2057d6)}
+.continue-item:focus-visible{outline:3px solid #ff9f1c;outline-offset:2px}

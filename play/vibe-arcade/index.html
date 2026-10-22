@@ -277,6 +277,7 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
 </footer>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 
+<script src="../../offline-status.js" defer></script>
 <script>
 (function () {
   'use strict';
@@ -799,7 +800,7 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
     var pips = '';
     for (var i = 0; i < 2; i++) pips += '<span class="pip' + (i < P.streak.freezes ? ' on' : '') + '"></span>';
     var html = '' +
-      '<header class="top"><p class="eyebrow">Daily puzzles · endless levels</p><h1>Vibe Arcade</h1>' +
+      '<header class="top"><p class="eyebrow">Daily puzzles · endless levels</p><h1>Vibe Arcade</h1><span class="gvt-offline" data-offline-assets="site-chrome.css, ../../assets/logo-mark.svg"></span>' +
       '<p class="lede">Five logic games. Play today’s challenge to keep your streak, then climb the levels.</p></header>' +
       '<section class="card"><div class="rankrow"><span class="rankname">' + ri.name + '</span><span class="xp">' + P.xp + ' XP' + (ri.next ? ' · ' + (ri.next - P.xp) + ' to ' + ri.nextName : '') + '</span></div>' +
       '<div class="bar" aria-hidden="true"><i style="width:' + pct + '%"></i></div>' +
@@ -828,6 +829,7 @@ header.top { display: flex; flex-direction: column; gap: 6px; }
     BADGES.forEach(function (b) { html += '<div class="badge ' + (P.badges[b.id] ? 'on' : 'off') + '"><b>' + b.name + '</b><span>' + b.desc + '</span></div>'; });
     html += '</div></section>';
     $('#hub').innerHTML = html;
+    if (window.GVTOffline) window.GVTOffline.refresh();
   }
 
   // ---------- Vibeline mount ----------

@@ -1,22 +1,49 @@
 name: V5/V8 Cross-Browser PR Gate
 on:
+  workflow_call:
   push:
     branches: [feature/v5-labs-play, feature/v8-discovery-navigation]
   pull_request:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: v5-gate-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      plan: ${{ steps.p.outputs.plan }}
+      tier: ${{ steps.p.outputs.tier }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: p
+        uses: ./.github/actions/ci-plan
+        with:
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.sha }}
+          force-full: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
+          labels: ${{ toJson(github.event.pull_request.labels.*.name) }}
   v5-browser:
+    needs: plan
+    if: ${{ fromJSON(needs.plan.outputs.plan).v5_suites != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: ${{ fromJSON(needs.plan.outputs.plan).browsers }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,14 +71,15 @@ jobs:
           done
           cat /tmp/govibetool-server.log
           exit 1
-      - name: V8 + V5 browser suites on PR code
+      - name: V8 + V5 browser suites on PR code (selected by risk, see docs/ci-test-selection.md)
         env:
+          SUITES: ${{ fromJSON(needs.plan.outputs.plan).v5_suites }}
           BASE_URL: http://127.0.0.1:8765
         run: |
           # No `bash -e` surprises: a failing suite must never skip its own log output.
           set +e
           failed=""
-          for t in v8-browser play-games-browser vibe-arcade-browser labs-browser dist-browser v5-browser-smoke prompt-improver-browser tool-fixes-browser; do
+          for t in ${SUITES//,/ }; do
             echo "::group::$t (${{ matrix.browser }})"
             node tests/$t.mjs ${{ matrix.browser }} > "/tmp/$t.log" 2>&1
             rc=$?
@@ -67,13 +95,13 @@ jobs:
           echo "Summary (${{ matrix.browser }}): failed suites =${failed:- none}"
           [ -z "$failed" ]
       - name: Check out the accepted V8 baseline for the maintenance A/B
-        if: always()
+        if: ${{ always() && fromJSON(needs.plan.outputs.plan).v5_maintenance }}
         uses: actions/checkout@v4
         with:
           ref: db1d37540d92919f7b09612a91502dff0faf358c
           path: v8-baseline
       - name: v5-maintenance-browser, PR vs accepted V8 baseline (fails only on NEW issues)
-        if: always()
+        if: ${{ always() && fromJSON(needs.plan.outputs.plan).v5_maintenance }}
         env:
           BASE_URL: http://127.0.0.1:8765
         run: |

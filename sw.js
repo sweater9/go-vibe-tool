@@ -1,4 +1,4 @@
-const CACHE="govibetool-v8-11";
+const CACHE="govibetool-v8-12";
 const LEGACY_CACHE="govibetool-v2-7";
 // Owned by the scoped worker in /tools/v9-media/ (offline OCR/PDF engines). A global upgrade must not purge it.
 const MEDIA_CACHE_PREFIX="gvt-v9-media-";
@@ -20,6 +20,7 @@ const ASSETS=[
   "./v9-agent1-tools.js",
   "./tools/v9-media/register.js",
   "./tools/pdf-editor/register.js",
+  "./tools/pdf-compare/register.js",
   "./tools.js",
   "./v2-tools.js",
   "./v21-tools.js",
@@ -355,6 +356,9 @@ const ASSETS=[
   "./play/games.css",
   "./play/vibe-arcade/index.html",
   "./play/vibe-arcade/site-chrome.css",
+  "./play/continue.js",
+  "./offline-status.js",
+  "./offline-status.css",
   "./play/2048/index.html",
   "./play/2048/engine.js",
   "./play/2048/app.js",

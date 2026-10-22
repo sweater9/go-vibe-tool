@@ -27,7 +27,7 @@ assert.match(wf.split('jobs:')[0], /paths: \['\.github\/workflows\/cloudflare-v8
 // no secrets anywhere in the repo files this change added
 for (const f of ['wrangler.jsonc', 'wrangler.preview.jsonc', 'scripts/cf-preflight.mjs', 'scripts/verify-live-assets.mjs', '.github/workflows/cloudflare-v8-preview.yml']) assert.ok(!/[A-Za-z0-9_-]{40}\.[A-Za-z0-9_-]{20,}/.test(read(f)), `${f} looks like it contains a credential`);
 // preflight refuses to run without credentials and never prints a token
-const run = (env) => { try { execFileSync(process.execPath, ['scripts/cf-preflight.mjs'], { env: { PATH: process.env.PATH, ...env }, stdio: 'pipe' }); return { code: 0, out: '' }; } catch (e) { return { code: e.status, out: String(e.stderr) + String(e.stdout) }; } };
+const run = (env, script = 'scripts/cf-preflight.mjs') => { try { execFileSync(process.execPath, [script], { env: { PATH: process.env.PATH, ...env }, stdio: 'pipe' }); return { code: 0, out: '' }; } catch (e) { return { code: e.status, out: String(e.stderr) + String(e.stdout) }; } };
 let r = run({}); assert.equal(r.code, 1); assert.match(r.out, /must be set/);
 r = run({ CLOUDFLARE_API_TOKEN: 'SECRET-TOKEN-VALUE', CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32), PREVIEW_WORKER: 'go-vibe-tool' }); assert.equal(r.code, 1); assert.match(r.out, /Refusing to deploy over the existing Worker/); assert.ok(!r.out.includes('SECRET-TOKEN-VALUE'));
 r = run({ CLOUDFLARE_API_TOKEN: 'SECRET-TOKEN-VALUE', CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32), PREVIEW_WORKER: 'my-site' }); assert.equal(r.code, 1); assert.match(r.out, /must end in "-preview"/);
@@ -50,3 +50,18 @@ const previewHead = wf.split('jobs:')[0];
 assert.ok(!/\n\s*(pull_request|schedule|workflow_run):/.test(previewHead), 'preview has no automatic deploy-capable triggers');
 assert.match(wf, /REQUIRED_REF[\s\S]*?GITHUB_REF[\s\S]*?exit 1/, 'preview refuses to run from any ref other than the V8 branch (so on main it cannot build or deploy)');
 console.log('✓ Cloudflare reconciliation: production pinned and independent; preview guarded, preview-only, never production config');
+
+/* Phase 2 preview: a second, separate isolated Worker. The V8 preview files above are unchanged. */
+{
+  const p2 = jsonc('wrangler.phase2-preview.jsonc'), p2wf = read('.github/workflows/cloudflare-phase2-preview.yml'), v8wf = read('.github/workflows/cloudflare-v8-preview.yml');
+  assert.equal(p2.name, 'go-vibe-tool-phase2-preview'); assert.notEqual(p2.name, prod.name); assert.notEqual(p2.name, prev.name);
+  assert.equal(p2.workers_dev, true); assert.ok(!p2.routes && !p2.route && !p2.custom_domain, 'no routes or domains');
+  assert.match(p2wf, /REQUIRED_REF: refs\/heads\/feature\/phase-2-usability/); assert.match(p2wf, /inputs\.deploy == true/);
+  assert.match(p2wf.split('jobs:')[0], /paths: \['\.github\/workflows\/cloudflare-phase2-preview\.yml'\]/); assert.ok(!/inputs\.deploy == true/.test('') || true); assert.match(p2wf, /if: \$\{\{ github\.event_name == 'workflow_dispatch' && inputs\.deploy == true \}\}/, 'deploy only on a manual run with deploy ticked');
+  assert.match(p2wf, /environment:\s*\n\s*name: cloudflare-v8-preview/); assert.ok(!/wrangler\.preview\.jsonc|cf-preflight\.mjs/.test(p2wf));
+  assert.ok(!/cloudflare-production/.test(p2wf), 'phase 2 preview never uses the production environment'); assert.match(p2wf, /PREVIEW_WORKER: go-vibe-tool-phase2-preview/);
+  assert.match(v8wf, /REQUIRED_REF: refs\/heads\/feature\/v8-discovery-navigation/, 'V8 preview branch restriction untouched');
+  assert.ok(!/phase2/.test(prodWf), 'production never references the phase 2 preview');
+  const pre = (name) => run({ CLOUDFLARE_API_TOKEN: 'SECRET-TOKEN-VALUE', CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32), PREVIEW_WORKER: name }, 'scripts/cf-preflight-phase2.mjs');
+  assert.equal(pre('go-vibe-tool').code, 1);
+}

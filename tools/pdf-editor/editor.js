@@ -320,7 +320,7 @@ const redo = guard(async () => { if (busy) return; const s = hist.redo(state); i
 function updateButtons() {
   const has = state.pages.length > 0;
   $("undo").disabled = !hist.canUndo; $("redo").disabled = !hist.canRedo; $("download").disabled = !has; $("closeBtn").disabled = !has; $("closeBtn2").disabled = !has; $("openBtn").textContent = has ? "Open another PDF" : "Open PDF";
-  for (const id of ["zoomIn", "zoomOut", "zoomFit", "pagesToggle"]) $(id).disabled = !has;
+  for (const id of ["zoomIn", "zoomOut", "zoomFit", "pagesToggle", "navPages", "navBookmarks"]) $(id).disabled = !has;
   updatePageButtons(); updatePageInfo();
 }
 
@@ -586,7 +586,38 @@ $("pgDel").addEventListener("click", guard(async () => { const ids = pageTargets
 $("pgBlank").addEventListener("click", guard(async () => { const p = curPage(), r = totalRot(p), [x0, y0, x1, y1] = p.view, size = [x1 - x0, y1 - y0]; void r; await commit(() => { blankPage(state, cur, size); cur += 1; }, { pages: true }); say("Blank page added."); }));
 $("pgInsert").addEventListener("click", () => openPicker($("insertInput")));
 $("pgExtract").addEventListener("click", guard(async () => { const ids = pageTargets(); if (!ids.length) return; await runExport({ only: ids, name: `${stripName(docName)}-extracted-${ids.length}-page${ids.length > 1 ? "s" : ""}.pdf`, label: `Extracted ${ids.length} page${ids.length > 1 ? "s" : ""}` }); }));
-$("pagesToggle").addEventListener("click", () => { const on = !document.body.classList.contains("pages-open"); document.body.classList.toggle("pages-open", on); $("pagesToggle").setAttribute("aria-expanded", String(on)); $("pagesToggle").setAttribute("aria-label", on ? "Hide pages" : "Show pages"); });
+/* Pages / Bookmarks drawer (phones and tablets). The body class is the single source of truth: other code may add or remove
+   "pages-open", and the observer below keeps every button's expanded state and the focus in step with it. */
+const drawerOpen = () => document.body.classList.contains("pages-open");
+const bookmarksShown = () => !$("paneBookmarks").hidden;
+let drawerOpener = null;
+function openDrawer(which, opener) {
+  drawerOpener = opener || null;
+  if (which) $(which === "bookmarks" ? "tabBookmarks" : "tabPages").click();
+  document.body.classList.add("pages-open");
+  $(bookmarksShown() ? "tabBookmarks" : "tabPages").focus({ preventScroll: true });
+}
+function closeDrawer() {
+  const back = drawerOpener; drawerOpener = null; document.body.classList.remove("pages-open");
+  if (back && !back.disabled && back.offsetParent !== null) back.focus({ preventScroll: true });
+}
+function syncDrawerUi() {
+  const open = drawerOpen(), bm = bookmarksShown();
+  $("pagesToggle").setAttribute("aria-expanded", String(open)); $("pagesToggle").setAttribute("aria-label", open ? "Hide pages" : "Show pages");
+  $("navPages").setAttribute("aria-expanded", String(open && !bm)); $("navBookmarks").setAttribute("aria-expanded", String(open && bm));
+}
+new MutationObserver(syncDrawerUi).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+new MutationObserver(syncDrawerUi).observe($("paneBookmarks"), { attributes: true, attributeFilter: ["hidden"] });
+$("pagesToggle").addEventListener("click", () => { if (drawerOpen()) closeDrawer(); else openDrawer(null, $("pagesToggle")); });
+$("navPages").addEventListener("click", () => { if (drawerOpen() && !bookmarksShown()) closeDrawer(); else openDrawer("pages", $("navPages")); });
+$("navBookmarks").addEventListener("click", () => { if (drawerOpen() && bookmarksShown()) closeDrawer(); else openDrawer("bookmarks", $("navBookmarks")); });
+$("pagesClose").addEventListener("click", closeDrawer);
+$("pagesScrim").addEventListener("click", closeDrawer);
+/* Escape closes the drawer first (capture phase, so it does not also deselect the object behind it). Renaming a bookmark keeps its own Escape. */
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape" || !drawerOpen() || !matchMedia("(max-width:900px)").matches || e.target.id === "bmRename") return;
+  e.preventDefault(); e.stopImmediatePropagation(); closeDrawer();
+}, true);
 $("prevPage").addEventListener("click", () => goTo(cur - 1)); $("nextPage").addEventListener("click", () => goTo(cur + 1));
 
 /* ---------- images ---------- */

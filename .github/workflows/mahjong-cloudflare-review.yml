@@ -1,19 +1,46 @@
 name: Mahjong Cloudflare review
 on:
+  workflow_call:
   push:
     branches: [feature/v8-discovery-navigation]
   pull_request:
     branches: [main]
   workflow_dispatch:
+concurrency:
+  group: mahjong-cf-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      plan: ${{ steps.p.outputs.plan }}
+      tier: ${{ steps.p.outputs.tier }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: p
+        uses: ./.github/actions/ci-plan
+        with:
+          base: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head: ${{ github.sha }}
+          force-full: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call' }}
+          labels: ${{ toJson(github.event.pull_request.labels.*.name) }}
   cloudflare:
+    needs: plan
+    if: ${{ fromJSON(needs.plan.outputs.plan).run_mahjong }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit]
+        browser: ${{ fromJSON(needs.plan.outputs.plan).browsers }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,7 +48,8 @@ jobs:
           node-version: '22'
       - run: npm install --no-save --package-lock=false miniflare@4.20260730.0 playwright@1.58.2
       - run: npx playwright install --with-deps ${{ matrix.browser }}
-      - run: npm test
+      - name: Full unit suite (shared changes) or essentials only
+        run: ${{ fromJSON(needs.plan.outputs.plan).unit_full && 'npm test' || 'npm run test:essentials' }}
       - run: node tests/static-dist.mjs
       - run: npm run test:mahjong:cloudflare
       - run: npm run test:mahjong:browser -- ${{ matrix.browser }}

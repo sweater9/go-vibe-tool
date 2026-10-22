@@ -29,6 +29,7 @@
   ],
   "excludedPaths": [
     "/tools/pdf-editor/",
+    "/tools/pdf-compare/",
     "/tools/pdf-studio/",
     "/tools/private-pdf-tools.html",
     "/play/vibe-arcade/",

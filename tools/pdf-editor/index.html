@@ -42,13 +42,14 @@
   <symbol id="i-dup" viewBox="0 0 24 24"><path d="M8 3h11v14H8zm-3 4h2v12h10v2H5z" fill="currentColor"/></symbol>
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M11 3h2v9l3-3 1.400 1.400L12 16l-5.400-5.600L8 9l3 3zM5 18h14v3H5z" fill="currentColor"/></symbol>
   <symbol id="i-open" viewBox="0 0 24 24"><path d="M3 5h7l2 2h9v12H3z" fill="currentColor"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z" fill="currentColor"/></symbol>
   <symbol id="i-pages" viewBox="0 0 24 24"><path d="M5 4h9v14H5zm11 3h3v14H8v-2h8z" fill="currentColor"/></symbol>
 </svg>
 
 <a class="skip" href="#stage">Skip to the document</a>
 <header class="topbar" role="banner">
   <a class="brand" href="../../" aria-label="GoVibeTool home">GoVibeTool</a>
-  <h1 class="tool-name">PDF Editor</h1>
+  <h1 class="tool-name">PDF Editor</h1><span class="gvt-offline" data-offline-assets="editor.css, editor.js, model.mjs, bake.mjs, textedit.mjs, v2ui.js, engine/content.mjs, engine/dest.mjs, engine/edit.mjs, engine/fonts.mjs, engine/links.mjs, engine/outline.mjs, engine/reflow.mjs, engine/textmodel.mjs, ../../vendor/pdf-lib.min.js" data-offline-manifest="../v9-media/vendor-assets.json" data-offline-prefix="vendor/pdf/" data-offline-download="Open a Media Tools page (for example Offline OCR) while online and choose Prepare offline."></span>
   <span id="fileName" class="file-name" title=""></span>
   <span class="spacer"></span>
   <div class="group" role="group" aria-label="History">
@@ -72,7 +73,7 @@
 
 <section id="welcome" class="welcome" aria-labelledby="welcomeTitle">
   <div class="drop" id="dropZone">
-    <h2 id="welcomeTitle">Edit a PDF privately</h2>
+    <h2 id="welcomeTitle">Edit a PDF privately</h2><span class="gvt-offline" data-offline-assets="editor.css, editor.js, model.mjs, bake.mjs, textedit.mjs, v2ui.js, engine/content.mjs, engine/dest.mjs, engine/edit.mjs, engine/fonts.mjs, engine/links.mjs, engine/outline.mjs, engine/reflow.mjs, engine/textmodel.mjs, ../../vendor/pdf-lib.min.js" data-offline-manifest="../v9-media/vendor-assets.json" data-offline-prefix="vendor/pdf/" data-offline-download="Open a Media Tools page (for example Offline OCR) while online and choose Prepare offline."></span>
     <p>Add text, images, shapes, highlights and drawings. Rotate, reorder, delete and extract pages. Your file is processed on this device and is never uploaded.</p>
     <button id="welcomeOpen" class="btn primary big">Choose a PDF</button>
     <p class="hint">or drag and drop a PDF here &middot; up to 50 MB</p>
@@ -102,6 +103,7 @@
     <div class="tabs" role="tablist" aria-label="Side panel">
       <button id="tabPages" class="tab" role="tab" aria-selected="true" aria-controls="paneThumbs">Pages</button>
       <button id="tabBookmarks" class="tab" role="tab" aria-selected="false" aria-controls="paneBookmarks">Bookmarks</button>
+      <button id="pagesClose" class="icon only-mobile" type="button" aria-label="Close pages and bookmarks panel" title="Close"><span aria-hidden="true">&times;</span></button>
     </div>
     <div id="paneThumbs" class="pane" role="tabpanel" aria-labelledby="tabPages">
     <div class="pages-head">
@@ -273,16 +275,23 @@
   </aside>
 </div>
 
+<div id="pagesScrim" class="scrim" aria-hidden="true"></div>
+
 <footer class="statusbar">
   <div class="pager" role="group" aria-label="Page navigation">
     <button id="prevPage" class="icon" aria-label="Previous page" disabled><svg class="ic rot"><use href="#i-up"/></svg></button>
     <output id="pageInfo" class="page-info">No document</output>
     <button id="nextPage" class="icon" aria-label="Next page" disabled><svg class="ic rot"><use href="#i-down"/></svg></button>
   </div>
+  <div class="mnav" role="group" aria-label="Pages and bookmarks">
+    <button id="navPages" class="btn small" type="button" aria-expanded="false" aria-controls="pagesPanel" disabled><svg class="ic"><use href="#i-pages"/></svg><span>Pages</span></button>
+    <button id="navBookmarks" class="btn small" type="button" aria-expanded="false" aria-controls="pagesPanel" disabled><svg class="ic"><use href="#i-bookmark"/></svg><span>Bookmarks</span></button>
+  </div>
   <p id="status" class="status" role="status" aria-live="polite">Open a PDF to begin.</p>
   <a id="downloadLink" class="dl-link" tabindex="-1" aria-hidden="true" hidden>Download ready</a>
 </footer>
 <script src="../../vendor/pdf-lib.min.js"></script>
 <script type="module" src="editor.js"></script>
+<script src="../../offline-status.js" defer></script>
 </body>
 </html>

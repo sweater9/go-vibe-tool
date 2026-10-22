@@ -314,6 +314,7 @@ export function createV2(ctx) {
       const ok = btn("Save", () => { const v = inp.value.trim(); if (!v) { say("A bookmark needs a title.", true); return; } bmEditing = false; bmApply(t => O.renameItem(t, node.id, v), "Bookmark renamed."); }, "primary");
       inp.addEventListener("keydown", e => { if (e.key === "Enter") ok.click(); if (e.key === "Escape") { bmEditing = false; renderBookmarks(); } }); box.append(inp, ok, btn("Cancel", () => { bmEditing = false; renderBookmarks(); })); setTimeout(() => { inp.focus(); inp.select(); }, 0); return box;
     }
+    if (document.body.classList.contains("pages-open") && matchMedia("(max-width:900px)").matches) box.append(btn("Show page", () => $("pagesClose").click(), "primary", "Close the panel and show this bookmark's page"));
     box.append(
       btn("Rename", () => { bmEditing = true; renderBookmarks(); }), btn("Up", () => bmApply(t => O.moveItem(t, node.id, -1), "Moved up."), "", "Move bookmark up"), btn("Down", () => bmApply(t => O.moveItem(t, node.id, 1), "Moved down."), "", "Move bookmark down"),
       btn("Indent", () => bmApply(t => O.indentItem(t, node.id), "Indented under the bookmark above."), "", "Make a sub-bookmark of the one above"), btn("Outdent", () => bmApply(t => O.outdentItem(t, node.id), "Moved out one level."), "", "Move out one level"),

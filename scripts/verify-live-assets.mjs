@@ -9,7 +9,8 @@ if (!/^https?:\/\//.test(base)) { console.error('usage: verify-live-assets.mjs <
 const list = d => fs.readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? list(path.join(d, e.name)) : [path.relative(dist, path.join(d, e.name)).split(path.sep).join('/')]);
 const sha = b => crypto.createHash('sha256').update(b).digest('hex');
 const urlFor = f => f === 'index.html' ? '' : f.endsWith('/index.html') ? f.slice(0, -'index.html'.length) : f.endsWith('.html') ? f.slice(0, -'.html'.length) : f;
-const files = list(dist).filter(f => f !== '.assetsignore'); const bad = []; let ok = 0;
+const CONFIG_ONLY = new Set(['.assetsignore', '_redirects', '_headers']); // Cloudflare applies these as configuration; they are never served as assets
+const files = list(dist).filter(f => !CONFIG_ONLY.has(f)); const bad = []; let ok = 0;
 async function check(f) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     try { const res = await fetch(base + urlFor(f), { redirect: 'follow', headers: { 'Cache-Control': 'no-cache' } }); if (res.status !== 200) { if (attempt === 3) bad.push(`${f}: HTTP ${res.status}`); continue; } const live = sha(Buffer.from(await res.arrayBuffer())), want = sha(fs.readFileSync(path.join(dist, f))); if (live !== want) { if (attempt === 3) bad.push(`${f}: bytes differ (live ${live.slice(0, 12)} vs dist ${want.slice(0, 12)})`); continue; } ok++; return; } catch (e) { if (attempt === 3) bad.push(`${f}: ${e.message}`); }

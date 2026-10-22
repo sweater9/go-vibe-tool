@@ -1,0 +1,39 @@
+name: CI plan
+description: Classify the change by risk (see docs/ci-test-selection.md) and expose the test plan as JSON.
+inputs:
+  base:
+    description: Base commit SHA to diff against (empty or all-zero means run everything)
+    required: false
+    default: ''
+  head:
+    description: Head commit SHA
+    required: true
+  force-full:
+    description: 'true to run the full regression regardless of what changed'
+    required: false
+    default: 'false'
+  labels:
+    description: JSON array of pull request label names
+    required: false
+    default: '[]'
+outputs:
+  plan:
+    description: JSON plan produced by scripts/ci-plan.mjs
+    value: ${{ steps.plan.outputs.plan }}
+  tier:
+    description: docs | minor | feature | shared | full
+    value: ${{ steps.plan.outputs.tier }}
+runs:
+  using: composite
+  steps:
+    - id: plan
+      shell: bash
+      env:
+        BASE: ${{ inputs.base }}
+        HEAD: ${{ inputs.head }}
+        FORCE: ${{ inputs.force-full }}
+        LABELS: ${{ inputs.labels }}
+      run: |
+        args=(--base "${BASE:-0000000000000000000000000000000000000000}" --head "$HEAD" --labels "$LABELS" --github-output "$GITHUB_OUTPUT")
+        if [ "$FORCE" = "true" ]; then args+=(--force-full); fi
+        node scripts/ci-plan.mjs "${args[@]}"

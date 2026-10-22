@@ -76,7 +76,7 @@ try{
    await cp.locator('.cat-tile[data-cat="files-pdf"]').click();await cp.waitForSelector('#categoryTools .toolcard');
    assert.equal(await cp.locator('#categoryView h1').innerText(),'PDF & Tables');
    assert.match(await cp.locator('#categoryView .cv-title p').innerText(),/Work with PDFs and spreadsheet-style tables locally\./);
-   assert.deepEqual((await cp.locator('#categoryTools .toolcard').evaluateAll(e=>e.map(x=>x.dataset.tool))).sort(),['pdf-editor','pdf-signer','pdf-studio','table-converter','table-formatter']);
+   assert.deepEqual((await cp.locator('#categoryTools .toolcard').evaluateAll(e=>e.map(x=>x.dataset.tool))).sort(),['pdf-compare','pdf-editor','pdf-signer','pdf-studio','table-converter','table-formatter']);
    assert.ok(!/Files & PDF/.test(await cp.locator('body').innerText()));
    assert.equal(await cp.locator('#categoryTools .toolcard').filter({hasText:'Private PDF Tools'}).count(),1);
    assert.equal(await cp.locator('#categoryTools .toolcard').filter({hasText:'Markdown Table ↔ Spreadsheet Formatter'}).count(),1);

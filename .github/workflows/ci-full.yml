@@ -1,0 +1,22 @@
+name: CI full regression (manual)
+# Runs every gated workflow in full, ignoring the risk classifier. Validation only, no deployment.
+# Use before a release or after infrastructure work; see docs/ci-test-selection.md.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  quality:
+    uses: ./.github/workflows/quality.yml
+  game-gate:
+    uses: ./.github/workflows/game-release-gate.yml
+  mahjong:
+    uses: ./.github/workflows/mahjong-review.yml
+  mahjong-cloudflare:
+    uses: ./.github/workflows/mahjong-cloudflare-review.yml
+  cross-browser:
+    uses: ./.github/workflows/v5-cross-browser-pr.yml
+  v9-integration:
+    uses: ./.github/workflows/v9-integration-qa.yml
+  pdf-editor:
+    uses: ./.github/workflows/pdf-editor-v2-qa.yml
