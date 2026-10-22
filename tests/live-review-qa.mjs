@@ -52,8 +52,8 @@ async function run(label, w, h) {
   await check('no horizontal overflow', async () => ok((await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)) <= 0, 'overflow'));
   await page.screenshot({ path: `${out}/${engine}-${label}-home.png` });
   await page.screenshot({ path: `${out}/${engine}-${label}-home-full.png`, fullPage: true });
-  await check('PDF & Tables label (no "Files & PDF")', async () => { ok(/PDF & Tables/.test(await page.locator('.cat-tile[data-cat="files-pdf"]').innerText()), 'label'); ok(!/Files & PDF/.test(body), 'old label present'); });
-  await check('PDF & Tables opens the correct tools at ?category=files-pdf', async () => {
+  await check('PDF Tools label (no "Files & PDF")', async () => { ok(/PDF Tools/.test(await page.locator('.cat-tile[data-cat="files-pdf"]').innerText()), 'label'); ok(!/Files & PDF/.test(body), 'old label present'); });
+  await check('PDF Tools opens the correct tools at ?category=files-pdf', async () => {
     await page.locator('.cat-tile[data-cat="files-pdf"]').click(); await page.waitForSelector('#categoryTools .toolcard');
     const ids = await page.locator('#categoryTools .toolcard').evaluateAll(e => e.map(x => x.dataset.tool)).then(a => a.sort());
     eq(ids.join(','), 'pdf-studio,table-converter,table-formatter', 'tools'); ok(/\?category=files-pdf$/.test(page.url()), page.url());
