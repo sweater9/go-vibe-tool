@@ -40,6 +40,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .btn.toggle[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
 .zoom-label{min-width:52px;text-align:center;font-variant-numeric:tabular-nums;font-size:.875rem}
 .only-mobile{display:none}
+.mnav{display:none;gap:6px;align-items:center}
+.scrim{display:none}
+.tabs .icon{flex:none;border-radius:0;border-left:1px solid var(--line);font-size:1.6rem;line-height:1}
 
 /* welcome */
 .welcome{display:grid;place-items:center;padding:24px;overflow:auto}
@@ -166,8 +169,16 @@ input[type=range]{width:100%;height:32px}
   .rail{flex-direction:row;overflow-x:auto;overflow-y:hidden;border-right:0;border-top:1px solid var(--line);padding:6px;flex:none}
   .tool{min-width:60px;flex:none}
   .stage{flex:1 1 auto}
-  .pages{position:fixed;left:0;top:56px;bottom:0;width:min(78vw,260px);z-index:20;transform:translateX(-105%);transition:transform .18s;box-shadow:var(--shadow)}
-  body.pages-open .pages{transform:none}
+  .pages{position:fixed;left:0;top:56px;bottom:0;width:min(88vw,340px);z-index:20;transform:translateX(-105%);visibility:hidden;transition:transform .18s,visibility 0s .18s;box-shadow:var(--shadow);padding-bottom:env(safe-area-inset-bottom);overscroll-behavior:contain}
+  .pages{pointer-events:none}
+  body.pages-open .pages{transform:none;visibility:visible;pointer-events:auto;transition:transform .18s,visibility 0s}
+  .thumbs,.bm-list{overscroll-behavior:contain}
+  body.pages-open .scrim{display:block;position:fixed;left:0;right:0;top:56px;bottom:0;z-index:15;background:rgba(10,15,22,.5);touch-action:none}
+  body:not(.no-doc) .mnav{display:flex}
+  .statusbar{flex-wrap:wrap}
+  .mnav .btn{min-height:44px;padding:0 12px;gap:6px}
+  .mnav .btn .ic+span{display:inline}
+  .mnav .btn[aria-expanded="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:700}
   .props{display:none;flex:none;max-height:38vh;border:0;border-top:1px solid var(--line);padding:10px 12px;border-left:0}
   body.props-open .props{display:block}
   body.props-compact .props{max-height:none}
@@ -176,6 +187,11 @@ input[type=range]{width:100%;height:32px}
   .sheet{margin:12px auto}
   .statusbar{gap:6px;padding:4px 8px}
   .status{font-size:.8125rem}
+}
+@media (max-width:560px){
+  /* phone portrait: Pages and Bookmarks get their own full-width row, always on screen */
+  .mnav{order:3;flex:1 1 100%}
+  .mnav .btn{flex:1 1 0;justify-content:center}
 }
 @media (max-width:900px){
   /* the header can scroll sideways: keep Download pinned in view, and keep Close PDF in the Pages drawer instead of the crowded header */
@@ -190,7 +206,15 @@ input[type=range]{width:100%;height:32px}
   .tool{min-width:0}
   .stage{order:2;flex:1 1 0;min-width:0}
   .props{order:3;max-height:none;width:min(46vw,300px);border-top:0;border-left:1px solid var(--line);overflow-y:auto}
-  .pages{top:48px}
+  .pages{top:48px;width:min(60vw,340px)}
+  body.pages-open .scrim{top:48px}
+  .pane{overflow-y:auto}
+  .thumbs,.bm-list{overflow:visible;flex:none}
   .statusbar{padding:2px 8px}
 }
-@media (prefers-reduced-motion:reduce){.pages{transition:none}}
+@media (pointer:coarse){
+  .thumb .moves .icon{min-width:44px;min-height:44px}
+  .btn.small{min-height:44px}
+  .thumb .chk{padding:6px}
+}
+@media (prefers-reduced-motion:reduce){.pages,body.pages-open .pages{transition:none}}

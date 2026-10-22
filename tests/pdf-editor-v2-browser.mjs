@@ -200,6 +200,49 @@ for (const w of WIDTHS) {
     await page.setViewportSize({ width: 390, height: 844 });
   });
 
+  if (S.mobile) await check(`${tag}: phone navigation: labelled Pages and Bookmarks buttons open the right tab; the panel closes with its button, the backdrop, Escape and Show page; bookmarks navigate`, async () => {
+    await S.open(fx.lo, 'lo.pdf');
+    const drawerOpen = () => page.evaluate(() => document.body.classList.contains('pages-open'));
+    for (const [w, h, mode] of [[390, 844, 'portrait'], [844, 390, 'landscape'], [390, 844, 'portrait again']]) {
+      await page.setViewportSize({ width: w, height: h }); await page.waitForTimeout(350);
+      for (const [id, label] of [['navPages', 'Pages'], ['navBookmarks', 'Bookmarks']]) {
+        const b = await page.locator('#' + id).boundingBox();
+        assert.ok(b && b.x >= 0 && b.y >= 0 && b.x + b.width <= w + 0.5 && b.y + b.height <= h + 0.5, `#${id} is off screen in ${mode}: ${JSON.stringify(b)}`);
+        assert.ok(b.height >= 43.5 && b.width >= 43.5, `#${id} touch target too small in ${mode}: ${b.width}x${b.height}`);
+        assert.equal((await page.locator('#' + id).innerText()).trim(), label, `#${id} must show its name in ${mode}`);
+      }
+      assert.equal(await drawerOpen(), false, `drawer starts closed in ${mode}`);
+      assert.equal(await page.locator('#tabBookmarks').isVisible(), false, `closed drawer must not be reachable in ${mode}`);
+      // Bookmarks button opens straight onto the Bookmarks tab
+      await page.locator('#navBookmarks').click(); await page.waitForTimeout(350);
+      assert.equal(await page.locator('#paneBookmarks').isVisible(), true, `Bookmarks pane in ${mode}`);
+      assert.equal(await page.getAttribute('#navBookmarks', 'aria-expanded'), 'true'); assert.equal(await page.getAttribute('#navPages', 'aria-expanded'), 'false');
+      const d = await page.locator('#pagesPanel').boundingBox(); assert.ok(d.x >= -0.5 && d.x + d.width <= w + 0.5 && d.y + d.height <= h + 0.5, `drawer outside the viewport in ${mode}: ${JSON.stringify(d)}`);
+      assert.ok(d.width < w - 20, `drawer leaves no room to tap the backdrop in ${mode}`);
+      const first = page.locator('#bmList .bm-go').first(); await first.scrollIntoViewIfNeeded(); const fb = await first.boundingBox(); assert.ok(fb.height >= 43.5 && fb.x >= 0 && fb.x + fb.width <= w + 0.5, `bookmark row not usable in ${mode}: ${JSON.stringify(fb)}`);
+      // tapping a bookmark goes to its page and offers Show page
+      const row = page.locator('#bmList .bm-row', { hasText: 'Costs' }), target = (await row.locator('.bm-page').innerText()).match(/\d+/)[0];
+      await row.locator('.bm-go').click(); await page.waitForTimeout(500);
+      assert.match(await page.textContent('#pageInfo'), new RegExp(`\\b${target}\\b`), `bookmark did not go to page ${target} in ${mode}`);
+      assert.equal(await drawerOpen(), true, 'drawer stays open so the bookmark can be edited');
+      const show = page.locator('#bmList .bm-actions button', { hasText: 'Show page' }); assert.equal(await show.count(), 1, 'Show page button');
+      await show.click(); await page.waitForTimeout(350); assert.equal(await drawerOpen(), false, `Show page closes the panel in ${mode}`);
+      // Pages button toggles; Escape, backdrop and Close button all close it; focus returns to the opener
+      await page.locator('#navPages').click(); await page.waitForTimeout(350);
+      assert.equal(await page.locator('#paneThumbs').isVisible(), true, `Pages pane in ${mode}`); assert.equal(await page.getAttribute('#navPages', 'aria-expanded'), 'true');
+      await page.keyboard.press('Escape'); await page.waitForTimeout(350); assert.equal(await drawerOpen(), false, `Escape closes the panel in ${mode}`);
+      assert.equal(await page.evaluate(() => document.activeElement && document.activeElement.id), 'navPages', 'focus goes back to the button that opened it');
+      await page.locator('#navPages').click(); await page.waitForTimeout(350); await page.mouse.click(w - 6, Math.round(h / 2)); await page.waitForTimeout(350);
+      assert.equal(await drawerOpen(), false, `tapping outside closes the panel in ${mode}`);
+      await page.locator('#navBookmarks').click(); await page.waitForTimeout(350); await page.locator('#pagesClose').click(); await page.waitForTimeout(350);
+      assert.equal(await drawerOpen(), false, `Close button closes the panel in ${mode}`);
+      // thumbnail tap still navigates and closes
+      await page.locator('#navPages').click(); await page.waitForTimeout(350); await page.locator('#thumbs .thumb-main').nth(1).click(); await page.waitForTimeout(500);
+      assert.equal(await drawerOpen(), false, `choosing a page closes the panel in ${mode}`); assert.match(await page.textContent('#pageInfo'), /2/, `thumbnail did not go to page 2 in ${mode}`);
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+  });
+
   await check(`${tag}: a font replacement is explained and needs confirmation; declining leaves the text unchanged, accepting applies it`, async () => {
     await S.open(fx.chrome, 'invoice.pdf'); await S.tool('edittext'); await S.pickBlock('$120.00'); await S.setText('$1,250.75');
     await page.waitForFunction(() => /standard font/.test(document.getElementById('runNote').textContent)); const count = () => page.evaluate(() => window.pdfEditorDebug.v2.edits());
