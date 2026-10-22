@@ -92,3 +92,5 @@ body.no-result .navbar{display:none}
   .fulltext{max-height:50vh}
 }
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+
+.limits-note{margin:10px 0 0;padding:10px 14px;border:1px solid var(--line);border-left:4px solid var(--accent,#8b5cf6);border-radius:10px;background:var(--panel);color:var(--text,inherit);font-size:.92rem}

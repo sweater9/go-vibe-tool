@@ -109,6 +109,7 @@ for (const w of WIDTHS) {
     assert.equal(await page.locator('h1').count(), 1);
     const unnamed = await page.evaluate(() => [...document.querySelectorAll('button,input,[role=tab]')].filter(e => e.offsetParent !== null && e.type !== 'hidden').filter(e => !((e.getAttribute('aria-label') || e.textContent || (e.labels && e.labels[0] && e.labels[0].textContent) || '').trim())).map(e => e.id || e.outerHTML.slice(0, 60)));
     assert.deepEqual(unnamed, []); assert.equal(await page.evaluate(() => document.querySelectorAll('[style]').length), 0, 'no inline style attributes');
+    {const n = await page.locator('#limitsNote'); assert.ok(await n.isVisible(), 'limits notice is visible without opening anything'); const t = await n.innerText(); assert.match(t, /no OCR/); assert.match(t, /50 MB/); assert.match(t, /300 pages/);}
     await page.locator('.limits summary').click(); assert.match(await page.textContent('.limits'), /Scanned or image-only pages/); assert.match(await page.textContent('.limits'), /not compared|not\*\* compared|are not/); await ctx.close();
   });
 }
