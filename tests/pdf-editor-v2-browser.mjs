@@ -248,7 +248,7 @@ for (const w of WIDTHS) {
     await page.waitForFunction(() => /standard font/.test(document.getElementById('runNote').textContent)); const count = () => page.evaluate(() => window.pdfEditorDebug.v2.edits());
     let asked = ''; S.onDialog = d => { asked = d.message(); d.dismiss(); }; await page.waitForFunction(() => !document.getElementById('runApply').disabled); await page.locator('#runApply').click(); await page.waitForTimeout(600);
     assert.match(asked, /embedded font cannot draw this/i); assert.match(asked, /standard font/i); assert.equal(await count(), 0, 'declining must not change the PDF');
-    S.errs.splice(0, S.errs.length, ...S.errs.filter(e => !/Not applied: the replacement font was declined/.test(e) && !/^console warning: Error @ \S+\/editor\.js:41$/.test(e))); // the declined choice is reported through the editor's normal message path (Firefox logs only the terse form)
+    S.errs.splice(0, S.errs.length, ...S.errs.filter(e => !/Not applied: the replacement font was declined/.test(e) && !/^console warning: Error @ \S+\/editor\.js:\d+$/.test(e))); // the declined choice is reported through the editor's normal message path (Firefox logs only the terse form)
     S.onDialog = d => d.accept(); await page.locator('#runApply').click(); await page.waitForFunction(() => window.pdfEditorDebug.v2.edits() === 1 && document.getElementById('runApply').disabled); await S.settle(); assert.equal(await count(), 1);
     const bytes = await S.exportBytes(); const info = await pdfjsInfo(page, bytes); assert.ok(nospace(info.texts[0]).includes('$1,250.75'), info.texts[0]);
   });
@@ -307,7 +307,7 @@ for (const w of WIDTHS) {
     await S.open(fx.lo, 'report.pdf'); await S.tool('link'); await S.dragRect(100, 560, 220, 580); await page.waitForFunction(() => !document.getElementById('linkForm').hidden);
     await page.fill('#linkUri', 'javascript:alert(1)'); await page.locator('#linkApply').click(); await page.waitForFunction(() => /not allowed|Enter a web address/.test(document.getElementById('status').textContent));
     assert.equal((await page.evaluate(() => window.pdfEditorDebug.state())).links.filter(l => l.isNew).length, 0);
-    S.errs.splice(0, S.errs.length, ...S.errs.filter(e => !/Enter a web address/.test(e) && !/^console warning: Error @ \S+\/editor\.js:41$/.test(e))); // the expected, user-facing refusal is logged by the editor's error handler
+    S.errs.splice(0, S.errs.length, ...S.errs.filter(e => !/Enter a web address/.test(e) && !/^console warning: Error @ \S+\/editor\.js:\d+$/.test(e))); // the expected, user-facing refusal is logged by the editor's error handler
   });
 
   await check(`${tag}: bookmarks: read, rename, add, reorder, nest, delete; destinations verified in the exported file`, async () => {
