@@ -12,12 +12,12 @@ export function createFind({ getPages, getSource, goTo, getCurrent, getViewport,
   const input = bar.querySelector("input"), count = bar.querySelector("output");
   let results = [], active = -1, token = 0, timer = 0;
   const announce = message => { count.textContent = message; };
-  function clear() { token++; clearTimeout(timer); results = []; active = -1; announce("0 results"); redraw(); }
+  function clear() { token++; clearTimeout(timer); const had = results.length > 0; results = []; active = -1; announce("0 results"); if (had) redraw(); }
   function close() { bar.hidden = true; clear(); }
   function open() { if (!getPages().length) return; bar.hidden = false; input.focus(); input.select(); if (input.value) schedule(); }
   async function run() {
     const current = ++token, query = input.value.trim();
-    results = []; active = -1; redraw();
+    const had = results.length > 0; results = []; active = -1; if (had) redraw();
     if (!query) { announce("0 results"); return; }
     const pages = getPages();
     announce("Searching…");
