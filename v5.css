@@ -553,7 +553,9 @@
   background: #fafafc;
 }
 .clue-checkbox {
-  margin-top: 3px;
+  width: 24px;
+  height: 24px;
+  margin-top: 0;
   cursor: pointer;
 }
 
@@ -654,3 +656,9 @@
 .continue-item b{margin-top:6px;font-size:.875rem;color:var(--accent,#2057d6)}
 .continue-item:hover{border-color:var(--accent,#2057d6)}
 .continue-item:focus-visible{outline:3px solid #ff9f1c;outline-offset:2px}
+
+/* Logic Crypt accessibility: 44px touch targets and reduced motion */
+#difficultySelect, #btnRestartPuzzle, #btnNextPuzzle, #btnUseHint { min-height: 44px; }
+@media (prefers-reduced-motion: reduce) {
+  .cipher-slot, .key-btn, #completionModal, #completionModal *, #logicToast { animation: none !important; transition: none !important; backdrop-filter: none !important; }
+}

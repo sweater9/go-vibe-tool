@@ -335,7 +335,7 @@ let resizeTimer = 0; addEventListener("resize", () => { clearTimeout(resizeTimer
 
 const v2 = createV2({ PDFLib, $, say, fail, guard, friendly, commit, getState: () => state, getCur: () => cur, getVp: () => vp, getScale: () => scale, getDpr: () => dprEff, curPage, srcOf, setTool: t => setTool(t), getTool: () => tool, goTo: i => goTo(i), scheduleOverlay });
 
-const findUi = createFind({ getPages: () => state.pages, getSource: srcOf, goTo: i => goTo(i), getCurrent: () => cur, getViewport: () => vp, getDpr: () => dprEff, redraw: () => { if (vp) drawOverlay(); } });
+const findUi = createFind({ getPages: () => state.pages, getSource: srcOf, goTo: i => goTo(i), getCurrent: () => cur, getViewport: () => vp, getDpr: () => dprEff, redraw: () => { if (vp) drawOverlay(); }, reveal: (x, y) => { const sr = stage.getBoundingClientRect(), or = overlay.getBoundingClientRect(), ty = or.top + y, tx = or.left + x; if (ty < sr.top + 40 || ty > sr.bottom - 40) stage.scrollTop += ty - (sr.top + sr.height / 3); if (tx < sr.left + 20 || tx > sr.right - 20) stage.scrollLeft += tx - (sr.left + sr.width / 3); } });
 $("pdfFindButton").addEventListener("click", () => findUi.open());
 
 /* ---------- tools ---------- */

@@ -1,7 +1,7 @@
 import { indexPageText, searchDocument } from "./find-core.mjs";
 
 /* Read-only Find UI. No PDF bytes or search terms leave this device. */
-export function createFind({ getPages, getSource, goTo, getCurrent, getViewport, getDpr, redraw }) {
+export function createFind({ getPages, getSource, goTo, getCurrent, getViewport, getDpr, redraw, reveal }) {
   const bar = document.createElement("div");
   bar.className = "pdf-find";
   bar.hidden = true;
@@ -10,9 +10,9 @@ export function createFind({ getPages, getSource, goTo, getCurrent, getViewport,
   bar.innerHTML = '<label for="pdfFindInput">Find</label><input id="pdfFindInput" type="search" placeholder="Search PDF" autocomplete="off" aria-label="Search PDF text"><button type="button" id="pdfFindPrev" aria-label="Previous match">↑</button><button type="button" id="pdfFindNext" aria-label="Next match">↓</button><output id="pdfFindCount" role="status" aria-live="polite">0 results</output><button type="button" id="pdfFindClose" aria-label="Close find">×</button>';
   document.body.append(bar);
   const input = bar.querySelector("input"), count = bar.querySelector("output");
-  let results = [], active = -1, token = 0, timer = 0, pageIndexes = [];
+  let results = [], active = -1, token = 0, timer = 0;
   const announce = message => { count.textContent = message; };
-  function clear() { token++; clearTimeout(timer); results = []; active = -1; pageIndexes = []; announce("0 results"); redraw(); }
+  function clear() { token++; clearTimeout(timer); results = []; active = -1; announce("0 results"); redraw(); }
   function close() { bar.hidden = true; clear(); }
   function open() { if (!getPages().length) return; bar.hidden = false; input.focus(); input.select(); if (input.value) schedule(); }
   async function run() {
@@ -21,7 +21,7 @@ export function createFind({ getPages, getSource, goTo, getCurrent, getViewport,
     if (!query) { announce("0 results"); return; }
     const pages = getPages();
     announce("Searching…");
-    const indexes = [];
+    const indexes = [], ids = pages.map(p => p.id);
     try {
       for (let i = 0; i < pages.length; i++) {
         if (current !== token) return;
@@ -35,26 +35,40 @@ export function createFind({ getPages, getSource, goTo, getCurrent, getViewport,
         if (i % 5 === 0) await new Promise(resolve => setTimeout(resolve, 0));
       }
       if (current !== token) return;
-      pageIndexes = indexes;
-      results = searchDocument(indexes, query, 1000);
+      results = searchDocument(indexes, query, 1000).map(hit => ({ ...hit, pageId: ids[hit.pageIndex] }));
       if (!results.length) { announce("No matches (scanned PDFs may need OCR)"); return; }
       active = 0;
       announce(`1 of ${results.length}${results.length === 1000 ? "+" : ""} matches`);
-      await goTo(results[0].pageIndex);
-      redraw();
+      await show(results[0]);
     } catch (error) {
       if (current === token) announce("Unable to search this PDF");
       console.warn("PDF Find:", error);
     }
   }
   function schedule() { clearTimeout(timer); token++; timer = setTimeout(run, 180); }
+  const pageOf = hit => getPages().findIndex(p => p.id === hit.pageId);
+  function box(run, hit) {
+    const it = run.item, m = it.transform, vp = getViewport();
+    if (!m || !vp) return null;
+    const len = Math.max(1, String(it.str).length), a = Math.max(hit.start, run.start) - run.start, b = Math.min(hit.end, run.end) - run.start;
+    const size = Math.hypot(m[0], m[1]) || it.height || 10, w = it.width || 0;
+    const [x0,y0] = vp.toDisplay(m[4] + w * a / len, m[5]);
+    const [x1,y1] = vp.toDisplay(m[4] + w * b / len, m[5] + size);
+    return { x: Math.min(x0,x1), y: Math.min(y0,y1), w: Math.max(3,Math.abs(x1-x0)), h: Math.max(3,Math.abs(y1-y0)) };
+  }
+  async function show(hit) {
+    const idx = pageOf(hit);
+    if (idx < 0) { schedule(); return; }
+    if (getCurrent() !== idx) await goTo(idx);
+    redraw();
+    const first = hit.runs[0] && box(hit.runs[0], hit);
+    if (first && reveal) reveal(first.x, first.y);
+  }
   async function navigate(delta) {
     if (!results.length) return;
     active = (active + delta + results.length) % results.length;
-    const match = results[active];
-    announce(`${active + 1} of ${results.length} matches`);
-    if (getCurrent() !== match.pageIndex) await goTo(match.pageIndex);
-    redraw();
+    announce(`${active + 1} of ${results.length}${results.length === 1000 ? "+" : ""} matches`);
+    await show(results[active]);
   }
   input.addEventListener("input", schedule);
   bar.querySelector("#pdfFindPrev").addEventListener("click", () => navigate(-1));
@@ -73,16 +87,11 @@ export function createFind({ getPages, getSource, goTo, getCurrent, getViewport,
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     for (let i = 0; i < results.length; i++) {
       const hit = results[i];
-      if (hit.pageIndex !== page) continue;
+      if (pageOf(hit) !== page) continue;
       ctx.fillStyle = i === active ? "rgba(255,126,0,.43)" : "rgba(255,222,0,.30)";
       for (const run of hit.runs) {
-        const it = run.item, m = it.transform;
-        if (!m) continue;
-        const size = Math.hypot(m[0], m[1]) || it.height || 10;
-        const [x0,y0] = vp.toDisplay(m[4],m[5]);
-        const [x1,y1] = vp.toDisplay(m[4] + it.width,m[5] + size);
-        const x = Math.min(x0,x1) * dpr, y = Math.min(y0,y1) * dpr;
-        ctx.fillRect(x, y, Math.max(3,Math.abs(x1-x0)*dpr),Math.max(3,Math.abs(y1-y0)*dpr));
+        const b = box(run, hit);
+        if (b) ctx.fillRect(b.x * dpr, b.y * dpr, b.w * dpr, b.h * dpr);
       }
     }
     ctx.restore();
