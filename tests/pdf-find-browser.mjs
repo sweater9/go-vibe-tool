@@ -1,0 +1,50 @@
+/* Browser QA for PDF Find text. node tests/pdf-find-browser.mjs [chromium|firefox|webkit]
+   env: PLAYWRIGHT_PACKAGE, BROWSER_EXECUTABLE. Local only: asserts no external requests and no document mutation. */
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+const pw = await import(process.env.PLAYWRIGHT_PACKAGE || 'playwright');
+const engine = process.argv[2] || 'chromium';
+const repo = fileURLToPath(new URL('../', import.meta.url));
+const { PDFDocument, StandardFonts } = createRequire(import.meta.url)(path.join(repo, 'vendor/pdf-lib.min.js'));
+const { createDistServer } = await import(new URL('file://' + path.join(repo, 'scripts/serve-dist.mjs')).href);
+const doc = await PDFDocument.create(), font = await doc.embedFont(StandardFonts.Helvetica);
+[['Hello World', 'nothing here'], ['hello again', 'HELLO'], ['third page only']].forEach(lines => { const p = doc.addPage([612, 792]); lines.forEach((t, i) => p.drawText(t, { x: 60, y: 700 - i * 60, size: 24, font })); });
+const pdf = Buffer.from(await doc.save());
+const blank = Buffer.from(await (async () => { const d = await PDFDocument.create(); d.addPage([300, 300]); return d.save(); })());
+const server = createDistServer(repo, { port: 0 }); await server.start();
+const origin = server.base.replace(/\/$/, '');
+const browser = await pw[engine].launch({ headless: true, ...(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE } : {}) });
+let failed = 0;
+for (const [label, w, h, mobile] of [['desktop', 1280, 900, false], ['mobile', 390, 844, true]]) {
+  const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: mobile && engine !== 'firefox', isMobile: mobile && engine !== 'firefox' });
+  const page = await ctx.newPage(); page.setDefaultTimeout(20000);
+  const external = [], errs = [];
+  page.on('request', r => { const u = r.url(); if (!u.startsWith(origin) && !/^(blob|data):/.test(u)) external.push(u); });
+  page.on('pageerror', e => errs.push(e.message));
+  const open = async buf => { await page.goto(`${origin}/tools/pdf-editor/`); await page.setInputFiles('#fileInput', { name: 's.pdf', mimeType: 'application/pdf', buffer: buf }); await page.waitForFunction(() => /Opened/.test(document.getElementById('status').textContent)); await page.waitForTimeout(400); };
+  const count = () => page.textContent('#pdfFindCount');
+  const cur = () => page.evaluate(() => document.getElementById('pageInfo')?.textContent || '');
+  const ink = () => page.evaluate(() => { const o = document.getElementById('overlay'), d = o.getContext('2d').getImageData(0, 0, o.width, o.height).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i + 3] && d[i + 2] < 40) n++; return n; });
+  const t = async (name, fn) => { try { await fn(); console.log('PASS', engine, label, name); } catch (e) { failed++; console.log('FAIL', engine, label, name, '-', e.message.split('\n')[0]); } };
+  await open(pdf);
+  await t('find button enabled, bar hidden', async () => { assert.equal(await page.isEnabled('#pdfFindButton'), true); assert.equal(await page.isHidden('.pdf-find'), true); });
+  await t('Ctrl/Cmd+F opens find and focuses input', async () => { await page.keyboard.press(process.platform === 'darwin' ? 'Meta+f' : 'Control+f'); await page.waitForSelector('.pdf-find:not([hidden])'); assert.equal(await page.evaluate(() => document.activeElement.id), 'pdfFindInput'); });
+  await t('case-insensitive across pages, count', async () => { await page.fill('#pdfFindInput', 'HeLLo'); await page.waitForFunction(() => /of 3/.test(document.getElementById('pdfFindCount').textContent)); assert.match(await count(), /^1 of 3 matches/); });
+  await t('match highlighted on page 1', async () => { await page.waitForTimeout(200); assert.ok(await ink() > 50, 'no highlight pixels'); });
+  await t('next/previous wrap and change page', async () => { await page.click('#pdfFindNext'); assert.match(await count(), /^2 of 3/); await page.waitForTimeout(300); assert.match(await cur(), /2/); await page.click('#pdfFindNext'); assert.match(await count(), /^3 of 3/); await page.click('#pdfFindNext'); assert.match(await count(), /^1 of 3/); await page.click('#pdfFindPrev'); assert.match(await count(), /^3 of 3/); await page.waitForTimeout(300); assert.match(await cur(), /2/); });
+  await t('Enter / Shift+Enter navigate', async () => { await page.focus('#pdfFindInput'); await page.keyboard.press('Enter'); assert.match(await count(), /^1 of 3/); await page.keyboard.press('Shift+Enter'); assert.match(await count(), /^3 of 3/); });
+  await t('no matches message', async () => { await page.fill('#pdfFindInput', 'zzzqq'); await page.waitForFunction(() => /No matches/.test(document.getElementById('pdfFindCount').textContent)); });
+  await t('empty query resets', async () => { await page.fill('#pdfFindInput', ''); await page.waitForFunction(() => /^0 results/.test(document.getElementById('pdfFindCount').textContent)); });
+  await t('touch targets >= 44px', async () => { for (const id of ['#pdfFindPrev', '#pdfFindNext', '#pdfFindClose', '#pdfFindInput']) { const b = await page.locator(id).boundingBox(); assert.ok(b.height >= 43.5 && (id === '#pdfFindInput' || b.width >= 43.5), id + ' ' + JSON.stringify(b)); } });
+  await t('bar fits viewport', async () => { const b = await page.locator('.pdf-find').boundingBox(); assert.ok(b.x >= 0 && b.x + b.width <= w + 1, JSON.stringify(b)); });
+  await t('Escape closes and clears highlights', async () => { await page.fill('#pdfFindInput', 'hello'); await page.waitForFunction(() => /of 3/.test(document.getElementById('pdfFindCount').textContent)); await page.keyboard.press('Escape'); assert.equal(await page.isHidden('.pdf-find'), true); await page.waitForTimeout(200); assert.equal(await ink(), 0); });
+  await t('search leaves document unmodified and local', async () => { assert.equal(await page.isDisabled('#undo'), true); assert.deepEqual(external, []); assert.deepEqual(errs, []); });
+  await t('text editing still works after find (undo enabled by edit)', async () => { await page.click('#pdfFindButton'); await page.fill('#pdfFindInput', 'third'); await page.waitForFunction(() => /1 of 1/.test(document.getElementById('pdfFindCount').textContent)); await page.keyboard.press('Escape'); assert.equal(await page.isEnabled('#download'), true); });
+  await open(blank);
+  await t('scanned/blank PDF handled gracefully', async () => { await page.click('#pdfFindButton'); await page.fill('#pdfFindInput', 'anything'); await page.waitForFunction(() => /No matches/.test(document.getElementById('pdfFindCount').textContent)); assert.deepEqual(errs, []); });
+  await ctx.close();
+}
+await browser.close(); await server.stop?.();
+console.log(failed ? `${failed} FAILED` : 'PDF find browser: all passed'); process.exit(failed ? 1 : 0);

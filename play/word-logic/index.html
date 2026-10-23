@@ -61,7 +61,7 @@
       <div class="quiz-card" style="padding: 28px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
           <h2 id="puzzleTitle" style="font-size:20px; margin:0; color:var(--ink);">Four-Letter Logic Crypt #1</h2>
-          <span id="attemptCountBadge" class="v5-badge">0 Attempts</span>
+          <span id="attemptCountBadge" class="v5-badge" role="status" aria-live="polite">0 Attempts</span>
         </div>
 
         <!-- Interactive Letter Slots -->
@@ -78,7 +78,7 @@
           <button id="btnUseHint" type="button" class="btn alt small" style="color:#92400e;">💡 Get Clue Hint (2 Left)</button>
           <span style="font-size:12px; color:var(--muted);">Type letters or click keys below</span>
         </div>
-        <div id="hintDisplay"></div>
+        <div id="hintDisplay" role="status" aria-live="polite"></div>
 
         <!-- On-Screen Keyboard -->
         <div id="keyboardContainer" class="letter-keyboard" role="group" aria-label="Virtual keyboard"></div>
@@ -126,7 +126,7 @@
     </div>
     <div class="wrap footer-bottom">
       <span>© 2026 GoVibeTool</span>
-      <span>Version 5.0 Release Candidate</span>
+      <span>Private tools. Smart learning. Good vibes.</span>
     </div>
   </footer>
 

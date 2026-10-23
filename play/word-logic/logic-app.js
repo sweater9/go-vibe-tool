@@ -232,6 +232,7 @@ class WordLogicApp {
 
     const completionModal = document.createElement('div');
     completionModal.id = 'completionModal';
+    completionModal.setAttribute('role', 'dialog'); completionModal.setAttribute('aria-modal', 'true'); completionModal.setAttribute('aria-label', 'Crypt decoded');
     completionModal.style.cssText = 'position:fixed; inset:0; background:rgba(16,18,37,.6); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:200; padding:20px;';
     completionModal.innerHTML = `
       <div style="background:#fff; border-radius:24px; padding:36px; max-width:480px; width:100%; text-align:center; box-shadow:0 25px 70px rgba(0,0,0,.3); animation:fadeIn .25s ease;">
@@ -258,6 +259,8 @@ class WordLogicApp {
     `;
 
     document.body.appendChild(completionModal);
+    completionModal.tabIndex = -1; completionModal.style.outline = 'none'; completionModal.focus();
+    completionModal.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('btnModalClose')?.click(); });
 
     document.getElementById('btnModalNext')?.addEventListener('click', () => {
       completionModal.remove();
@@ -403,6 +406,7 @@ class WordLogicApp {
     if (!toast) {
       toast = document.createElement('div');
       toast.id = 'logicToast';
+      toast.setAttribute('role', 'status'); toast.setAttribute('aria-live', 'polite');
       toast.style.cssText = 'position:fixed; bottom:24px; right:24px; z-index:100; padding:12px 20px; border-radius:12px; color:#fff; font-weight:700; font-size:13px; box-shadow:0 10px 30px rgba(0,0,0,.2); transition:opacity .3s;';
       document.body.appendChild(toast);
     }

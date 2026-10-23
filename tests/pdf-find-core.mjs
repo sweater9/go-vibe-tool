@@ -1,0 +1,15 @@
+import assert from "node:assert/strict";
+import { indexPageText, searchPage, searchDocument, normalizeQuery } from "../tools/pdf-editor/find-core.mjs";
+assert.equal(normalizeQuery("  HELLO "), "hello");
+const first = indexPageText([{ str: "Hello" }, { str: "world", hasEOL: true }, { str: "HELLO" }]);
+assert.equal(first.text, "Hello world\nHELLO ");
+assert.deepEqual(searchPage(first, "hello", 0).map(h => h.start), [0, 12]);
+assert.equal(searchPage(first, "WORLD", 0)[0].runs.length, 1);
+assert.equal(searchPage(first, "", 0).length, 0);
+assert.equal(searchPage(first, "missing", 0).length, 0);
+assert.equal(searchPage(first, "hello", 0, 1).length, 1);
+const second = indexPageText([{ str: "hello again" }]);
+assert.deepEqual(searchDocument([first, second], "hello").map(h => h.pageIndex), [0, 0, 1]);
+assert.equal(searchDocument([first, second], "hello", 2).length, 2);
+assert.deepEqual(searchDocument([], "hello"), []);
+console.log("PDF find core: passed");

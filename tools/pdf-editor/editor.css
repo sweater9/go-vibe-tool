@@ -44,6 +44,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .scrim{display:none}
 .tabs .icon{flex:none;border-radius:0;border-left:1px solid var(--line);font-size:1.6rem;line-height:1}
 
+.pdf-find{position:fixed;z-index:40;top:64px;right:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:min(96vw,580px);padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--panel);box-shadow:var(--shadow)}
+.pdf-find[hidden]{display:none}
+.pdf-find input{width:min(190px,40vw);min-height:44px;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.pdf-find button{min-width:44px;min-height:44px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.pdf-find output{font-size:.8rem;color:var(--muted);min-width:70px}
+@media(max-width:600px){.pdf-find{top:60px;left:6px;right:6px}.pdf-find label{display:none}}
+
 /* welcome */
 .welcome{display:grid;place-items:center;padding:24px;overflow:auto}
 .drop{max-width:560px;width:100%;text-align:center;border:2px dashed var(--line);border-radius:20px;background:var(--panel);padding:40px 24px}

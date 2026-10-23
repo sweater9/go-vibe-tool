@@ -3,6 +3,7 @@ import { createState, History, clone, uid, norm, clamp, makeViewport, axes, fram
   makeFontMetrics, rotatePages, deletePages, movePage, blankPage, bounds, hitTest, translate, resizeFrame, rotateFrame, handlePoints, NOTE_SIZE, FAMILIES } from "./model.mjs";
 import { bakeDocument } from "./bake.mjs";
 import { createV2 } from "./v2ui.js";
+import { createFind } from "./find-ui.mjs";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL("../v9-media/vendor/pdf/pdf.worker.min.mjs", import.meta.url).href;
 const PDFLib = window.PDFLib;
@@ -82,7 +83,7 @@ async function openDocument(file) {
   if (version !== exportedVersion && state.pages.length && !confirm("Open a different PDF? Your unsaved edits will be lost.")) return;
   const { src, entries, lib } = await readPdf(file); mark('open:read'); measure('open: parse (pdf.js + pdf-lib)', 'open:start', 'open:read');
   for (const s of sources.values()) s.pdf.destroy();
-  sources.clear(); assets.clear(); thumbCache.clear(); textCache.clear(); selPages.clear(); hist.clear(); clearDownload();
+  findUi.clear(); sources.clear(); assets.clear(); thumbCache.clear(); textCache.clear(); selPages.clear(); hist.clear(); clearDownload();
   state = createState(); sources.set(src.id, src); docName = file.name;
   state.pages = entries.map(e => ({ id: uid(state), src: src.id, idx: e.idx, rot: 0, baseRot: e.baseRot, view: e.view, blank: false }));
   cur = 0; selId = null; version = 0; exportedVersion = 0; fitMode = true;
@@ -242,6 +243,7 @@ function drawOverlay() {
     g.restore();
   }
   if (drag && drag.preview) drag.preview(octx, k);
+  findUi.draw(octx);
 }
 
 /* ---------- thumbnails ---------- */
@@ -321,6 +323,7 @@ function updateButtons() {
   const has = state.pages.length > 0;
   $("undo").disabled = !hist.canUndo; $("redo").disabled = !hist.canRedo; $("download").disabled = !has; $("closeBtn").disabled = !has; $("closeBtn2").disabled = !has; $("openBtn").textContent = has ? "Open another PDF" : "Open PDF";
   for (const id of ["zoomIn", "zoomOut", "zoomFit", "pagesToggle", "navPages", "navBookmarks"]) $(id).disabled = !has;
+  $("pdfFindButton").disabled = !has;
   updatePageButtons(); updatePageInfo();
 }
 
@@ -331,6 +334,9 @@ function stepZoom(dir) { const pct = scale / CSS_UNITS * 100, next = dir > 0 ? Z
 let resizeTimer = 0; addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => { if (fitMode && vp) renderPage(); }, 150); });
 
 const v2 = createV2({ PDFLib, $, say, fail, guard, friendly, commit, getState: () => state, getCur: () => cur, getVp: () => vp, getScale: () => scale, getDpr: () => dprEff, curPage, srcOf, setTool: t => setTool(t), getTool: () => tool, goTo: i => goTo(i), scheduleOverlay });
+
+const findUi = createFind({ getPages: () => state.pages, getSource: srcOf, goTo: i => goTo(i), getCurrent: () => cur, getViewport: () => vp, getDpr: () => dprEff, redraw: () => { if (vp) drawOverlay(); }, reveal: (x, y) => { const sr = stage.getBoundingClientRect(), or = overlay.getBoundingClientRect(), ty = or.top + y, tx = or.left + x; if (ty < sr.top + 40 || ty > sr.bottom - 40) stage.scrollTop += ty - (sr.top + sr.height / 3); if (tx < sr.left + 20 || tx > sr.right - 20) stage.scrollLeft += tx - (sr.left + sr.width / 3); } });
+$("pdfFindButton").addEventListener("click", () => findUi.open());
 
 /* ---------- tools ---------- */
 function setTool(t) {
