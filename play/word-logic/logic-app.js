@@ -259,7 +259,7 @@ class WordLogicApp {
     `;
 
     document.body.appendChild(completionModal);
-    document.getElementById('btnModalNext')?.focus();
+    completionModal.tabIndex = -1; completionModal.style.outline = 'none'; completionModal.focus();
     completionModal.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('btnModalClose')?.click(); });
 
     document.getElementById('btnModalNext')?.addEventListener('click', () => {
