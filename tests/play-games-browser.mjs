@@ -69,10 +69,10 @@ try {
       await p.goto(base + 'play/', { waitUntil: 'networkidle' });
       assert.equal(await p.locator('.hero-stats strong').first().innerText(), String(PLAY_GAME_COUNT));
       assert.match(await p.locator('.hero-stats span').first().innerText(), new RegExp(`${PLAY_GAME_COUNT}\\s*Games`, 'i'));
-      const hrefs = await p.locator('.v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href')));
+      const hrefs = await p.locator('main section:not([aria-label="Daily Challenge Hub"]) .v5-grid > .v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href')));
       assert.deepEqual(hrefs, PLAY_GAME_HREFS);
-      assert.equal(await p.locator('.v5-card').count(), PLAY_GAME_COUNT); assert.equal(await p.locator('a[href="mahjong/"]').count(), 0, 'no multiplayer Mahjong link'); assert.ok((await overflow(p)) <= 0, 'overflow');
-      const sol = p.locator('.v5-card', { has: p.locator('a[href="taiwan-mahjong/"]') }); assert.match(await sol.locator('h3').innerText(), /Taiwanese Mahjong/i); assert.match(await sol.innerText(), /Offline Play/i);
+      assert.equal(await p.locator('main section:not([aria-label="Daily Challenge Hub"]) .v5-grid > .v5-card').count(), PLAY_GAME_COUNT); assert.equal(await p.locator('a[href="mahjong/"]').count(), 0, 'no multiplayer Mahjong link'); assert.ok((await overflow(p)) <= 0, 'overflow');
+      const sol = p.locator('main section:not([aria-label="Daily Challenge Hub"]) .v5-grid > .v5-card', { has: p.locator('a[href="taiwan-mahjong/"]') }); assert.match(await sol.locator('h3').innerText(), /Taiwanese Mahjong/i); assert.match(await sol.innerText(), /Offline Play/i);
       await sol.locator('a.btn').click(); await p.waitForURL(/\/play\/taiwan-mahjong\/$/); await p.waitForSelector('#btnStart');
       assert.deepEqual(c.errs, []); await p.screenshot({ path: `${dir}/hub-${label}.png`, fullPage: true }); await closeCtx(c);
     });
@@ -273,8 +273,8 @@ try {
       await p.goto(base + 'play/taiwan-mahjong/', { waitUntil: 'domcontentloaded' }); await p.waitForSelector('#btnStart'); await p.click('#btnStart'); await p.waitForFunction(() => document.querySelectorAll('#hand .tile').length >= 16);
       assert.ok(await p.locator('#hand .tile').count() >= 16, 'Taiwanese Mahjong deals a hand offline');
       await p.goto(base + 'play/vibe-arcade/', { waitUntil: 'domcontentloaded' }); await p.waitForSelector('[data-act="level"][data-g="vl"]');
-      await p.goto(base + 'play/', { waitUntil: 'domcontentloaded' }); assert.equal(await p.locator('.v5-card').count(), PLAY_GAME_COUNT);
-      assert.deepEqual(await p.locator('.v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href'))), PLAY_GAME_HREFS);
+      await p.goto(base + 'play/', { waitUntil: 'domcontentloaded' }); assert.equal(await p.locator('main section:not([aria-label="Daily Challenge Hub"]) .v5-grid > .v5-card').count(), PLAY_GAME_COUNT);
+      assert.deepEqual(await p.locator('main section:not([aria-label="Daily Challenge Hub"]) .v5-grid > .v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href'))), PLAY_GAME_HREFS);
     } finally { await startServer(); }
     await closeCtx(c);
   });
