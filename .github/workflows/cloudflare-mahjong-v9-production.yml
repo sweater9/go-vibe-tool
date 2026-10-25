@@ -1,4 +1,4 @@
-name: Mahjong V9 Cloudflare Production (pinned release)
+name: GoVibeTool Cloudflare Production (pinned release)
 on:
   pull_request:
     paths:
@@ -16,7 +16,7 @@ concurrency:
   group: govibetool-v9-production
   cancel-in-progress: false
 env:
-  RELEASE_SHA: 5161a126e4da12b82044bedddb8ed6438f58a85e
+  RELEASE_SHA: c8317443b0da476599cfb4b421988026c3b752e6
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 5161a126e4da12b82044bedddb8ed6438f58a85e
+          ref: c8317443b0da476599cfb4b421988026c3b752e6
           persist-credentials: false
       - name: Verify immutable V9 release and production configuration
         run: |
@@ -67,7 +67,7 @@ jobs:
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo '::error::Missing CLOUDFLARE_ACCOUNT_ID'; exit 1; }
       - uses: actions/checkout@v4
         with:
-          ref: 5161a126e4da12b82044bedddb8ed6438f58a85e
+          ref: c8317443b0da476599cfb4b421988026c3b752e6
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -82,7 +82,7 @@ jobs:
           (cd dist && find . -type f -print0 | sort -z | xargs -0 sha256sum) | diff - dist.sha256
           npm run verify:dist
       - name: Deploy verified assets to existing production Worker
-        run: npx --yes wrangler@4.149.0 deploy --config wrangler.jsonc --message "Validated Mahjong V9 $RELEASE_SHA"
+        run: npx --yes wrangler@4.149.0 deploy --config wrangler.jsonc --message "Validated GoVibeTool $RELEASE_SHA"
       - name: Release summary
         run: |
           echo '### Mahjong V9 production Worker deployed' >> "$GITHUB_STEP_SUMMARY"
