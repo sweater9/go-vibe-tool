@@ -18,7 +18,7 @@
   const wordStarted = word && word.date === today && word.status === 'playing' && Array.isArray(word.guesses) && word.guesses.length > 0;
   const wordStreak = (wordStats.lastWonDate === today || wordStats.lastWonDate === yesterday) ? Math.max(0, Number(wordStats.current) || 0) : 0;
   const arcadeStreak = arcade.streak && (arcade.streak.last === today || arcade.streak.last === yesterday) ? Math.max(0, Number(arcade.streak.count) || 0) : 0;
-  const arcadeDone = Boolean(arcadeDaily[today] && (arcadeDaily[today].completed || arcadeDaily[today].done));
+  const arcadeDone = Boolean(arcadeDaily[today] && Object.keys(arcadeDaily[today]).some(key => arcadeDaily[today][key] && typeof arcadeDaily[today][key].t === 'number'));
   const add = (tag, cls, value, parent) => { const el = document.createElement(tag); if (cls) el.className = cls; el.textContent = value; (parent || host).appendChild(el); return el; };
   add('h2', '', "Today's challenges");
   add('p', 'sub', 'Your progress stays on this device. Play offline, no account needed.');
