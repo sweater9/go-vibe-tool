@@ -49,8 +49,14 @@ for (const id of expectedTools) {
   const source = id === "ai-prompt-builder" ? tools : v2;
   if (!source.includes(`["${id}"`)) failures.push(`Missing tool: ${id}`);
 }
-for (const script of ["vendor/pdf-lib.min.js", "vendor/qrcode.min.js", "vendor/jsqr.min.js", "tools.js", "v2-tools.js", "v21-tools.js", "prompt-improver-core.js", "v6-tools.js"]) {
+for (const script of ["tools.js", "v2-tools.js", "v21-tools.js", "prompt-improver-core.js", "v6-tools.js"]) {
   if (!html.includes(`src="${script}"`)) failures.push(`index.html does not load ${script}`);
+}
+// Heavy vendors must remain local, offline-cached, and loaded only at their tool entry points.
+for (const [name, path] of [["pdf", "vendor/pdf-lib.min.js"], ["qr", "vendor/qrcode.min.js"], ["scan", "vendor/jsqr.min.js"]]) {
+  if (!html.includes(path) || !html.includes("GVTVendor")) failures.push(`Lazy vendor loader missing: ${name}`);
+  if (html.includes(`<script src="${path}"></script>`)) failures.push(`Vendor still eagerly loaded: ${name}`);
+  if (!sw.includes(`./${path}`)) failures.push(`Offline cache missing lazy vendor: ${name}`);
 }
 for (const asset of ["index.html", "v2.css", "tools.js", "v2-tools.js", "v21-tools.js", "prompt-improver-core.js", "v6-tools.js", "discovery.js", "learn/index.html", "manifest.webmanifest"]) {
   if (!sw.includes(`./${asset}`)) failures.push(`Offline cache is missing ${asset}`);
