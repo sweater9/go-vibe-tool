@@ -338,7 +338,7 @@ function pdfClearDownload(){
  const area=$("#pdfDownloadArea");if(area)area.classList.remove("hidden");
  const link=$("#pdfDownloadLink");if(link){link.removeAttribute("href");link.setAttribute("aria-disabled","true");link.classList.add("alt");link.textContent="Download processed PDF (process first)"}
 }
-async async function processPDF(){
+async function processPDF(){
  pdfClearDownload();const files=[...$("#pdfFiles").files],status=$("#pdfStatus");if(!files.length)return status.textContent="Choose at least one PDF.";try { await window.GVTVendor.load('pdf'); } catch (_) { status.textContent="The local PDF component could not load. Please retry."; return; }
  status.textContent="Processing locally…";try{const{PDFDocument,degrees}=PDFLib;let out,name;
   if(pdfAction==="merge"){if(files.length<2)throw Error("Choose at least two PDFs to merge.");out=await PDFDocument.create();for(const file of files){const source=await PDFDocument.load(await file.arrayBuffer());const pages=await out.copyPages(source,source.getPageIndices());pages.forEach(p=>out.addPage(p))}name="merged.pdf"}
