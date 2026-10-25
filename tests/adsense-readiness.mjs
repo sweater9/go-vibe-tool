@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 const policy = JSON.parse(read('config/ads-readiness.json'));
@@ -34,6 +34,22 @@ test('no ad loader in privacy, homepage, editor or active arcade', () => {
     assert.doesNotMatch(html, adLoader, name);
   }
   assert.match(editor, /Content-Security-Policy/);
+});
+
+test('no HTML page loads the AdSense script while ads are disabled', () => {
+  const root = new URL('../', import.meta.url);
+  const skip = new Set(['node_modules', 'dist', '.git', 'test-results']);
+  const offenders = [];
+  const walk = dir => {
+    for (const entry of readdirSync(new URL(dir, root), { withFileTypes: true })) {
+      if (entry.isDirectory()) { if (!skip.has(entry.name)) walk(dir + entry.name + '/'); continue; }
+      if (entry.name.endsWith('.html') && adLoader.test(read(dir + entry.name))) offenders.push(dir + entry.name);
+    }
+  };
+  walk('');
+  assert.equal(policy.enabled, false);
+  assert.deepEqual(offenders, [], 'ad loader found on: ' + offenders.join(', '));
+  assert.match(home, /<meta name="google-adsense-account" content="ca-pub-6129942955275199">/, 'account verification metadata must stay');
 });
 
 test('no intrusive ad formats and excluded sensitive experiences', () => {
