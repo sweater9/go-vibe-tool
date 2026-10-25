@@ -100,6 +100,15 @@ function keepFocus(box,fn){
 /* ---------- Home: category tiles ---------- */
 function renderTiles(){
  const host=$("#categoryGrid");if(!host)return;
+ /* Hydrate the server-visible tiles in place to avoid shifting the homepage. */
+ const existing=$$(".cat-tile[data-cat]",host);
+ if(existing.length===V8_CATEGORIES.length&&V8_CATEGORIES.every((c,i)=>existing[i].dataset.cat===c.id)){
+  V8_CATEGORIES.forEach((c,i)=>{
+   const label=existing[i].querySelector(".ct-text small");
+   if(label)label.textContent=plural(members(c).size);
+  });
+  return;
+ }
  host.innerHTML=V8_CATEGORIES.map(c=>{
   const n=members(c).size;
   return '<a class="cat-tile" href="?category='+c.id+'" data-cat="'+c.id+'"><span class="ico sm '+c.tone+'">'+ic(c.icon)+'</span>'+

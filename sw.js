@@ -357,6 +357,7 @@ const ASSETS=[
   "./play/vibe-arcade/index.html",
   "./play/vibe-arcade/site-chrome.css",
   "./play/continue.js",
+  "./play/daily-hub.js",
   "./offline-status.js",
   "./offline-status.css",
   "./play/2048/index.html",
