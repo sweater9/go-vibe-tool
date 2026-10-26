@@ -1,5 +1,6 @@
 /* Every classic <script> the homepage loads (and every inline one) must at least parse. A single SyntaxError in one shared script (for example
    `async let x` in v2-tools.js) silently stops all later code: the category tiles never render and every tool is unreachable. */
+import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
@@ -21,3 +22,28 @@ for (const page of pages) {
 }
 if (!checked) { console.error('no scripts checked'); process.exit(1); }
 console.log(`homepage scripts parse: ${checked} scripts OK`);
+
+
+// The deferred local vendor loader is part of the homepage boot path. Exercise it with a
+// minimal DOM so a future refactor cannot silently reintroduce eager loading or duplicate tags.
+const homeHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const loader = /<script>\s*\/\* Load existing locally hosted libraries[\s\S]*?<\/script>/.exec(homeHtml)?.[0]
+  .replace(/^<script>|<\/script>$/g, '');
+assert.ok(loader, 'homepage must include the local vendor loader');
+const added = [], fakeWindow = {};
+const fakeDocument = {
+  createElement() { return {}; },
+  head: { appendChild(node) { added.push(node); } }
+};
+vm.runInNewContext(loader, { window: fakeWindow, document: fakeDocument, Promise, Error }, { filename: 'homepage vendor loader' });
+for (const [name, src, global] of [['pdf', 'vendor/pdf-lib.min.js', 'PDFLib'], ['qr', 'vendor/qrcode.min.js', 'qrcode'], ['scan', 'vendor/jsqr.min.js', 'jsQR']]) {
+  const first = fakeWindow.GVTVendor.load(name), second = fakeWindow.GVTVendor.load(name);
+  assert.equal(first, second, name + ' loader must share its pending request');
+  const tag = added.at(-1);
+  assert.equal(tag.src, src, name + ' must load its existing local file');
+  fakeWindow[global] = {};
+  tag.onload();
+  await first;
+}
+assert.equal(added.length, 3, 'vendors load only when requested, once each');
+console.log('homepage vendor loader: deferred local PDF/QR/scan paths PASS');

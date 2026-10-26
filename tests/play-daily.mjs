@@ -92,3 +92,35 @@ console.log('✓ Streak tracking and history calculations verified');
 console.log('✓ Share card generation and privacy compliance verified');
 
 console.log('ALL Daily Knowledge Challenge tests passed successfully!\n');
+
+
+// 5. Daily Challenge Hub reads the existing game saves without changing them.
+{
+  const fs = await import('node:fs');
+  const vm = await import('node:vm');
+  const source = fs.readFileSync(new URL('../play/daily-hub.js', import.meta.url), 'utf8');
+  const records = new Map([
+    ['it_play_dailyword_daily', JSON.stringify({ date: '2026-10-26', status: 'won', guesses: ['WORDS'] })],
+    ['it_play_dailyword_stats', JSON.stringify({ lastWonDate: '2026-10-26', current: 4 })],
+    ['vibearcade:v1', JSON.stringify({ daily: { '2026-10-26': { vl: { t: 1 } } }, streak: { last: '2026-10-26', count: 3 } })]
+  ]);
+  const before = JSON.stringify([...records]);
+  const el = tag => ({ tagName: tag, className: '', textContent: '', children: [], style: {}, appendChild(node) { this.children.push(node); return node; } });
+  const host = el('div');
+  const RealDate = Date;
+  class TestDate extends RealDate { constructor(...args) { super(...(args.length ? args : [2026, 9, 26, 12])); } }
+  vm.runInNewContext(source, {
+    window: {}, Date: TestDate,
+    localStorage: { getItem(key) { return records.get(key) ?? null; } },
+    document: { getElementById(id) { return id === 'daily-challenge-hub' ? host : null; }, createElement: el }
+  }, { filename: 'daily-hub.js' });
+  const cards = host.children[2].children;
+  assert.equal(host.children[0].textContent, "Today's challenges");
+  assert.equal(cards.length, 2, 'the hub shows Daily Word and Vibe Arcade');
+  assert.equal(cards[0].children[1].textContent, 'Completed today');
+  assert.match(cards[0].children[2].textContent, /4 days/);
+  assert.equal(cards[1].children[1].textContent, 'Daily challenge completed');
+  assert.match(cards[1].children[2].textContent, /3 days/);
+  assert.equal(JSON.stringify([...records]), before, 'hub presentation must not write or migrate local game data');
+}
+console.log('✓ Daily Challenge Hub reads local status and streaks without writes');
