@@ -249,7 +249,10 @@ function drawOverlay() {
 /* ---------- thumbnails ---------- */
 const srcSig = id => (sources.get(id) || {}).sig || "";
 const thumbKey = p => p.blank ? `blank:${p.view.join(",")}` : `${p.src}:${p.idx}:${totalRot(p)}:${srcSig(p.src)}`;
+let activeThumbObserver = null;
 async function renderThumbs() {
+  activeThumbObserver?.disconnect();
+  activeThumbObserver = null;
   const token = ++thumbToken, list = $("thumbs"), W = 120, dpr = Math.min(window.devicePixelRatio || 1, 2);
   list.replaceChildren();
   state.pages.forEach((p, i) => {
@@ -316,6 +319,7 @@ async function renderThumbs() {
       if (token !== thumbToken) { observer.disconnect(); return; }
       for (const entry of entries) if (entry.isIntersecting) void paint(items.indexOf(entry.target));
     }, { root: list, rootMargin: "240px 0px" });
+    activeThumbObserver = observer;
     items.forEach(li => observer.observe(li));
   }
   // Render the selected thumbnail first; no full-document thumbnail wait.
