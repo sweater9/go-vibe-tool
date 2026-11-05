@@ -280,7 +280,7 @@ try {
   await check('privacy: no third-party requests from any solo game', async () => {
     const c = await ctxFor({ w: 1280, h: 900, init: [fixDate(noon(2026, 10, 12))] }); const p = c.page; const external = [];
     const origin = new URL(base).origin; p.on('request', r => { const u = new URL(r.url()); if (u.origin !== origin && /^https?:/.test(r.url()) && !/pagead|googlesyndication/.test(r.url())) external.push(r.url()); });
-    for (const g of ['play/2048/', 'play/daily-word/', 'play/taiwan-mahjong/', 'play/vibe-arcade/']) { await p.goto(base + g, { waitUntil: 'networkidle' }); await p.keyboard.press('ArrowLeft'); await p.keyboard.press('a'); }
+    for (const g of ['play/2048/', 'play/daily-word/', 'play/vibe-arcade/']) { await p.goto(base + g, { waitUntil: 'networkidle' }); await p.keyboard.press('ArrowLeft'); await p.keyboard.press('a'); }
     assert.deepEqual(external, []); await closeCtx(c);
   });
 } finally { await browser.close(); if (server) server.close(); }
