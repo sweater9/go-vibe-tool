@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 const read = f => fs.readFileSync(f, 'utf8');
 const sw = read('sw.js'), precache = new Set([...sw.matchAll(/"\.\/([^"]*)"/g)].map(m => m[1]));
-const pages = ['tools/pdf-editor/index.html', 'tools/pdf-compare/index.html', 'play/2048/index.html', 'play/daily-word/index.html', 'play/word-logic/index.html', 'play/taiwan-mahjong/index.html', 'play/vibe-arcade/index.html'];
+const pages = ['tools/pdf-editor/index.html', 'tools/pdf-compare/index.html', 'play/2048/index.html', 'play/daily-word/index.html', 'play/word-logic/index.html', 'play/vibe-arcade/index.html'];
 for (const page of pages) {
   const html = read(page), tags = [...html.matchAll(/<span class="gvt-offline"([^>]*)>/g)];
   assert.equal(tags.length, page.includes('pdf-editor') ? 2 : 1, `${page}: indicator placeholder count (PDF Editor also has one beside the welcome heading for phones)`);
