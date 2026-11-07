@@ -22,8 +22,8 @@
       "v5Suites": ["play-games-browser", "vibe-arcade-browser"]
     },
     "mahjong": {
-      "paths": ["play/mahjong/**", "play/taiwan-mahjong/**", "multiplayer/**", "tests/mahjong-*", "tests/taiwan-mahjong-*", "docs/taiwan-mahjong-*"],
-      "unit": ["test:mahjong", "test:taiwan-mahjong"],
+      "paths": ["play/mahjong/**", "multiplayer/**", "tests/mahjong-*", "docs/mahjong-*"],
+      "unit": ["test:mahjong"],
       "crossBrowser": true,
       "regression": true
     },

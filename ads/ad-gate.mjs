@@ -5,8 +5,7 @@ export const ADS_ENABLED = false;
 export const MAX_PLAY_DIRECTORY_ADS = 1;
 export const EXCLUDED_PREFIXES = Object.freeze([
   '/tools/', '/play/vibe-arcade/', '/play/vibeline/', '/play/2048/',
-  '/play/daily-word/', '/play/daily/', '/play/word-logic/',
-  '/play/taiwan-mahjong/', '/play/mahjong/'
+  '/play/daily-word/', '/play/daily/', '/play/word-logic/', '/play/mahjong/'
 ]);
 
 export function mayRequestAds({ pathname, approved, cmpReady, consentGranted } = {}) {
