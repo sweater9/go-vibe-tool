@@ -51,7 +51,7 @@ export function classify({ files, htmlDiffs = {}, forceFull = false, labels = []
     const v5 = full ? rules.v5Suites.all : (tier === 'docs' ? [] : [...new Set([...rules.v5Suites.always, ...areas.flatMap(a => rules.areas[a].v5Suites || []), ...(extra.homepageTouched ? rules.v5Suites.homepage : [])])]);
     const out = {
       tier, reason, areas: [...hit], full, essentials: true,
-      browsers: crossBrowser ? all : ['chromium'], unit_full: unitFull, unit_scripts: unitScripts.join(','),
+      browsers: crossBrowser ? all : ['chromium'], unit_full: unitFull, unit_scripts: unitScripts.join(' '),
       v5_suites: (tier === 'docs' ? [] : (regression || full || v5.length ? v5 : [])).join(','), v5_maintenance: full,
       run_regression: regression,
     };

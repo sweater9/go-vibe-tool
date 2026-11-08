@@ -249,7 +249,10 @@ function drawOverlay() {
 /* ---------- thumbnails ---------- */
 const srcSig = id => (sources.get(id) || {}).sig || "";
 const thumbKey = p => p.blank ? `blank:${p.view.join(",")}` : `${p.src}:${p.idx}:${totalRot(p)}:${srcSig(p.src)}`;
+let activeThumbObserver = null;
 async function renderThumbs() {
+  activeThumbObserver?.disconnect();
+  activeThumbObserver = null;
   const token = ++thumbToken, list = $("thumbs"), W = 120, dpr = Math.min(window.devicePixelRatio || 1, 2);
   list.replaceChildren();
   state.pages.forEach((p, i) => {
@@ -274,19 +277,53 @@ async function renderThumbs() {
     li.addEventListener("drop", guard(async e => { e.preventDefault(); const id = Number(e.dataTransfer.getData("text/plain")); if (!id || id === p.id) return; const to = state.pages.findIndex(x => x.id === p.id); const from = state.pages.findIndex(x => x.id === id); await commit(() => { state.pages = movePage(state.pages, id, from < to ? to : to); cur = state.pages.findIndex(x => x.id === id); }, { pages: true }); say(`Moved page to position ${cur + 1}.`); }));
   });
   updatePageButtons();
+  // Paint only the selected and visible thumbnails before returning to the editor.
+  // The remaining canvases are rendered on demand as the thumbnail list scrolls.
   const items = [...list.children];
-  for (let i = 0; i < state.pages.length; i++) {
-    if (token !== thumbToken) return;
-    const p = state.pages[i], c = items[i] && items[i].querySelector("canvas"); if (!c) continue;
-    const key = thumbKey(p); let src = thumbCache.get(key);
-    if (!src) {
-      src = document.createElement("canvas"); src.width = c.width; src.height = c.height; const g = src.getContext("2d");
-      if (p.blank) { g.fillStyle = "#fff"; g.fillRect(0, 0, src.width, src.height); }
-      else { const page = await srcOf(p).pdf.getPage(p.idx + 1), base = page.getViewport({ scale: 1, rotation: totalRot(p) }); await page.render({ canvasContext: g, viewport: page.getViewport({ scale: src.width / base.width, rotation: totalRot(p) }) }).promise; }
-      thumbCache.set(key, src);
-    }
-    c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+  let observer;
+  const pending = new Set();
+  const paint = async i => {
+    if (token !== thumbToken || pending.has(i)) return;
+    const p = state.pages[i], c = items[i]?.querySelector("canvas");
+    if (!p || !c || c.dataset.ready === "1") return;
+    pending.add(i);
+    try {
+      const key = thumbKey(p);
+      let src = thumbCache.get(key);
+      if (!src) {
+        src = document.createElement("canvas"); src.width = c.width; src.height = c.height;
+        const g = src.getContext("2d");
+        if (p.blank) { g.fillStyle = "#fff"; g.fillRect(0, 0, src.width, src.height); }
+        else {
+          const page = await srcOf(p).pdf.getPage(p.idx + 1);
+          if (token !== thumbToken) return;
+          const base = page.getViewport({ scale: 1, rotation: totalRot(p) });
+          await page.render({ canvasContext: g, viewport: page.getViewport({ scale: src.width / base.width, rotation: totalRot(p) }) }).promise;
+        }
+        if (token !== thumbToken) return;
+        thumbCache.set(key, src);
+      }
+      if (token !== thumbToken) return;
+      c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+      c.dataset.ready = "1";
+      observer?.unobserve(items[i]);
+    } catch (error) { if (token === thumbToken) console.warn("Thumbnail render failed", error); }
+    finally { pending.delete(i); }
+  };
+  if (typeof IntersectionObserver === "undefined") {
+    // Fallback: render lazily in small batches without blocking the document open.
+    const run = async () => { for (let i = 0; i < items.length && token === thumbToken; i++) { await paint(i); await new Promise(resolve => setTimeout(resolve, 0)); } };
+    void run();
+  } else {
+    observer = new IntersectionObserver(entries => {
+      if (token !== thumbToken) { observer.disconnect(); return; }
+      for (const entry of entries) if (entry.isIntersecting) void paint(items.indexOf(entry.target));
+    }, { root: list, rootMargin: "240px 0px" });
+    activeThumbObserver = observer;
+    items.forEach(li => observer.observe(li));
   }
+  // Render the selected thumbnail first; no full-document thumbnail wait.
+  await paint(cur);
 }
 function markCurrentThumb() { [...$("thumbs").children].forEach((li, i) => { li.classList.toggle("current", i === cur); li.querySelector(".thumb-main").setAttribute("aria-current", i === cur ? "page" : "false"); }); const el = $("thumbs").children[cur]; if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" }); }
 function updatePageButtons() {
