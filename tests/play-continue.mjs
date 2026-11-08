@@ -43,10 +43,11 @@ assert.match(detect(store({ 'vibearcade:v1': prof({ vl: { level: 2 }, tw: { leve
 /* Games that only store stats/settings must never appear */
 assert.deepEqual(ids({ it_play_wordlogic_stats: '{"played":9}', 'gvt.twmj.stats': '{"hands":4}', 'gvt.twmj.settings': '{}' }), [], 'Logic Crypt and Taiwanese Mahjong have no mid-game save');
 
-/* Static markup: the directory starts hidden, and no card hard-codes a Continue button */
+/* Static markup: the Play directory intentionally shows Coming Soon, not game listings or a Continue shelf. */
 const dir = fs.readFileSync(new URL('../play/index.html', import.meta.url), 'utf8');
-assert.match(dir, /<section[^>]*id="continue-playing"[^>]*\shidden/, 'Continue section is hidden until progress is found');
-assert.ok(dir.includes('src="continue.js"'));
+assert.match(dir, /New games are on the way/, 'Play page shows Coming Soon');
+assert.ok(!dir.includes('id="continue-playing"'), 'Play directory no longer shows Continue Playing shelf');
+assert.ok(!dir.includes('src="continue.js"'), 'Play directory does not load unused Continue Playing script');
 assert.ok(!/class="btn[^"]*"[^>]*>\s*Continue/i.test(dir), 'no hard-coded Continue button on any game card');
 const home = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 assert.ok(home.indexOf('play/continue.js') > 0 && home.indexOf('play/continue.js') < home.indexOf('v8-discovery.js'), 'homepage loads continue.js before the shelf');
