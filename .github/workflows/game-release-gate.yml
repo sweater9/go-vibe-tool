@@ -50,11 +50,6 @@ jobs:
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run build
       - run: npm run verify:dist
-      - name: Taiwanese Mahjong engine tests (144-tile accounting, point conservation)
-        if: ${{ matrix.browser == 'chromium' }}
-        run: npm run test:taiwan-mahjong
-      - name: Taiwanese Mahjong gameplay, 301 redirect and offline
-        run: SITE_ROOT=dist node tests/taiwan-mahjong-browser.mjs ${{ matrix.browser }}
       - name: Vibe Arcade gameplay, touch, persistence and offline checks
         if: ${{ hashFiles('tests/vibe-arcade-browser.mjs') != '' }}
         run: SITE_ROOT=dist node tests/vibe-arcade-browser.mjs ${{ matrix.browser }}

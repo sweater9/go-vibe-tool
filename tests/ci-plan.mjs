@@ -36,7 +36,7 @@ assert.equal(p.run_play, true); assert.equal(p.run_pdf, false); assert.equal(p.r
 p = plan(['tools/pdf-editor/editor.js', 'tests/pdf-editor-v2-browser.mjs']); assert.equal(p.tier, 'feature'); assert.deepEqual(p.areas, ['pdf']); assert.equal(p.run_regression, false, 'PDF-only change does not trigger the V8 homepage regression'); assert.equal(p.run_play, false); assert.equal(p.v5_suites, 'dist-browser,v5-browser-smoke'); assert.match(p.unit_scripts, /test:pdf-compare/);
 p = plan(['knowledge/src/x.mjs']); assert.deepEqual(p.browsers, ['chromium'], 'non-cross-browser area runs one engine'); assert.equal(p.run_knowledge, true);
 p = plan(['tools/pdf-compare/diff.mjs', 'play/continue.js']); assert.deepEqual(p.areas.sort(), ['pdf', 'play']); assert.equal(p.run_pdf && p.run_play, true); assert.equal(p.run_labs, false);
-p = plan(['multiplayer/server.mjs']); assert.deepEqual(p.areas, ['mahjong']); assert.match(p.unit_scripts, /test:taiwan-mahjong/);
+p = plan(['multiplayer/server.mjs']); assert.deepEqual(p.areas, ['mahjong']); assert.match(p.unit_scripts, /test:mahjong/);
 p = plan(['docs/x.md', 'play/2048/app.js']); assert.equal(p.tier, 'feature', 'docs alongside code do not lower the tier');
 p = plan(['play/games.css', 'play/2048/app.js']); assert.equal(p.tier, 'feature', 'one real code change makes it a feature change');
 

@@ -34,7 +34,7 @@ await check('shows "Checking offline availability" before the first answer', asy
 });
 await check('games: Ready only once assets are really cached; works offline; eviction downgrades it', async () => {
   const { ctx, page, errs } = await ctxPage(); await installWorker(page);
-  for (const p of ['/play/2048/', '/play/daily-word/', '/play/word-logic/', '/play/taiwan-mahjong/', '/play/vibe-arcade/']) {
+  for (const p of ['/play/2048/', '/play/daily-word/', '/play/word-logic/', '/play/vibe-arcade/']) {
     await page.goto(origin + p); await waitState(page, 'ready'); assert.match(await page.textContent('.gvt-offline'), /Ready offline/, p);
   }
   await page.goto(origin + '/play/2048/'); await waitState(page, 'ready');
