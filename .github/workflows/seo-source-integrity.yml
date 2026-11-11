@@ -1,0 +1,32 @@
+name: SEO Source Integrity
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'sitemap.xml'
+      - 'robots.txt'
+      - 'scripts/check-seo-integrity.mjs'
+      - '.github/workflows/seo-source-integrity.yml'
+      - 'tools/**'
+      - 'play/**'
+      - 'knowledge/**'
+      - 'labs/**'
+      - 'learn/**'
+      - 'index.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sitemap-canonical:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate sitemap, canonicals and robots
+        run: node scripts/check-seo-integrity.mjs
