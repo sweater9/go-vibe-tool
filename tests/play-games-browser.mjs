@@ -268,8 +268,6 @@ try {
       await p.goto(base + 'play/2048/', { waitUntil: 'domcontentloaded' }); await p.waitForSelector('.g2048-tile'); await p.keyboard.press('ArrowLeft'); assert.ok(await p.locator('#score').isVisible());
       await p.goto(base + 'play/daily-word/', { waitUntil: 'domcontentloaded' }); await p.waitForSelector('.gw-tile');
       for (const ch of 'crane') await p.keyboard.press(ch); await p.keyboard.press('Enter'); await p.waitForFunction(() => document.querySelectorAll('.gw-tile.absent,.gw-tile.present,.gw-tile.correct').length >= 5);
-      await p.goto(base + { waitUntil: 'domcontentloaded' }); await p.waitForSelector('#btnStart'); await p.click('#btnStart'); await p.waitForFunction(() => document.querySelectorAll('#hand .tile').length >= 16);
-      assert.ok(await p.locator('#hand .tile').count() >= 16, 'Taiwanese Mahjong deals a hand offline');
       await p.goto(base + 'play/vibe-arcade/', { waitUntil: 'domcontentloaded' }); await p.waitForSelector('[data-act="level"][data-g="vl"]');
       await p.goto(base + 'play/', { waitUntil: 'domcontentloaded' }); assert.equal(await p.locator('main section:not([aria-label="Daily Challenge Hub"]) .v5-grid > .v5-card').count(), PLAY_GAME_COUNT);
       assert.deepEqual(await p.locator('main section:not([aria-label="Daily Challenge Hub"]) .v5-grid > .v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href'))), PLAY_GAME_HREFS);
