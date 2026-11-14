@@ -38,3 +38,13 @@ test('tools directory lists every tool page', () => {
   for (const m of index.matchAll(/href="([a-z0-9-]+\.html)"/g)) assert.ok(existsSync(new URL('../tools/' + m[1], import.meta.url)), m[1]);
   assert.ok(read('sitemap.xml').includes('<loc>https://govibetool.com/tools/</loc>'));
 });
+
+test('hand-written tool pages carry FAQ structured data and link to the directory; homepage links to it too', () => {
+  for (const slug of ['ai-prompt-builder', 'prompt-improver', 'pii-secret-redactor', 'password-generator', 'private-pdf-tools', 'image-compressor', 'invoice-generator', 'curl-token-stripper', 'fact-anchor-checker', 'markdown-text-studio', 'qr-code-studio']) {
+    const html = read(`tools/${slug}.html`);
+    assert.ok(html.includes('"FAQPage"'), slug);
+    assert.ok(html.includes('<a href="./">All tools</a>'), slug);
+    for (const m of html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)) JSON.parse(m[1]);
+  }
+  assert.match(read('index.html'), /<footer>[^]*<a href="tools\/">All tools A–Z<\/a>[^]*<\/footer>/);
+});
