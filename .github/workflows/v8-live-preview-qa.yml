@@ -16,7 +16,7 @@ env:
   TARGET_COMMIT: f6685bff58ae91f835b41963239cda2355c8554c
 jobs:
   inspect-pages:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
       contents: read
@@ -37,7 +37,7 @@ jobs:
           retention-days: 14
 
   snapshot-and-unit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -79,7 +79,7 @@ jobs:
 
   acceptance:
     needs: snapshot-and-unit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false

@@ -12,7 +12,7 @@ permissions:
   contents: read
 jobs:
   dom:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,7 +21,7 @@ jobs:
       - run: npm install --no-save --package-lock=false jsdom@26.1.0
       - run: node --test tests/v8-studios.mjs tests/v8-studios-lifecycle.mjs tests/v8-studio-diagnostics.mjs
   browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     strategy:
       fail-fast: false

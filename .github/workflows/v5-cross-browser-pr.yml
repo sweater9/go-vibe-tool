@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   plan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       plan: ${{ steps.p.outputs.plan }}
@@ -38,7 +38,7 @@ jobs:
   v5-browser:
     needs: plan
     if: ${{ fromJSON(needs.plan.outputs.plan).v5_suites != '' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
