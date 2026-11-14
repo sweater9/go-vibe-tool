@@ -65,7 +65,7 @@ if (!html.includes("GoVibeTool") || html.includes("GoVibeTool.com") || !html.inc
 if (!html.includes("Your Data.<br>Your Browser.<br><em>Your Control.</em>") || !html.includes("Our tools also work without an internet connection, and no account is required.")) failures.push("privacy-first homepage hero is missing or changed");
 if (!html.includes("ca-pub-6129942955275199")) failures.push("AdSense publisher script is missing");
 if (!v2.includes('href="tools/pdf-editor/"') || v2.includes('tools/pdf-studio/')) failures.push("Private PDF Tools must link to the current PDF Editor (tools/pdf-editor/)");
-if (!/<a class="tr tr-play"[^>]*>[\s\S]*?Vibe Arcade[\s\S]*?<\/a>/.test(html)) failures.push("homepage Play tile must mention Vibe Arcade");
+if (!/<a class="tr tr-play"[^>]*>[\s\S]*?Something fun is coming soon[\s\S]*?<\/a>/.test(html)) failures.push("homepage Play tile must describe Coming Soon");
 { const privacy = readFileSync("privacy.html", "utf8"); if (!/Cloudflare Web Analytics/.test(privacy)) failures.push("privacy page must disclose Cloudflare Web Analytics"); }
 if (!html.includes("privacy.html") || !html.includes("terms.html") || !html.includes("contact.html")) failures.push("legal/footer links are missing");
 if (!v2.includes("function redactSensitiveText") || !v2.includes("function sanitizeCurlText") || !v2.includes("function factAnchorCheck")) failures.push("new V2 safety/evidence logic is missing");
