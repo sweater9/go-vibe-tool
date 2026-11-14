@@ -48,3 +48,12 @@ test('hand-written tool pages carry FAQ structured data and link to the director
   }
   assert.match(read('index.html'), /<footer>[^]*<a href="tools\/">All tools A–Z<\/a>[^]*<\/footer>/);
 });
+
+test('About page names the operator, is shipped, in the sitemap and linked from the homepage', () => {
+  const about = read('about.html');
+  for (const marker of ['Who runs this site', 'support@govibetool.com', '"Organization"', 'rel="canonical" href="https://govibetool.com/about.html"', 'Advertising is not enabled today']) assert.ok(about.includes(marker), marker);
+  assert.doesNotMatch(about, /adsbygoogle/);
+  assert.ok(read('scripts/site-manifest.mjs').includes("'about.html'"));
+  assert.ok(read('sitemap.xml').includes('<loc>https://govibetool.com/about.html</loc>'));
+  assert.match(read('index.html'), /<footer>[^]*<a href="about\.html">About GoVibeTool<\/a>[^]*<\/footer>/);
+});

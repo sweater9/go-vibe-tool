@@ -42,8 +42,8 @@ Protected queries (passed before): 221. Regressions among them: 0.
 
 | Engine | p50 | p95 |
 | --- | --- | --- |
-| Before (lexical core) | 4.52 ms | 5.70 ms |
-| After (intelligence layer) | 8.20 ms | 15.50 ms |
+| Before (lexical core) | 4.03 ms | 6.14 ms |
+| After (intelligence layer) | 8.06 ms | 16.22 ms |
 
 ## Queries fixed
 
