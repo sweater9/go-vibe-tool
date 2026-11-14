@@ -38,12 +38,12 @@ Protected queries (passed before): 221. Regressions among them: 0.
 | ambiguous | 24 | 21 | 24 |
 | sequence | 5 | 2 | 5 |
 
-## Latency (Node v22.22.0, warm, single process, 303 queries)
+## Latency (Node v22.23.4, warm, single process, 303 queries)
 
 | Engine | p50 | p95 |
 | --- | --- | --- |
-| Before (lexical core) | 6.04 ms | 8.00 ms |
-| After (intelligence layer) | 12.25 ms | 22.92 ms |
+| Before (lexical core) | 4.20 ms | 6.78 ms |
+| After (intelligence layer) | 8.94 ms | 19.38 ms |
 
 ## Queries fixed
 
