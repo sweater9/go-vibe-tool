@@ -18,7 +18,7 @@ const settled = async (page, ms = 6000) => { await page.waitForFunction(() => { 
 async function ctxPage() { const S = await site(); origin = S.origin; const ctx = await browser.newContext(); ctx.srv = S.d; const page = await ctx.newPage(); page.setDefaultTimeout(30000); const errs = []; page.on('pageerror', e => errs.push(e.message)); return { ctx, page, errs }; }
 async function installWorker(page) {
   await page.goto(origin + '/'); await page.evaluate(() => navigator.serviceWorker.ready);
-  await page.waitForFunction(async () => { const c = await caches.open('govibetool-v8-12'); return (await c.keys()).some(r => r.url.endsWith('/play/2048/app.js')); }, null, { timeout: 60000 });
+  await page.waitForFunction(async () => { const c = await caches.open('govibetool-v8-13'); return (await c.keys()).some(r => r.url.endsWith('/play/2048/app.js')); }, null, { timeout: 60000 });
 }
 
 await check('first visit without a worker is never Ready (Online required)', async () => {
@@ -38,7 +38,7 @@ await check('games: Ready only once assets are really cached; works offline; evi
     await page.goto(origin + p); await waitState(page, 'ready'); assert.match(await page.textContent('.gvt-offline'), /Ready offline/, p);
   }
   await page.goto(origin + '/play/2048/'); await waitState(page, 'ready');
-    await page.evaluate(async () => { const c = await caches.open('govibetool-v8-12'); await c.delete('/play/2048/engine.js', { ignoreSearch: true }); for (const r of await c.keys()) if (r.url.endsWith('/play/2048/engine.js')) await c.delete(r); });
+    await page.evaluate(async () => { const c = await caches.open('govibetool-v8-13'); await c.delete('/play/2048/engine.js', { ignoreSearch: true }); for (const r of await c.keys()) if (r.url.endsWith('/play/2048/engine.js')) await c.delete(r); });
   await page.evaluate(() => window.GVTOffline.check());
   await page.waitForFunction(() => document.querySelector('.gvt-offline').getAttribute('data-state') !== 'ready', null, { timeout: 15000 });
   assert.equal(await label(page), 'online', 'evicted asset must not read Ready');
