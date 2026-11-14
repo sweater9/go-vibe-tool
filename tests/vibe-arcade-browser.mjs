@@ -374,12 +374,12 @@ await check('dark mode + reduced motion render without overflow; contrast tokens
 });
 
 /* =============== 8. Play directory, discovery search, Mahjong =============== */
-await check('Play directory lists Vibe Arcade first and Taiwanese Mahjong last; no four-player Mahjong', async () => {
+await check('Play directory shows Coming Soon with no game listings; Vibe Arcade stays reachable at its own URL', async () => {
   const c = await open({ w: 390 }); const { page } = c; await page.goto(origin + '/play/', { waitUntil: 'networkidle' });
-  const hrefs = await page.locator('main section:not([aria-label="Daily Challenge Hub"]) .v5-grid > .v5-card a.btn').evaluateAll(a => a.map(x => x.getAttribute('href')));
-  assert.deepEqual(hrefs, ['vibe-arcade/', 'word-logic/', '2048/', 'daily-word/', 'taiwan-mahjong/']);
+  assert.match(await page.innerText('main h1'), /coming soon/i);
+  assert.equal(await page.locator('main a[href="vibe-arcade/"], main a[href="taiwan-mahjong/"], main a[href="mahjong/"]').count(), 0);
   assert.ok(!/four-player|multiplayer|friends/i.test(await page.innerText('main'))); assert.equal(await overflow(page), 0);
-  await page.click('a[href="vibe-arcade/"]'); await page.waitForURL(/\/play\/vibe-arcade\/$/); await page.waitForSelector('#hub h1'); assert.equal(await page.textContent('#hub h1'), 'Vibe Arcade'); assert.deepEqual(c.errs, []); await c.ctx.close();
+  await page.goto(origin + '/play/vibe-arcade/', { waitUntil: 'networkidle' }); await page.waitForSelector('#hub h1'); assert.equal(await page.textContent('#hub h1'), 'Vibe Arcade'); assert.deepEqual(c.errs, []); await c.ctx.close();
 });
 
 await check('discovery search finds Vibe Arcade for its game names; mahjong queries unchanged and never reach four-player', async () => {
