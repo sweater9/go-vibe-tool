@@ -46,6 +46,9 @@ assert.deepEqual(ids({ it_play_wordlogic_stats: '{"played":9}', 'gvt.twmj.stats'
 /* Static markup: the Play directory intentionally shows Coming Soon, not game listings or a Continue shelf. */
 const dir = fs.readFileSync(new URL('../play/index.html', import.meta.url), 'utf8');
 assert.match(dir, /New games are on the way/, 'Play page shows Coming Soon');
+assert.ok(dir.indexOf('id="govibemix"') > 0 && dir.indexOf('id="govibemix"') < dir.indexOf('id="coming-soon-title"'), 'GoVibeMix showcase sits above Coming Soon');
+assert.equal((dir.match(/href="https:\/\/govibemix\.com\/[^"]*" target="_blank" rel="noopener"/g) || []).length, 5, 'GoVibeMix links open in a new tab');
+assert.ok(!/<iframe/i.test(dir), 'GoVibeMix is linked, not framed (it sends frame-ancestors none)');
 assert.ok(!dir.includes('id="continue-playing"'), 'Play directory no longer shows Continue Playing shelf');
 assert.ok(!dir.includes('src="continue.js"'), 'Play directory does not load unused Continue Playing script');
 assert.ok(!/class="btn[^"]*"[^>]*>\s*Continue/i.test(dir), 'no hard-coded Continue button on any game card');
