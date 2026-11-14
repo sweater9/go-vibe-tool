@@ -31,7 +31,7 @@ env:
 jobs:
   build:
     name: build + verify dist (commit pinned)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     outputs:
       sha: ${{ steps.pin.outputs.sha }}
@@ -92,7 +92,7 @@ jobs:
   browser:
     name: browser tests (${{ matrix.browser }})
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -137,7 +137,7 @@ jobs:
     name: deploy isolated preview Worker
     needs: [build, browser]
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == true }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     # Create a GitHub Environment named cloudflare-v8-preview, put the two secrets there, and (optionally)
     # add required reviewers so a person approves every deployment.
